@@ -7,7 +7,7 @@ import delivery from "../assets/In no time-cuate.svg";
 import Eco from "../assets/Eco.svg";
 import Mobile from "../assets/mobile1.png";
 import Logo from "../assets/Logo.png";
-
+import Hero from '../components/Hero.jsx'
 const fadeUp = {
   hidden: { opacity: 0, y: 50 },
   show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: "easeOut" } },
@@ -21,7 +21,7 @@ const fadeIn = {
 const Home = () => {
   return (
     <div className="overflow-hidden">
-      <Caraousel />
+      <Hero />
 
       {/* Service Section */}
       <div className="">
@@ -38,7 +38,7 @@ const Home = () => {
     {/* Decorative dots: hidden on very small screens, smaller on small screens */}
     <img
       src={points}
-      alt=""
+      alt="Zusko"
       aria-hidden="true"
       className="hidden sm:block absolute -top-40 sm:-top-10 -left-6 sm:-left-10 w-36 sm:w-56 opacity-90 z-0 pointer-events-none"
       loading="lazy"
