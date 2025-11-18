@@ -76,16 +76,41 @@ const Home = () => {
 
         {/* What's in it for you Section */}
         <motion.div
-          className="text-5xl flex m-15 font-bold p-5 items-center justify-center mt-20"
-          variants={fadeUp}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.3 }}
-        >
-          <span className="relative inline-block pb-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:border-b-4 after:border-[#FFC700] after:w-1/2">
-            What's in it for you
-          </span>
-        </motion.div>
+  className="
+    flex 
+    items-center 
+    justify-center 
+    font-bold 
+    px-4 
+    mt-20
+    text-3xl 
+    sm:text-4xl 
+    md:text-5xl
+  "
+  variants={fadeUp}
+  initial="hidden"
+  whileInView="show"
+  viewport={{ once: true, amount: 0.3 }}
+>
+  <span
+    className="
+      relative 
+      inline-block 
+      pb-1 
+      after:content-[''] 
+      after:absolute 
+      after:bottom-0 
+      after:left-1/2 
+      after:-translate-x-1/2 
+      after:border-b-4 
+      after:border-[#FFC700] 
+      after:w-1/2
+    "
+  >
+    What's in it for you
+  </span>
+</motion.div>
+
 
         <section className="flex flex-col md:flex-row w-full bg-[#F9F2D7] rounded-full z-0 items-center justify-between px-10 py-12 gap-12">
           {/* Feature 1 */}
