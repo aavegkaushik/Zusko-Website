@@ -47,7 +47,7 @@ const Navbar = () => {
             href="#"
             className="py-3 px-6 bg-yellow-400 rounded-tl-2xl rounded-br-2xl text-black font-semibold text-lg flex items-center gap-2"
           >
-            Download Zusko App <FaExternalLinkAlt />
+            Download App <FaExternalLinkAlt />
           </a>
         </div>
 
