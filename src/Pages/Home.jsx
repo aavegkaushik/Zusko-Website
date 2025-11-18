@@ -86,6 +86,7 @@ const Home = () => {
     text-3xl 
     sm:text-4xl 
     md:text-5xl
+    mb-8
   "
   variants={fadeUp}
   initial="hidden"
