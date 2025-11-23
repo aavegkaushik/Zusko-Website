@@ -63,11 +63,11 @@ const Team = () => {
             <a target="_blank" href="https://www.linkedin.com/in/aaveg-kaushik-a97453218/" className="hover:text-[#0047AB] transition">
               <FaLinkedin />
             </a>
-            <a href="#" className="hover:text-[#E1306C] transition">
+            {/* <a href="#" className="hover:text-[#E1306C] transition">
               <FaInstagram />
-            </a>
+            </a> */}
             <a
-              href="mailto:founder@zusko.in"
+              href="mailto:aaveg.kaushik@zusko.in"
               className="hover:text-[#FF3B30] transition"
             >
               <FaEnvelope />
@@ -106,7 +106,7 @@ const Team = () => {
               <FaInstagram />
             </a>
             <a
-              href="mailto:aryan@example.com"
+              href="mailto:shubh.diwakar@zusko.in"
               className="hover:text-[#FF3B30] transition"
             >
               <FaEnvelope />
