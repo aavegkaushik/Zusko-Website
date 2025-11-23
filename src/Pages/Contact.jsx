@@ -219,7 +219,7 @@ export default function ContactSimple() {
             <p className="text-gray-700 text-center">
               <strong>Phone:</strong> +91 63968 64741
               <br />
-              <strong>Email:</strong> support@zusko.in
+              <strong>Email:</strong> info@zusko.in
             </p>
           </motion.div>
         </motion.div>
