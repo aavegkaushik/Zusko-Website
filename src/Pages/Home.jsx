@@ -184,7 +184,7 @@ const Home = () => {
 
         {/* Let's Start Section */}
         <motion.div
-          className="flex text-5xl p-5 ml-36 mt-10 font-extrabold gap-4"
+          className="flex items-start justify-start gap-4 mt-10 px-4 md:pl-36 text-3xl md:text-5xl font-extrabold"
           variants={fadeUp}
           initial="hidden"
           whileInView="show"
@@ -193,6 +193,7 @@ const Home = () => {
           <span>Let's</span>
           <span className="text-yellow-400">Start</span>
         </motion.div>
+
 
         {/* App Download Section */}
         <motion.section

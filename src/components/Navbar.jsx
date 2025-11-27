@@ -3,36 +3,27 @@ import { NavLink, useLocation } from "react-router-dom";
 import { FaExternalLinkAlt, FaBars, FaTimes } from "react-icons/fa";
 
 import Logo from "../assets/Zusko White Logo.png";
-import LogoAlt from "../assets/zusko.png"; // change path or reuse Logo if you don't have alt
+import LogoAlt from "../assets/zusko.png";
 
-const SCROLL_THRESHOLD = 80; // pixels scrolled before switching navbar style
+const SCROLL_THRESHOLD = 80;
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
 
-  // Determine if current path is the home route
   const isHome = location.pathname === "/";
 
-  // Add scroll listener to toggle `scrolled` state
   useEffect(() => {
-    // handler checks scroll position
     const onScroll = () => {
       if (typeof window === "undefined") return;
       setScrolled(window.scrollY > SCROLL_THRESHOLD);
     };
-
-    // Run once to set initial state
     onScroll();
-
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Decide which visual mode to use:
-  // - If on Home AND not scrolled -> use home look
-  // - Otherwise -> use other look
   const useHomeLook = isHome && !scrolled;
 
   const navLinks = [
@@ -42,11 +33,9 @@ const Navbar = () => {
     { path: "/services", label: "Our Services" },
   ];
 
-  // Centralized style definitions so you can tweak classes easily
   const homeStyles = {
     navLinkBase: "text-white",
-    navLinkInactive:
-      "text-white/80 hover:text-white after:border-[#FFC700]",
+    navLinkInactive: "text-white/80 hover:text-white after:border-[#FFC700]",
     navLinkActive:
       "text-white font-bold after:border-[#FFC700] after:-translate-x-1/2 after:w-1/2 after:border-b-2",
     hamburgerColor: "text-white",
@@ -60,8 +49,7 @@ const Navbar = () => {
 
   const otherStyles = {
     navLinkBase: "text-black",
-    navLinkInactive:
-      "text-black hover:text-gray-700 after:border-[#FFC700]",
+    navLinkInactive: "text-black hover:text-gray-700 after:border-[#FFC700]",
     navLinkActive:
       "text-black after:-translate-x-1/2 after:w-1/2 after:border-b-2 font-bold after:border-[#FFC700]",
     hamburgerColor: "text-black",
@@ -69,7 +57,6 @@ const Navbar = () => {
       "py-3 px-6 bg-yellow-400 rounded-tl-2xl rounded-br-2xl text-black font-semibold text-lg flex items-center gap-2",
     mobileMenuBg: "bg-white",
     navBg: "bg-white/95 backdrop-blur-sm shadow-sm",
-    // borderBottom: "border-b",
     logo: LogoAlt,
   };
 
@@ -80,9 +67,9 @@ const Navbar = () => {
       className={`w-full fixed top-0 left-0 z-50 transition-all duration-300 ${styles.navBg} ${styles.borderBottom}`}
       aria-label="Main navigation"
     >
-      <div className="flex justify-between items-center px-6 py-3 md:px-16">
+      <div className="flex justify-between items-center px-4 py-3 md:px-16">
         {/* Logo */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 z-50">
           <NavLink to="/" onClick={() => setMenuOpen(false)}>
             <img
               src={styles.logo}
@@ -136,7 +123,7 @@ const Navbar = () => {
         {/* Mobile Menu Button (hamburger) */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className={`md:hidden text-2xl ${styles.hamburgerColor}`}
+          className={`md:hidden text-2xl ml-4 ${styles.hamburgerColor} z-60`}
           aria-label={menuOpen ? "Close menu" : "Open menu"}
         >
           {menuOpen ? <FaTimes /> : <FaBars />}
@@ -146,7 +133,7 @@ const Navbar = () => {
       {/* Mobile Dropdown Menu */}
       {menuOpen && (
         <div
-          className={`md:hidden ${styles.mobileMenuBg} flex flex-col items-center gap-6 py-6 text-lg font-semibold shadow-md border-t`}
+          className={`md:hidden ${styles.mobileMenuBg} flex flex-col items-center gap-6 py-6 text-lg font-semibold shadow-md border-t z-40`}
         >
           {navLinks.map((link) => (
             <NavLink
@@ -155,11 +142,16 @@ const Navbar = () => {
               onClick={() => setMenuOpen(false)}
               end
               className={({ isActive }) =>
-                `relative inline-block pb-1 transition-all duration-300 ${
+                [
+                  "relative inline-block pb-1 transition-all duration-300",
+                  // use styles.navLinkBase so color matches mobile bg (white on dark, black on light)
+                  styles.navLinkBase,
                   isActive
-                    ? `text-black font-bold after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-1/3 after:border-b-2 after:border-[#FFC700]`
-                    : `text-black hover:text-gray-500`
-                }`
+                    ? // active underline + bold
+                      `font-bold after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-1/3 after:border-b-2 after:border-[#FFC700]`
+                    : // inactive hover state
+                      `${useHomeLook ? "hover:text-white/90" : "hover:text-gray-600"}`,
+                ].join(" ")
               }
             >
               {link.label}

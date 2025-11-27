@@ -1,13 +1,13 @@
 import React from "react";
 import { FaUser, FaCalendarAlt } from "react-icons/fa";
-
+import image1 from '../assets/Blog_image_1.png'
 const blogs = [
   {
     id: 1,
     title: "How Zusko is Redefining Urban Laundry Experience",
     author: "Aaveg Kaushik",
     date: "October 20, 2025",
-    image: "https://images.unsplash.com/photo-1600180758890-6b94519a8ba2?auto=format&fit=crop&w=900&q=60",
+    image: image1,
     description:
       "At Zusko, we are transforming laundry into a seamless digital experience. Discover how technology and sustainability come together to save your time and energy.",
   },
