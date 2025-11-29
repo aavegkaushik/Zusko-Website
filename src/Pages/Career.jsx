@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Briefcase, HeartHandshake, MapPin, Search, Trophy, Users } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import JobModal from "../components/JobModal";
+import CareerBg from "../assets/career.jpg"; // ⭐ Add your background image here
 
 const jobData = [
   {
@@ -86,9 +87,7 @@ const Career = () => {
     e.preventDefault();
     setSearchPerformed(true);
     const result = jobData.filter((job) => {
-      const titleMatch = job.title
-        .toLowerCase()
-        .includes(filters.jobTitle.toLowerCase());
+      const titleMatch = job.title.toLowerCase().includes(filters.jobTitle.toLowerCase());
       const typeMatch = filters.jobType ? job.type === filters.jobType : true;
       const locationMatch = job.location
         .toLowerCase()
@@ -100,74 +99,102 @@ const Career = () => {
 
   return (
     <motion.div
-      className={`mt-20 p-6 md:p-16 text-black`}
+      className={`mt-10 p-6 md:p-16 text-black`}
       variants={pageVariants}
       initial="hidden"
       animate="enter"
     >
-      {/* Header */}
-      <motion.div className="text-center mb-12" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.05 }}>
-        <motion.h1
-          className="text-4xl md:text-5xl font-bold text-yellow-500 mb-2"
-          initial={{ y: -8, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.45 }}
-        >
-          Join Our Team
-        </motion.h1>
-        <motion.p className="text-gray-600 max-w-2xl mx-auto" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.08 }}>
-          Explore exciting opportunities and be a part of Zusko’s journey to redefine laundry service.
-        </motion.p>
-      </motion.div>
+    <motion.div
+      className="relative rounded-2xl overflow-hidden mb-16"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.05 }}
+    >
+      {/* Background Image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: `url(${CareerBg})` }}
+      />
 
-      {/* Search Bar */}
-      <motion.form
-        onSubmit={handleSearch}
-        className="bg-white shadow-lg rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-4"
-        variants={formVariants}
-        initial="hidden"
-        animate="show"
+      {/* Dark overlay for readability */}
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+
+      {/* Content wrapper */}
+      <div className="relative px-6 py-16 md:py-24 max-w-5xl mx-auto text-center">
+
+    {/* Heading */}
+    <motion.h1
+      className="text-4xl md:text-5xl font-bold text-yellow-400 mb-4"
+      initial={{ y: -8, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.45 }}
+    >
+      Join Our Team
+    </motion.h1>
+
+    <motion.p
+      className="text-gray-100 max-w-2xl mx-auto mb-10"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.08 }}
+    >
+      Explore exciting opportunities and be a part of Zusko’s journey to redefine laundry service.
+    </motion.p>
+
+    {/* Search Form inside Background */}
+    <motion.form
+      onSubmit={handleSearch}
+      className="bg-white/90 backdrop-blur-lg shadow-xl rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-4"
+      variants={formVariants}
+      initial="hidden"
+      animate="show"
+    >
+      <motion.input
+        type="text"
+        name="jobTitle"
+        value={filters.jobTitle}
+        onChange={handleChange}
+        placeholder="Job title (e.g. Manager)"
+        className="w-full md:w-1/4 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-yellow-400 outline-none"
+        whileFocus={{ scale: 1.01 }}
+      />
+
+      <motion.select
+        name="jobType"
+        value={filters.jobType}
+        onChange={handleChange}
+        className="w-full md:w-1/4 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-yellow-400 outline-none"
+        whileFocus={{ scale: 1.01 }}
       >
-        <motion.input
-          type="text"
-          name="jobTitle"
-          value={filters.jobTitle}
-          onChange={handleChange}
-          placeholder="Job title (e.g. Manager)"
-          className="w-full md:w-1/4 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-yellow-400 outline-none"
-          whileFocus={{ scale: 1.01 }}
-        />
-        <motion.select
-          name="jobType"
-          value={filters.jobType}
-          onChange={handleChange}
-          className="w-full md:w-1/4 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-yellow-400 outline-none"
-          whileFocus={{ scale: 1.01 }}
-        >
-          <option value="">Select job type</option>
-          <option value="Full-time">Full-time</option>
-          <option value="Part-time">Part-time</option>
-          <option value="Internship">Internship</option>
-        </motion.select>
-        <motion.input
-          type="text"
-          name="location"
-          value={filters.location}
-          onChange={handleChange}
-          placeholder="Location (e.g. Delhi)"
-          className="w-full md:w-1/4 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-yellow-400 outline-none"
-          whileFocus={{ scale: 1.01 }}
-        />
-        <motion.button
-          type="submit"
-          className="flex items-center gap-2 w-full md:w-auto bg-yellow-400 hover:bg-yellow-500 text-black font-semibold rounded-lg py-3 px-6 transition-all"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <Search size={18} />
-          Search
-        </motion.button>
-      </motion.form>
+        <option value="">Select job type</option>
+        <option value="Full-time">Full-time</option>
+        <option value="Part-time">Part-time</option>
+        <option value="Internship">Internship</option>
+      </motion.select>
+
+      <motion.input
+        type="text"
+        name="location"
+        value={filters.location}
+        onChange={handleChange}
+        placeholder="Location (e.g. Delhi)"
+        className="w-full md:w-1/4 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-yellow-400 outline-none"
+        whileFocus={{ scale: 1.01 }}
+      />
+
+      <motion.button
+        type="submit"
+        className="flex items-center gap-2 w-full md:w-auto bg-yellow-400 hover:bg-yellow-500 text-black font-semibold rounded-lg py-3 px-6 transition-all"
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+      >
+        <Search size={18} />
+        Search
+      </motion.button>
+    </motion.form>
+  </div>
+</motion.div>
+
 
       {/* Results */}
       <div className="mt-12 mb-56">
@@ -279,7 +306,7 @@ const Career = () => {
         </motion.div>
       </section>
 
-      {/* Popup Modal (animated wrapper) */}
+      {/* Popup Modal */}
       <AnimatePresence>
         {selectedJob && (
           <motion.div
