@@ -122,7 +122,7 @@ export default function Hero({
               Get started
             </a>
 
-            <a href="#learn" className="px-4 py-3 rounded-full bg-yellow-400 text-black font-medium">
+            <a href="/about" className="px-4 py-3 rounded-full bg-yellow-400 text-black font-medium">
               Learn more
             </a>
           </motion.div>

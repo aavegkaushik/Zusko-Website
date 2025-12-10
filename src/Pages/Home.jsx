@@ -201,6 +201,7 @@ const Home = () => {
           variants={fadeIn}
           initial="hidden"
           whileInView="show"
+          id="get-started"
           viewport={{ once: true, amount: 0.3 }}
         >
           {/* Left Content */}
