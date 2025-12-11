@@ -365,7 +365,7 @@ export default function PartnerWithUs() {
                   <button type="submit" className="inline-flex items-center justify-center rounded-lg bg-black px-5 py-2 text-yellow-400 font-semibold shadow hover:opacity-95">
                     Send request
                   </button>
-                  {sent && <span className="text-sm text-black">Request sent! We'll contact you soon.</span>}
+                  {sent && <span className="text-sm text-green-400">Request sent! We'll contact you soon.</span>}
                 </div>
 
                 <p className="text-xs text-gray-500">By submitting you agree to receive communications from Zusko regarding partnership & onboarding.</p>
@@ -373,8 +373,6 @@ export default function PartnerWithUs() {
             </div>
           </div>
         </section>
-
-        <footer className="mt-12 text-center text-sm text-gray-500">© {new Date().getFullYear()} Zusko — Partner network</footer>
       </div>
     </div>
   );
