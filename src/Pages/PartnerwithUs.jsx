@@ -1,38 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { motion, useAnimation, useInView,  } from "framer-motion";
+import React, { useState } from "react";
+import { motion } from "framer-motion";
 
 // PartnerWithUs.jsx
 // Tailwind + Framer Motion single-file page for Zusko
 // Theme: yellow, black, white
-
-function useSectionAnimation(opts = { once: true, rootMargin: "-80px 0px -10px 0px" }) {
-  const ref = useRef(null);
-  const controls = useAnimation();
-  const inView = useInView(ref, { once: opts.once, margin: opts.rootMargin });
-
-  useEffect(() => {
-    if (inView) controls.start("visible");
-    else if (!opts.once) controls.start("hidden");
-  }, [inView, controls, opts.once]);
-
-  return [ref, controls];
-}
-
-/* Nice common variants */
-const sectionVariants = {
-  hidden: { opacity: 0, y: 24, scale: 0.995 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.55, ease: [0.2, 0.8, 0.2, 1] },
-  },
-};
-
-const staggerContainer = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.08 } },
-};
 
 export default function PartnerWithUs() {
   const [form, setForm] = useState({ name: "", business: "", phone: "", email: "", message: "" });
@@ -52,26 +23,6 @@ export default function PartnerWithUs() {
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) e.email = "Please enter a valid email.";
     return e;
   }
-
-  useEffect(() => {
-  const scrollToHash = () => {
-    const id = window.location.hash?.slice(1);
-    if (!id) return;
-    const el = document.getElementById(id);
-    if (!el) return;
-    // smooth scroll to the section; offset can be adjusted if you have sticky header
-    el.scrollIntoView({ behavior: "smooth", block: "start" });
-    // no need to manually start controls; useInView will detect once scroll completes
-  };
-
-  // scroll on first load (if user arrived with a hash)
-  setTimeout(scrollToHash, 60); // slight delay helps in some SPA setups
-
-  // listen for later hash changes (links)
-  window.addEventListener("hashchange", scrollToHash);
-  return () => window.removeEventListener("hashchange", scrollToHash);
-}, []);
-
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -149,24 +100,50 @@ export default function PartnerWithUs() {
         {/* WHY */}
         <motion.section initial="hidden" whileInView="visible" viewport={{ once: true }} variants={container} className="mt-12">
           <motion.h2 variants={rise} className="text-2xl font-bold">Why choose Zusko?</motion.h2>
-          <motion.p variants={rise} className="mt-3 text-gray-700 max-w-3xl">
-            Zusko helps laundromats scale with demand and predictable revenue — no marketing spend, no complex tech to
-            manage. We bring customers, you deliver exceptional laundry service.
-          </motion.p>
+  <motion.p variants={rise} className="mt-3 text-gray-700 max-w-3xl">
+    Zusko helps laundromats scale with demand and predictable revenue — no marketing spend, no complex tech to
+    manage. We bring customers, you deliver exceptional laundry service.
+  </motion.p>
 
-          <motion.div variants={container} className="mt-8 grid sm:grid-cols-3 gap-6">
-            {[
-              { title: "More orders", desc: "Recurring customers via app & scheduled pickups." },
-              { title: "Transparent payouts", desc: "Weekly settlements and clear fee breakdowns." },
-              { title: "Local marketing", desc: "Co-branded campaigns to increase your visibility." },
-            ].map((c, i) => (
-              <motion.div key={i} variants={rise} className="bg-yellow-50 border border-yellow-100 p-5 rounded-xl">
-                <p className="font-semibold">{c.title}</p>
-                <p className="text-sm text-gray-700 mt-2">{c.desc}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </motion.section>
+  <motion.div variants={container} className="mt-8 grid sm:grid-cols-3 gap-6">
+    {[
+      { 
+        title: "More orders", 
+        desc: "Recurring customers via app & scheduled pickups.",
+        icon: (
+          <svg className="w-10 h-10 text-yellow-500" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 12s3-6 9-6 9 6 9 6-3 6-9 6-9-6-9-6z" />
+          </svg>
+        )
+      },
+      { 
+        title: "Transparent payouts", 
+        desc: "Weekly settlements and clear fee breakdowns.",
+        icon: (
+          <svg className="w-10 h-10 text-yellow-500" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2" />
+          </svg>
+        )
+      },
+      { 
+        title: "Local marketing", 
+        desc: "Co-branded campaigns to increase your visibility.",
+        icon: (
+          <svg className="w-10 h-10 text-yellow-500" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        )
+      },
+    ].map((c, i) => (
+      <motion.div key={i} variants={rise} className="bg-yellow-50 border border-yellow-100 p-5 rounded-xl flex flex-col items-start gap-3">
+        <div>{c.icon}</div>
+        <p className="font-semibold text-black text-lg">{c.title}</p>
+        <p className="text-sm text-gray-700">{c.desc}</p>
+      </motion.div>
+    ))}
+  </motion.div>
+</motion.section>
 
         {/* BENEFITS */}
         <section id="benefits" className="mt-12">
