@@ -25,7 +25,7 @@ const Footer = () => {
           <h4 className="text-md text-black font-bold uppercase mb-4">Contact</h4>
           <ul className="space-y-2 text-sm">
             <li><Link to={'/help'} className="hover:text-[#A6A6A6] transition">Help & Support</Link></li>
-            <li><a href="#" className="hover:text-[#A6A6A6] transition">Partner with us</a></li>
+            <li><a href="/partnerwithus" className="hover:text-[#A6A6A6] transition">Partner with us</a></li>
             {/* <li><a href="#" className="hover:text-[#A6A6A6] transition">Ride with us</a></li> */}
             <li><Link to={"/for-business"} className="hover:text-[#A6A6A6] transition">For Businesses</Link></li>
           </ul>
