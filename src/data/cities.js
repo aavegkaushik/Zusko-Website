@@ -2,7 +2,7 @@ const cities = {
     jhansi: {
     name: "Jhansi",
     areas: ["Civil Lines", "Sadar Bazar", "Medical College", "Koccha Bhanwar"],
-    services: ["Wash & Fold", "Dry Cleaning", "Ironing"],
+    services: ["Wash & Fold", "Dry Cleaning", "Wash & Iron", "Steam Ironing", "Commercial Laundry"],
     deliveryTime: "24–48 Hours",
     operational: true,
   },

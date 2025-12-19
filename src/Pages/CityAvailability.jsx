@@ -1,8 +1,12 @@
 import { useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shirt, Sparkles, Truck, MapPin, Navigation  } from "lucide-react";
+import { Shirt, Sparkles, Truck, MapPin, Navigation, Clock, Zap } from "lucide-react";
+import {FaBuilding} from 'react-icons/fa'
+import { TbIroningSteamFilled, TbIroningFilled } from "react-icons/tb";
 import cities from "../data/cities";
 import cityBg from '../assets/city.jpg'
+import CityComingSoon from "./CityComingSoon";
+
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
   visible: { opacity: 1, y: 0 },
@@ -46,27 +50,49 @@ const card = {
   },
 };
 
+const deliveryCard = {
+  hidden: { opacity: 0, y: 30, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.5, ease: "easeOut" },
+  },
+};
+
+
 //Service Name with Icons
 const serviceIcons = {
   "Wash & Fold": Shirt,
   "Dry Cleaning": Sparkles,
-  // "Ironing": ,
+  "Wash & Iron": TbIroningFilled,
   "Pickup & Delivery": Truck,
+  "Steam Ironing": TbIroningSteamFilled,
+  "Commercial Laundry": FaBuilding,
 };
 
 export default function CityAvailability() {
   const { city } = useParams();
-  const cityData = cities[city];
+  const cityKey = city?.toLowerCase();
+  const cityData = cities[cityKey];
 
   if (!cityData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <h2 className="text-2xl font-semibold">City not found</h2>
+        <h2 className="text-xl font-semibold">
+          City not found
+        </h2>
       </div>
     );
   }
 
+  if (cityData.operational === false) {
+    return <CityComingSoon cityName={cityData.name} />;
+  }
+
   document.title = `Laundry Service in ${cityData.name} | Zusko`;
+
+
 
   return (
     <section className="bg-white min-h-screen mt-20">
@@ -152,8 +178,7 @@ export default function CityAvailability() {
           variants={card}
           whileHover={{ y: -6, scale: 1.03 }}
           transition={{ type: "spring", stiffness: 300 }}
-          className="group border border-gray-200 rounded-xl p-6 bg-white 
-                     hover:border-yellow-400 hover:shadow-lg transition-all"
+          className="group border border-gray-200 rounded-xl p-6 bg-white hover:border-yellow-400 hover:shadow-lg transition-all"
         >
           {/* Icon */}
           <div className="w-12 h-12 rounded-lg bg-yellow-100 flex items-center justify-center
@@ -233,26 +258,60 @@ export default function CityAvailability() {
       </motion.div>
     ))}
   </div>
+  <p className="mt-8 text-sm text-gray-600 text-center">
+  Don’t see your area?{" "}
+  <span className="text-yellow-500 font-medium cursor-pointer">
+    <a href="mailto:info@zusko.in"></a>Request service
+  </span>
+</p>
 </motion.div>
+
+
 
         )}
 
         {/* DELIVERY */}
         {cityData.deliveryTime && (
           <motion.div
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="bg-black text-white p-8 rounded-xl"
-          >
-            <h3 className="text-xl font-semibold">
-              ⏱ Delivery Time
-            </h3>
-            <p className="mt-2 text-yellow-400 text-lg">
-              {cityData.deliveryTime}
-            </p>
-          </motion.div>
+  variants={deliveryCard}
+  initial="hidden"
+  whileInView="visible"
+  viewport={{ once: true }}
+  whileHover={{ scale: 1.03 }}
+  transition={{ type: "spring", stiffness: 200 }}
+  className="relative overflow-hidden bg-black text-white p-8 rounded-2xl"
+>
+  {/* Accent Glow */}
+  <div className="absolute inset-0 gradient-to-br from-yellow-400/10 via-transparent to-transparent" />
+{cityData.deliveryTime.includes("24") && (
+  <span className="text-green-400 text-sm">⚡ Express Available</span>
+)}
+
+
+  <div className="relative z-10 mt-5 flex items-start gap-4">
+    {/* Icon */}
+    <div className="w-12 h-12 rounded-xl bg-yellow-400 flex items-center justify-center">
+      <Clock className="w-6 h-6 text-black" />
+    </div>
+
+    {/* Content */}
+    <div>
+      <h3 className="text-xl font-semibold flex items-center gap-2">
+        Delivery Time
+        <Zap className="w-4 h-4 text-yellow-400 animate-pulse" />
+      </h3>
+
+      <p className="mt-2 text-yellow-400 text-2xl font-bold">
+        {cityData.deliveryTime}
+      </p>
+
+      <p className="mt-1 text-sm text-gray-400">
+        Fast & reliable turnaround with quality assurance.
+      </p>
+    </div>
+  </div>
+</motion.div>
+
         )}
 
         {/* CTA */}
@@ -273,4 +332,4 @@ export default function CityAvailability() {
       </div>
     </section>
   );
-}
+  }
