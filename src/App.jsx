@@ -18,6 +18,7 @@ import JobDetails from "./Pages/JobDetails.jsx"
 import ForBusiness from "./Pages/ForBusiness.jsx"
 import Blog from "./Pages/Blog.jsx"
 import PartnerWithUs from "./Pages/PartnerwithUs.jsx"
+import CityAvailability from "./Pages/CityAvailability.jsx"
 const App = () => {
   return (
     <div>
@@ -40,6 +41,7 @@ const App = () => {
           <Route path="/for-business" Component={ForBusiness} />
           <Route path="/cookie-policy" Component={CookiePolicy} />
           <Route path="/partnerwithus" Component={PartnerWithUs} />
+          <Route path="/available/:city" element={<CityAvailability />} />
           <Route path="*" Component={PageNotFound} />
         </Routes>
         <Footer/>
