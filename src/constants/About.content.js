@@ -1,4 +1,5 @@
 import image1 from '../assets/Who_we_are.png'
+import image2 from '../assets/mission.png'
 export const content = [
     {
       title: "Who We Are",
@@ -8,7 +9,7 @@ export const content = [
     {
       title: "Our Mission",
       text: `Our mission is simple — to make laundry stress-free and reliable for everyone. We understand that in today’s busy world, your time is valuable. That’s why we handle your laundry with the same care and precision as you would, giving you more time for what truly matters.`,
-      img: "https://images.unsplash.com/photo-1618354691373-d851c5c5c3b1?auto=format&fit=crop&w=900&q=60",
+      img: image2,
     },
     {
       title: "Our Vision",

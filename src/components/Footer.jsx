@@ -37,9 +37,6 @@ const Footer = () => {
           <ul className="space-y-2 text-sm">
             <li><Link to={'/available/jhansi'} className="hover:text-[#A6A6A6] transition">Jhansi</Link></li>
             {/* <li><Link to={'/available/delhi'} className="hover:text-[#A6A6A6] transition">Delhi</Link></li> */}
-            {/* <li><a href="#" className="hover:text-[#A6A6A6] transition">Partner with us</a></li>
-            {/* <li><a href="#" className="hover:text-[#A6A6A6] transition">Ride with us</a></li> */}
-            {/* <li><Link to={"/for-business"} className="hover:text-[#A6A6A6] transition">For Businesses</Link></li> */}
           </ul>
         </div>
 
