@@ -6,36 +6,36 @@ import JobModal from "../components/JobModal";
 import CareerBg from "../assets/career.jpg"; // ⭐ Add your background image here
 
 const jobData = [
-  {
-    id: "SW101",
-    title: "Laundry Manager",
-    type: "Full-time",
-    location: "Delhi",
-    description:
-      "Oversee daily laundry operations, manage staff, and ensure quality standards.",
-    qualification:
-      "Bachelor’s degree or equivalent experience in operations or hospitality.",
-  },
-  {
-    id: "SW102",
-    title: "Delivery Executive",
-    type: "Part-time",
-    location: "Lucknow",
-    description:
-      "Responsible for timely pickup and delivery of clothes with excellent customer interaction.",
-    qualification:
-      "Valid driver’s license, knowledge of local routes, and good communication skills.",
-  },
-  {
-    id: "SW103",
-    title: "Customer Support Executive",
-    type: "Full-time",
-    location: "Jhansi",
-    description:
-      "Handle customer queries, coordinate orders, and provide smooth service experience.",
-    qualification:
-      "Excellent communication skills, proficiency in English/Hindi, and basic computer knowledge.",
-  },
+  // {
+  //   id: "SW101",
+  //   title: "Laundry Manager",
+  //   type: "Full-time",
+  //   location: "Delhi",
+  //   description:
+  //     "Oversee daily laundry operations, manage staff, and ensure quality standards.",
+  //   qualification:
+  //     "Bachelor’s degree or equivalent experience in operations or hospitality.",
+  // },
+  // {
+  //   id: "SW102",
+  //   title: "Delivery Executive",
+  //   type: "Part-time",
+  //   location: "Lucknow",
+  //   description:
+  //     "Responsible for timely pickup and delivery of clothes with excellent customer interaction.",
+  //   qualification:
+  //     "Valid driver’s license, knowledge of local routes, and good communication skills.",
+  // },
+  // {
+  //   id: "SW103",
+  //   title: "Customer Support Executive",
+  //   type: "Full-time",
+  //   location: "Jhansi",
+  //   description:
+  //     "Handle customer queries, coordinate orders, and provide smooth service experience.",
+  //   qualification:
+  //     "Excellent communication skills, proficiency in English/Hindi, and basic computer knowledge.",
+  // },
 ];
 
 const pageVariants = {
@@ -345,6 +345,18 @@ const Career = () => {
       </motion.div>
 
       {/* Results */}
+      {
+        jobData.length == 0 && (
+          <motion.p
+            className="text-center text-5xl text-gray-600 mt-16"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.45 }}
+          >
+            No Jobs are available right now.
+          </motion.p>
+        )
+      }
       <div className="mt-12 mb-56">
         {searchPerformed && filteredJobs.length === 0 ? (
           <motion.p
