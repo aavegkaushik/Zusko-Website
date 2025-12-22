@@ -23,7 +23,7 @@ const About = () => {
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
-            className="md:w-3/12"
+            className="md:w-4/12"
           >
             <img
               src={section.img}
@@ -40,7 +40,7 @@ const About = () => {
             viewport={{ once: true }}
             className="md:w-1/2 space-y-4"
           >
-            <h2 className="text-3xl font-bold text-black">{section.title}</h2>
+            <strong><h2 className="text-3xl font-bold text-black">{section.title}</h2></strong>
             <p className="text-gray-700 leading-relaxed whitespace-pre-line">
               {section.text}
             </p>

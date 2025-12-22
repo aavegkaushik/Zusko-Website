@@ -1,5 +1,9 @@
-import image1 from '../assets/Who_we_are.png'
+import image1 from '../assets/who_we_are2.png'
 import image2 from '../assets/mission.png'
+import image3 from '../assets/vision.png'
+import image4 from '../assets/offer.png'
+import image5 from '../assets/why.png'
+import image6 from '../assets/hygiene.png'
 export const content = [
     {
       title: "Who We Are",
@@ -14,7 +18,7 @@ export const content = [
     {
       title: "Our Vision",
       text: `We aim to revolutionize the laundry experience by blending convenience, quality, and sustainability. Our vision is to become your go-to laundry companion — one that saves time, cares for your fabrics, and contributes to a cleaner, greener planet.`,
-      img: "https://images.unsplash.com/photo-1581579185169-5cda0b5a8b87?auto=format&fit=crop&w=900&q=60",
+      img: image3,
     },
     {
       title: "What We Offer",
@@ -24,7 +28,7 @@ export const content = [
       • Dry Cleaning – Gentle care for delicate fabrics.
       • Pickup & Delivery – Fast, on-time doorstep service.
       • Express Service – Get your clothes ready in record time.`,
-      img: "https://images.unsplash.com/photo-1603791452906-b8bf4a7ccf70?auto=format&fit=crop&w=900&q=60",
+      img: image4,
     },
     {
       title: "Why Choose Us",
@@ -33,11 +37,11 @@ export const content = [
       Eco-Friendly Cleaning – We use biodegradable detergents.
       Digital Tracking – Stay updated on every step of your order.
       Hygienic Wash Guarantee – 100% sanitized and contactless handling.`,
-      img: "https://images.unsplash.com/photo-1590080875830-943b3f8d2c2c?auto=format&fit=crop&w=900&q=60",
+      img: image5,
     },
     {
       title: "Sustainability & Hygiene",
       text: `We believe in being clean — both in clothes and in conscience. Our eco-friendly process includes biodegradable detergents, optimized water usage, and sanitized washing cycles, ensuring a healthier planet and safer clothes.`,
-      img: "https://images.unsplash.com/photo-1607082349566-187342175e2f?auto=format&fit=crop&w=900&q=60",
+      img: image6,
     },
   ];
