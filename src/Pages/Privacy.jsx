@@ -180,7 +180,7 @@ const PrivacyPolicy = () => {
           </p>
           <ul className="mt-2 space-y-1">
             <li>
-              <strong>Email:</strong> support@zusko.in
+              <strong>Email:</strong> info@zusko.in
             </li>
             <li>
               <strong>Phone:</strong> +91 63968 64741

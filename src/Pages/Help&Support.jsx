@@ -129,10 +129,10 @@ const HelpSupport = () => {
         </p>
         <div className="flex flex-col md:flex-row justify-center items-center gap-5">
           <a
-            href="mailto:support@zusko.in"
+            href="mailto:info@zusko.in"
             className="flex items-center gap-2 bg-[#FFC700] text-black px-6 py-3 rounded-full font-medium hover:bg-[#e6b800] transition"
           >
-            <FaEnvelope /> support@zusko.in
+            <FaEnvelope /> info@zusko.in
           </a>
           <a
             href="tel:+919876543210"
