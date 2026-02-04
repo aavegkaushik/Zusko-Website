@@ -1,155 +1,182 @@
 "use client";
-import { motion } from "framer-motion";
-import delivery from '../assets/delivery.png'
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
+import delivery from "../assets/delivery.png";
 import { TbIroningSteamFilled, TbIroningFilled } from "react-icons/tb";
 import { FaTshirt, FaSoap, FaTruck, FaBuilding } from "react-icons/fa";
-import steamIron from '../assets/steam_ironing.png'
-import dryclean from '../assets/dryclean.png'
-import washiron from '../assets/washiron.png'
-import washfold from '../assets/washfold.png'
+import steamIron from "../assets/steam_ironing.png";
+import dryclean from "../assets/dryclean.png";
+import washiron from "../assets/washiron.png";
+import washfold from "../assets/washfold.png";
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 50 },
-  visible: (delay = 0) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, delay },
-  }),
-};
+/* ---------------------------------- */
 
 const services = [
   {
     title: "Wash & Fold",
-    desc: "Simplify your daily routine with our Wash & Fold service. We carefully sort, wash, dry, and neatly fold your clothes — just the way you like them. Perfect for everyday wear, this service saves your time and ensures your garments stay fresh, clean, and ready to wear. Enjoy crisp laundry without the hassle of doing it yourself!",
-    icon: <FaTshirt size={40} className="text-yellow-500" />,
+    desc: "Simplify your daily routine with our Wash & Fold service. We carefully sort, wash, dry, and neatly fold your clothes — just the way you like them.",
+    icon: FaTshirt,
     image: washfold,
   },
   {
     title: "Dry Cleaning",
-    desc: "For delicate fabrics that need special attention, our Dry Cleaning service uses advanced solvent-based techniques to gently remove stains and dirt while preserving fabric integrity and color. Perfect for suits, sarees, coats, and designer wear.",
-    icon: <FaSoap size={40} className="text-yellow-500" />,
+    desc: "Advanced solvent-based techniques to gently clean delicate fabrics while preserving quality and color.",
+    icon: FaSoap,
     image: dryclean,
   },
   {
     title: "Wash & Iron",
-    desc: "The best of both worlds — our Wash & Iron service ensures your clothes are thoroughly cleaned and pressed to perfection. Ideal for formal and everyday wear, it’s a complete solution that keeps your wardrobe fresh, neat, and presentation-ready.",
-    icon: <TbIroningFilled size={40} className="text-yellow-500" />,
+    desc: "A complete solution that cleans and presses your clothes to perfection — ideal for daily and formal wear.",
+    icon: TbIroningFilled,
     image: washiron,
   },
   {
-    title: "Steam ironing",
-    desc: "Give your clothes the professional finish they deserve with our Steam Iron service. Using high-quality steam ironing equipment, we remove even the toughest wrinkles while preserving fabric quality and color. From casual wear to formal outfits, every piece is pressed to perfection — fresh, smooth, and ready to impress.",
-    icon: <TbIroningSteamFilled size={40} className="text-yellow-500" />,
+    title: "Steam Ironing",
+    desc: "Professional steam ironing that removes tough wrinkles while protecting fabric integrity.",
+    icon: TbIroningSteamFilled,
     image: steamIron,
   },
   {
     title: "Pickup & Delivery",
-    desc: "Doorstep laundry service with on-time pickup and delivery – convenience at your fingertips.",
-    icon: <FaTruck size={40} className="text-yellow-500" />,
+    desc: "On-time doorstep pickup and delivery — convenience built into every order.",
+    icon: FaTruck,
     image: delivery,
   },
   {
     title: "Commercial Laundry",
-    desc: "Our Commercial Laundry Service caters to hotels, restaurants, hospitals, and businesses that demand bulk laundry with professional quality. We handle large volumes efficiently while maintaining hygiene, freshness, and timely delivery.",
-    icon: <FaBuilding size={40} className="text-yellow-500" />,
+    desc: "Bulk laundry solutions for hotels, hospitals, and businesses with professional-grade hygiene.",
+    icon: FaBuilding,
     image: "https://i.pinimg.com/1200x/ff/c4/d0/ffc4d061a4ffc26ff802187c03cbe310.jpg",
   },
 ];
 
+/* ---------------------------------- */
+
 const Services = () => {
   return (
-    <div className="mt-28 px-6 md:px-20 overflow-hidden">
-      {/* Hero Section */}
+    <section className="relative mt-32 px-6 md:px-20 bg-white overflow-hidden">
+      {/* Hero */}
       <motion.div
-        initial="hidden"
-        whileInView="visible"
-        variants={fadeUp}
-        className="text-center mb-16"
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        viewport={{ once: true }}
+        className="text-center max-w-3xl mx-auto mb-32"
       >
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-800">
-          Our Laundry Services
+        <span className="text-xs uppercase tracking-[0.35em] text-gray-500">
+          Our Services
+        </span>
+        <h1 className="text-[clamp(2.5rem,4vw,3.5rem)] font-semibold tracking-tight mt-4 text-gray-900">
+          Premium Laundry Care, Redefined
         </h1>
-        <p className="text-lg md:text-xl text-gray-600 mt-3">
-          Fresh, clean, and neatly folded – for homes and businesses alike!
+        <p className="mt-6 text-lg text-gray-600">
+          Thoughtfully designed services for individuals, families, and businesses.
         </p>
       </motion.div>
 
-      {/* Services List */}
+      {/* Services */}
       <div className="space-y-56">
         {services.map((service, index) => (
-          <motion.div
-            key={index}
-            className={`flex flex-col md:flex-row ${
-              index % 2 === 1 ? "md:flex-row-reverse" : ""
-            } items-center gap-10 md:gap-14`}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            custom={index * 0.2}
-            variants={fadeUp}
-          >
-            {/* Image */}
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              transition={{ duration: 0.25 }}
-              className="md:w-5/12 rounded-3xl shadow-2xl ring-1 ring-gray-200 overflow-hidden flex justify-center items-center"
-            >
-              <img
-                src={service.image}
-                alt={service.title}
-                className="w-full max-h-[400px] object-cover rounded-2xl"
-                loading="lazy"
-              />
-            </motion.div>
-
-            {/* Text */}
-            <div className="md:w-1/2 text-center md:text-left">
-              <div className="flex justify-center md:justify-start mb-4">
-                {service.icon}
-              </div>
-              <h2 className="text-3xl font-bold mb-3 text-gray-800">
-                {service.title}
-              </h2>
-              <p className="text-gray-600 mb-5 leading-relaxed text-xl">
-                {service.desc}
-              </p>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="bg-yellow-400 hover:bg-yellow-500 text-black font-medium cursor-pointer py-2 px-6 rounded-tl-xl rounded-br-xl"
-              >
-                Learn More
-              </motion.button>
-            </div>
-          </motion.div>
+          <ServiceBlock key={index} service={service} index={index} />
         ))}
       </div>
 
-      {/* CTA Section */}
+      {/* CTA */}
       <motion.div
-        initial="hidden"
-        whileInView="visible"
-        variants={fadeUp}
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
         viewport={{ once: true }}
-        className="text-center mt-24 bg-yellow-400 py-12 rounded-3xl shadow-xl"
+        className="relative mt-40 rounded-3xl bg-yellow-400 p-14 text-center shadow-2xl"
       >
-        <h2 className="text-3xl font-bold text-gray-800 mb-3">
+        <h2 className="text-3xl font-semibold text-black mb-4">
           Ready for spotless clothes?
         </h2>
-        <p className="text-gray-700 mb-6 max-w-2xl mx-auto">
-          Whether it’s your daily wear or your company’s linen stock, we handle laundry
-          with care, quality, and commitment. Book your first wash today!
+        <p className="text-black/80 max-w-2xl mx-auto mb-8">
+          From daily wear to commercial linen — we deliver care, quality, and consistency.
         </p>
         <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          className="bg-black cursor-pointer text-white font-semibold py-3 px-8 rounded-tl-xl rounded-br-xl"
+          whileHover={{ y: -2 }}
+          whileTap={{ scale: 0.96 }}
+          className="bg-black text-white px-10 py-4 font-semibold rounded-tl-xl rounded-br-xl"
         >
           Book Now
         </motion.button>
       </motion.div>
-    </div>
+    </section>
   );
 };
 
 export default Services;
+
+/* ---------------------------------- */
+
+const ServiceBlock = ({ service, index }) => {
+  const ref = useRef(null);
+
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"],
+  });
+
+  const yImage = useTransform(scrollYProgress, [0, 1], [40, -40]);
+  const yText = useTransform(scrollYProgress, [0, 1], [-20, 20]);
+
+  const Icon = service.icon;
+  const reverse = index % 2 !== 0;
+
+  return (
+    <motion.div
+      ref={ref}
+      className={`max-w-7xl mx-auto flex flex-col gap-16 items-center
+      ${reverse ? "md:flex-row-reverse" : "md:flex-row"}`}
+    >
+      {/* Image */}
+      <motion.div
+        style={{ y: yImage }}
+        whileHover={{ scale: 1.03 }}
+        transition={{ duration: 0.4 }}
+        className="md:w-5/12 relative rounded-3xl overflow-hidden shadow-2xl"
+      >
+        <img
+          src={service.image}
+          alt={service.title}
+          className="w-full h-[420px] object-cover"
+        />
+      </motion.div>
+
+      {/* Text */}
+      <motion.div
+        style={{ y: yText }}
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        transition={{ duration: 0.6 }}
+        viewport={{ once: true }}
+        className="md:w-6/12"
+      >
+        <motion.div
+          whileHover={{ scale: 1.1 }}
+          className="w-14 h-14 mb-6 flex items-center justify-center rounded-2xl
+                     bg-yellow-400/20 text-yellow-500"
+        >
+          <Icon size={28} />
+        </motion.div>
+
+        <h2 className="text-4xl font-semibold tracking-tight text-gray-900 mb-5">
+          {service.title}
+        </h2>
+
+        <p className="text-lg text-gray-600 leading-relaxed max-w-xl mb-8">
+          {service.desc}
+        </p>
+
+        <motion.button
+          whileHover={{ x: 6 }}
+          className="text-yellow-500 font-semibold inline-flex items-center gap-2"
+        >
+          Learn More →
+        </motion.button>
+      </motion.div>
+    </motion.div>
+  );
+};
