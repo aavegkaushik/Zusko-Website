@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
 import points from "../assets/points.png";
+import { MapPin, Phone, Mail } from "lucide-react";
 // import HCaptcha from '@hcaptcha/react-hcaptcha';
 
 const fadeUp = {
@@ -205,24 +206,62 @@ export default function ContactSimple() {
         </motion.div>
 
         {/* Address Section (unchanged) */}
-        <motion.div className="flex-1 flex justify-center" variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={0.4}>
-          <motion.div whileHover={{ scale: 1.03 }} transition={{ duration: 0.4 }} className="bg-white shadow-xl rounded-xl p-8 max-w-sm">
-            <h2 className="text-lg font-bold mb-10 text-gray-800 text-center">Registered Office Address:</h2>
-            <p className="text-gray-700 leading-relaxed text-center mb-4">
-              <strong>Zusko Corporation Pvt. Ltd.</strong>
-              <br />
-              Bundelkhand Innovation & Incubation Center Foundation
-              <br />
-              BIET Jhansi, Uttar Pradesh, India - 284128
-            </p>
+        <motion.div
+  className="flex-1 flex justify-center"
+  variants={fadeUp}
+  initial="hidden"
+  whileInView="visible"
+  viewport={{ once: true }}
+  custom={0.4}
+>
+  <motion.div
+    whileHover={{ y: -6 }}
+    transition={{ duration: 0.35, ease: "easeOut" }}
+    className="relative max-w-sm w-full
+               bg-white rounded-2xl
+               shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)]
+               p-8"
+  >
+    {/* Header */}
+    <h2 className="text-sm uppercase tracking-widest text-gray-500 text-center mb-8">
+      Registered Office
+    </h2>
 
-            <p className="text-gray-700 text-center">
-              <strong>Phone:</strong> +91 63968 64741
-              <br />
-              <strong>Email:</strong> info@zusko.in
-            </p>
-          </motion.div>
-        </motion.div>
+    {/* Address */}
+    <div className="flex gap-4 mb-6">
+      <MapPin className="w-5 h-5 text-gray-400 mt-1" />
+      <div className="text-gray-700 leading-relaxed text-sm">
+        <strong className="text-gray-900 block mb-1">
+          Zusko Corporation Pvt. Ltd.
+        </strong>
+        Bundelkhand Innovation & Incubation Center Foundation
+        <br />
+        BIET Jhansi, Uttar Pradesh
+        <br />
+        India – 284128
+      </div>
+    </div>
+
+    {/* Divider */}
+    <div className="h-px w-full bg-linear-to-r from-transparent via-gray-200 to-transparent my-6" />
+
+    {/* Contact */}
+    <div className="space-y-4 text-sm">
+      <div className="flex items-center gap-3 text-gray-700">
+        <Phone className="w-4 h-4 text-gray-400" />
+        <span>+91 63968 64741</span>
+      </div>
+
+      <div className="flex items-center gap-3 text-gray-700">
+        <Mail className="w-4 h-4 text-gray-400" />
+        <span>info@zusko.in</span>
+      </div>
+    </div>
+
+    {/* Accent hover ring */}
+    <div className="absolute inset-0 rounded-2xl ring-1 ring-black/5 pointer-events-none" />
+  </motion.div>
+</motion.div>
       </div>
     </div>
   );
