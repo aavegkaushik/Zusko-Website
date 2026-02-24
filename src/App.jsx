@@ -37,7 +37,7 @@ const App = () => {
   }, []);
 
   return (
-    <BrowserRouter>
+    <>
       <UnderDevelopmentPopup
         isOpen={showPopup}
         onClose={() => setShowPopup(false)}
@@ -67,7 +67,7 @@ const App = () => {
       </Routes>
 
       <Footer />
-    </BrowserRouter>
+    </>
   );
 };
 
