@@ -25,7 +25,7 @@ import CityAvailability from "./Pages/CityAvailability.jsx";
 import UnderDevelopmentPopup from "./components/UnderDevelopmentPopup";
 
 const App = () => {
-  const [showPopup, setShowPopup] = useState(false);
+  const [showPopup, setShowPopup] = useState(true);
 
   useEffect(() => {
     const seen = localStorage.getItem("under_dev_seen");
