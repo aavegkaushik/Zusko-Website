@@ -1,121 +1,172 @@
+"use client";
 import { motion } from "framer-motion";
 import { FaLinkedin, FaInstagram, FaEnvelope } from "react-icons/fa";
 import Aaveg from "../assets/Aaveg.jpeg";
 import Shubh from "../assets/Shubh.jpg";
 import points from "../assets/points.png";
 
+/* ------------------ */
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 40 },
+  visible: (delay = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.7, delay, ease: "easeOut" },
+  }),
+};
+
+/* ------------------ */
+
 const Team = () => {
   return (
-    <section className="relative mt-20 w-full min-h-screen bg-white py-20 px-6 md:px-20 overflow-hidden">
-      {/* Background Points - More visible */}
+    <section className="relative mt-24 w-full min-h-screen bg-white py-28 px-6 md:px-20 overflow-hidden">
+      
+      {/* Decorative accents */}
       <img
         src={points}
-        alt="Decoration"
-        className="absolute top-40 left-20 w-48 md:w-56 opacity-100 pointer-events-none animate-pulse z-0"
+        alt=""
+        className="absolute top-40 left-20 w-56 opacity-40 pointer-events-none animate-pulse"
       />
       <img
         src={points}
-        alt="Decoration"
-        className="absolute bottom-10 right-10 w-48 md:w-56 opacity-60 rotate-180 pointer-events-none animate-pulse z-0"
+        alt=""
+        className="absolute bottom-16 right-16 w-56 opacity-30 rotate-180 pointer-events-none animate-pulse"
       />
 
-      {/* Heading */}
-      <motion.h1
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+      {/* Header */}
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
         viewport={{ once: true }}
-        className="text-4xl md:text-5xl font-bold text-center text-yellow-400 mb-4 relative z-10"
+        variants={fadeUp}
+        className="text-center max-w-3xl mx-auto mb-24 relative z-10"
       >
-        Meet Our Founders
-      </motion.h1>
-      <p className="text-center text-gray-600 max-w-2xl mx-auto mb-16 text-sm md:text-base relative z-10">
-        Driven by innovation and simplicity, our founders are shaping the future
-        of on-demand laundry with vision, empathy, and technology.
-      </p>
+        <span className="text-xs uppercase tracking-[0.35em] text-gray-500">
+          Leadership
+        </span>
+        <h1 className="text-[clamp(2.6rem,4vw,3.6rem)] font-semibold tracking-tight mt-4 text-gray-900">
+          Meet the Founders
+        </h1>
+        <p className="mt-6 text-lg text-gray-600">
+          Driven by clarity, craft, and customer obsession — building the future
+          of effortless laundry.
+        </p>
+      </motion.div>
 
-      {/* Founders Section */}
-      <div className="grid md:grid-cols-2 gap-12 max-w-6xl mx-auto relative z-10">
-        {/* Founder 1 */}
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="bg-[#F8F9FA] rounded-2xl shadow-sm hover:shadow-md p-8 flex flex-col items-center text-center transition-all duration-300 border border-gray-100 backdrop-blur-sm"
-        >
-          <div className="w-48 h-56 mb-5 relative overflow-hidden rounded-4xl rotate-2 hover:rotate-0 transition-transform duration-300 shadow-md">
-            <img
-              src={Aaveg}
-              alt="Aaveg Kaushik"
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <h2 className="text-2xl font-semibold text-[#1E1E1E] mb-1">
-            Aaveg Kaushik
-          </h2>
-          <p className="text-[#0047AB] mb-4 text-sm font-medium tracking-wide uppercase">
-            Co-Founder & CEO
-          </p>
-          <p className="text-gray-600 leading-relaxed text-sm mb-6 px-3">
-            Aaveg leads Zusko with a vision to simplify urban living through innovation and technology. His focus on product excellence and user trust drives Zusko’s mission to make laundry effortless and reliable.
-          </p>
-          <div className="flex gap-5 text-xl text-gray-500">
-            <a target="_blank" href="https://www.linkedin.com/in/aaveg-kaushik-a97453218/" className="hover:text-[#0047AB] transition">
-              <FaLinkedin />
-            </a>
-            {/* <a href="#" className="hover:text-[#E1306C] transition">
-              <FaInstagram />
-            </a> */}
-            <a
-              href="mailto:aaveg.kaushik@zusko.in"
-              className="hover:text-[#FF3B30] transition"
-            >
-              <FaEnvelope />
-            </a>
-          </div>
-        </motion.div>
+      {/* Founders */}
+      <div className="grid md:grid-cols-2 gap-20 max-w-6xl mx-auto relative z-10">
+        <FounderCard
+          img={Aaveg}
+          name="Aaveg Kaushik"
+          role="Co-Founder & CEO"
+          desc="Aaveg leads Zusko with a product-first mindset and a deep focus on trust, reliability, and user experience. His vision is to simplify urban living through thoughtful technology."
+          linkedin="https://www.linkedin.com/in/aaveg-kaushik-a97453218/"
+          email="aaveg.kaushik@zusko.in"
+          delay={0}
+        />
 
-        {/* Founder 2 */}
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="bg-[#F8F9FA] rounded-2xl shadow-sm hover:shadow-md p-8 flex flex-col items-center text-center transition-all duration-300 border border-gray-100 backdrop-blur-sm"
-        >
-          <div className="w-48 h-56 mb-5 relative overflow-hidden rounded-4xl -rotate-2 hover:rotate-0 transition-transform duration-300 shadow-md">
-            <img
-              src={Shubh}
-              alt="Shubh Diwakar"
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <h2 className="text-2xl font-semibold text-[#1E1E1E] mb-1">
-            Shubh Diwakar
-          </h2>
-          <p className="text-[#0047AB] mb-4 text-sm font-medium tracking-wide uppercase">
-            Co-Founder & CMO
-          </p>
-          <p className="text-gray-600 leading-relaxed text-sm mb-6 px-3">
-            Shubh shapes Zusko’s brand and growth strategy with creativity and insight. He’s passionate about building meaningful customer connections and establishing Zusko as a trusted everyday companion.
-          </p>
-          <div className="flex gap-5 text-xl text-gray-500">
-            <a target="_blank" href="https://www.linkedin.com/in/shubh-diwakar-a29625295/" className="hover:text-[#0047AB] transition">
-              <FaLinkedin />
-            </a>
-            <a href="#" className="hover:text-[#E1306C] transition">
-              <FaInstagram />
-            </a>
-            <a
-              href="mailto:shubh.diwakar@zusko.in"
-              className="hover:text-[#FF3B30] transition"
-            >
-              <FaEnvelope />
-            </a>
-          </div>
-        </motion.div>
+        <FounderCard
+          img={Shubh}
+          name="Shubh Diwakar"
+          role="Co-Founder & CMO"
+          desc="Shubh drives Zusko’s brand, growth, and storytelling. He focuses on creating meaningful connections and positioning Zusko as a trusted everyday companion."
+          linkedin="https://www.linkedin.com/in/shubh-diwakar-a29625295/"
+          instagram="#"
+          email="shubh.diwakar@zusko.in"
+          delay={0.2}
+        />
       </div>
     </section>
   );
 };
 
 export default Team;
+
+/* ------------------ */
+
+const FounderCard = ({
+  img,
+  name,
+  role,
+  desc,
+  linkedin,
+  instagram,
+  email,
+  delay,
+}) => {
+  return (
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+      custom={delay}
+      variants={fadeUp}
+      whileHover={{ y: -10 }}
+      transition={{ duration: 0.4 }}
+      className="relative bg-[#F8F9FA] rounded-3xl p-10
+                 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.15)]
+                 border border-black/5"
+    >
+      {/* Image */}
+      <motion.div
+        whileHover={{ scale: 1.03 }}
+        transition={{ duration: 0.4 }}
+        className="relative w-52 h-64 mx-auto mb-8 overflow-hidden rounded-3xl
+                   shadow-lg"
+      >
+        <img
+          src={img}
+          alt={name}
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-linear-to-t from-black/30 to-transparent" />
+      </motion.div>
+
+      {/* Text */}
+      <div className="text-center">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-1">
+          {name}
+        </h2>
+        <p className="text-sm uppercase tracking-widest text-yellow-500 mb-5">
+          {role}
+        </p>
+        <p className="text-gray-600 text-sm leading-relaxed mb-8 px-4">
+          {desc}
+        </p>
+
+        {/* Socials */}
+        <div className="flex justify-center gap-6 text-xl text-gray-400">
+          {linkedin && (
+            <a
+              href={linkedin}
+              target="_blank"
+              className="hover:text-[#0A66C2] transition"
+            >
+              <FaLinkedin />
+            </a>
+          )}
+          {instagram && (
+            <a
+              href={instagram}
+              className="hover:text-[#E1306C] transition"
+            >
+              <FaInstagram />
+            </a>
+          )}
+          {email && (
+            <a
+              href={`mailto:${email}`}
+              className="hover:text-[#FF3B30] transition"
+            >
+              <FaEnvelope />
+            </a>
+          )}
+        </div>
+      </div>
+
+      {/* Subtle outline */}
+      <div className="absolute inset-0 rounded-3xl ring-1 ring-black/5 pointer-events-none" />
+    </motion.div>
+  );
+};
