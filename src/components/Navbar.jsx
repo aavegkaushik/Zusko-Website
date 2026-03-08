@@ -81,7 +81,7 @@ useEffect(() => {
       className={`w-full fixed top-0 left-0 z-50 transition-all duration-300 ${styles.navBg} ${styles.borderBottom}`}
       aria-label="Main navigation"
     >
-      <div className="flex justify-between items-center px-4 py-3 md:px-16">
+      <div className="flex flex-nowrap justify-between items-center px-4 py-3 md:px-16">
         {/* Logo */}
         <div className="flex items-center gap-2 z-50">
           <NavLink to="/" onClick={() => setMenuOpen(false)}>

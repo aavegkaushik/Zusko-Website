@@ -38,41 +38,6 @@ export default function Hero({
       <nav className="absolute top-0 left-0 right-0 z-30">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
           <div className="flex items-center justify-between h-20">
-            {/* Logo */}
-            {/* <a href="#" className="flex items-center gap-3">
-              <img src={logoSrc} alt="Logo" className="h-10 w-auto object-contain" />
-            </a> */}
-
-            {/* Desktop links */}
-            {/* <div className="hidden md:flex items-center gap-8 text-white/90 font-medium">
-              <a href="#services" className="hover:underline">Services</a>
-              <a href="#how" className="hover:underline">How it works</a>
-              <a href="#pricing" className="hover:underline">Pricing</a>
-              <a href="#contact" className="hover:underline">Contact</a>
-            </div> */}
-
-            {/* CTAs and hamburger */}
-            <div className="flex items-center gap-4">
-              {/* <a
-                href="#signup"
-                className="hidden md:inline-block bg-white text-black px-4 py-2 rounded-full text-sm font-semibold shadow-sm"
-              >
-                Sign up
-              </a> */}
-
-              <button
-                aria-label="Toggle menu"
-                className="md:hidden p-2 rounded-md text-white"
-                onClick={() => setOpen((s) => !s)}
-              >
-                {/* simple hamburger icon */}
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M4 7H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                  <path d="M4 12H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                  <path d="M4 17H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-              </button>
-            </div>
           </div>
 
           {/* Mobile menu panel */}
