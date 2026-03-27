@@ -1,7 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import { FaLinkedin, FaInstagram, FaEnvelope } from "react-icons/fa";
-import Aaveg from "../assets/Aaveg.jpeg";
+import Aaveg from "../assets/Aaveg1.jpeg";
 import Shubh from "../assets/Shubh.jpg";
 import points from "../assets/points.png";
 
