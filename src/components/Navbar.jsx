@@ -117,8 +117,8 @@ useEffect(() => {
 
         {/* Download App Button (desktop) */}
         <div className="hidden md:block">
-          <a href="#" className={styles.downloadBtn}>
-            Download App <FaExternalLinkAlt />
+          <a href="/auth/login" className={styles.downloadBtn}>
+            Book Laundry<FaExternalLinkAlt />
           </a>
         </div>
 

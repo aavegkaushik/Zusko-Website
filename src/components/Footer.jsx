@@ -67,10 +67,13 @@ const Footer = () => {
             <span>Social Links</span>
           </div>
           <div className="flex items-center space-x-4">
-            <FaFacebook className="text-xl hover:text-[#A6A6A6] cursor-pointer transition" />
-            <FaInstagram className="text-xl hover:text-[#A6A6A6] cursor-pointer transition" />
-            <FaTwitter className="text-xl hover:text-[#A6A6A6] cursor-pointer transition" />
-            <FaLinkedin className="text-xl hover:text-[#A6A6A6] cursor-pointer transition" />
+            <a href="https://www.instagram.com/zusko_official/" target="_blank"><FaFacebook className="text-xl hover:text-[#A6A6A6] cursor-pointer transition" /></a>
+
+            <a href="https://www.instagram.com/zusko_official/" target="_blank"><FaInstagram className="text-xl hover:text-[#A6A6A6] cursor-pointer transition" /></a>
+
+            <a href="https://x.com/Zusko_official" target="_blank"><FaTwitter className="text-xl hover:text-[#A6A6A6] cursor-pointer transition" /></a>
+
+            <a href="https://www.linkedin.com/company/zusko/" target="_blank"><FaLinkedin className="text-xl hover:text-[#A6A6A6] cursor-pointer transition" /></a>
           </div>
         </div>
       </div>

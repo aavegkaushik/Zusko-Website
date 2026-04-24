@@ -10,6 +10,14 @@ button{
   cursor: pointer;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  overflow-x: hidden;
+}
+
 @keyframes scaleIn {
   from {
     transform: scale(0.9);
@@ -20,7 +28,17 @@ button{
     opacity: 1;
   }
 }
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-5px); }
+  100% { transform: translateX(0); }
+}
 
+.animate-shake {
+  animation: shake 0.4s ease;
+}
 .animate-scaleIn {
   animation: scaleIn 0.25s ease-out;
 }

@@ -1,6 +1,7 @@
 "use client";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import delivery from "../assets/delivery.png";
 import { TbIroningSteamFilled, TbIroningFilled } from "react-icons/tb";
 import { FaTshirt, FaSoap, FaTruck, FaBuilding } from "react-icons/fa";
@@ -53,6 +54,7 @@ const services = [
 /* ---------------------------------- */
 
 const Services = () => {
+  const navigate = useNavigate();
   return (
     <section className="relative mt-32 px-6 md:px-20 bg-white overflow-hidden">
       {/* Hero */}
@@ -97,6 +99,7 @@ const Services = () => {
         </p>
         <motion.button
           whileHover={{ y: -2 }}
+          onClick={() => navigate('/auth/login')}
           whileTap={{ scale: 0.96 }}
           className="bg-black text-white px-10 py-4 font-semibold rounded-tl-xl rounded-br-xl"
         >
@@ -113,7 +116,7 @@ export default Services;
 
 const ServiceBlock = ({ service, index }) => {
   const ref = useRef(null);
-
+  
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start end", "end start"],

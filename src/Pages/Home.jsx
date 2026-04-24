@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import Caraousel from "../components/Caraousel.jsx";
 import points from "../assets/points.png";
 import restImage from "../assets/Lo-fi concept-pana.svg";
 import SaveMoney from "../assets/Saving money-cuate.svg";
@@ -8,6 +7,7 @@ import Eco from "../assets/Eco.svg";
 import Mobile from "../assets/mobile1.png";
 import Logo from "../assets/Logo.png";
 import Hero from '../components/Hero.jsx'
+import { useNavigate } from "react-router-dom";
 const fadeUp = {
   hidden: { opacity: 0, y: 50 },
   show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: "easeOut" } },
@@ -19,6 +19,7 @@ const fadeIn = {
 };
 
 const Home = () => {
+  const navigate = useNavigate();
   return (
     <div className="overflow-hidden">
       <Hero />
@@ -197,42 +198,51 @@ const Home = () => {
 
         {/* App Download Section */}
         <motion.section
-          className="w-full bg-black text-white flex flex-col md:flex-row items-center justify-between px-10 md:px-20 py-0 pt-5 overflow-hidden"
-          variants={fadeIn}
-          initial="hidden"
-          whileInView="show"
-          id="get-started"
-          viewport={{ once: true, amount: 0.3 }}
-        >
-          {/* Left Content */}
-          <motion.div
-            className="flex-1 flex flex-col items-start text-left space-y-6"
-            variants={fadeUp}
-          >
-            <img src={Logo} alt="App Logo" className="w-28 md:w-36" />
-            <h2 className="text-3xl md:text-4xl font-bold text-white">
-              Get the Zusko App Now!
-            </h2>
-            <p className="text-gray-300 text-sm md:text-base max-w-md leading-relaxed">
-              Experience hassle-free laundry services right from your phone.
-              Track orders, apply offers, and schedule pickups with just one
-              tap.
-            </p>
-          </motion.div>
+      className="w-full bg-black text-white flex flex-col md:flex-row items-center justify-between px-6 md:px-20 py-10 overflow-hidden"
+      variants={fadeIn}
+      initial="hidden"
+      whileInView="show"
+      id="get-started"
+      viewport={{ once: true, amount: 0.3 }}
+    >
+      {/* Left Content */}
+      <motion.div
+        className="flex-1 flex flex-col items-start text-left space-y-6"
+        variants={fadeUp}
+      >
+        <img src={Logo} alt="Zusko Logo" className="w-28 md:w-36" />
 
-          {/* Right Side - Mobile Image */}
-          <motion.div
-            className="flex-1 flex justify-center md:justify-end mt-10 md:mt-0"
-            variants={fadeUp}
-            transition={{ delay: 0.2 }}
-          >
-            <img
-              src={Mobile}
-              alt="Mobile App Preview"
-              className="w-[50%] max-w-[400px] object-contain"
-            />
-          </motion.div>
-        </motion.section>
+        <h2 className="text-3xl md:text-4xl font-bold text-white leading-tight">
+          Book Your Laundry in Seconds
+        </h2>
+
+        <p className="text-gray-300 text-sm md:text-base max-w-md leading-relaxed">
+          No more waiting. Schedule your pickup, choose services, and relax —
+          we’ll handle the rest with premium care.
+        </p>
+
+        {/* CTA Button */}
+        <button
+          onClick={() => navigate("/auth/login")}
+          className="bg-yellow-400 hover:bg-yellow-300 text-black font-semibold px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:scale-105"
+        >
+          Book Laundry Now →
+        </button>
+      </motion.div>
+
+      {/* Right Side - Image */}
+      <motion.div
+        className="flex-1 flex justify-center md:justify-end mt-10 md:mt-0"
+        variants={fadeUp}
+        transition={{ delay: 0.2 }}
+      >
+        <img
+          src={Mobile}
+          alt="Laundry Service Preview"
+          className="w-[70%] max-w-[420px] object-contain"
+        />
+      </motion.div>
+    </motion.section>
       </div>
     </div>
   );
