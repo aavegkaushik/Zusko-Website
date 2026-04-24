@@ -19,7 +19,7 @@ const PrivacyPolicy = () => {
         <section>
           <h2 className="text-2xl font-semibold mb-3">1. Introduction</h2>
           <p>
-            This Privacy Policy explains how <strong>Zusko Laundry Services Private Limited </strong> (“Zusko,” “Company,” “we,” “our,” or “us”)
+            This Privacy Policy explains how <strong>Zusko Corporation Private Limited </strong> (“Zusko,” “Company,” “we,” “our,” or “us”)
             collects, uses, shares, and protects personal information obtained
             from users (“you”) through our website, mobile app, and related
             services (collectively, the “Platform”). By using our services, you

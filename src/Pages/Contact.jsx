@@ -232,7 +232,7 @@ export default function ContactSimple() {
       <MapPin className="w-5 h-5 text-gray-400 mt-1" />
       <div className="text-gray-700 leading-relaxed text-sm">
         <strong className="text-gray-900 block mb-1">
-          Zusko Laundry Services Pvt. Ltd.
+          Zusko Corporation Pvt. Ltd.
         </strong>
         Bundelkhand Innovation & Incubation Center Foundation
         <br />
