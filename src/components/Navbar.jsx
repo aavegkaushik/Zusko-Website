@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { FaExternalLinkAlt, FaBars, FaTimes } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
 
 import Logo from "../assets/Zusko White Logo.png";
 import LogoAlt from "../assets/zusko.png";
@@ -13,64 +14,72 @@ const Navbar = () => {
   const location = useLocation();
   const [scrollProgress, setScrollProgress] = useState(0);
 
-
   const isHome = location.pathname === "/";
 
-useEffect(() => {
-  const onScroll = () => {
-    if (typeof window === "undefined") return;
+  useEffect(() => {
+    const onScroll = () => {
+      if (typeof window === "undefined") return;
 
-    const scrollTop = window.scrollY;
-    const docHeight =
-      document.documentElement.scrollHeight -
-      document.documentElement.clientHeight;
+      const scrollTop = window.scrollY;
+      const docHeight =
+        document.documentElement.scrollHeight -
+        document.documentElement.clientHeight;
 
-    const progress = docHeight > 0 ? scrollTop / docHeight : 0;
+      const progress = docHeight > 0 ? scrollTop / docHeight : 0;
 
-    setScrolled(scrollTop > SCROLL_THRESHOLD);
-    setScrollProgress(progress);
-  };
+      setScrolled(scrollTop > SCROLL_THRESHOLD);
+      setScrollProgress(progress);
+    };
 
-  onScroll();
-  window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
 
-  return () => window.removeEventListener("scroll", onScroll);
-}, []);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [menuOpen]);
 
   const useHomeLook = isHome && !scrolled;
 
   const navLinks = [
     { path: "/", label: "Home" },
     { path: "/about", label: "About Us" },
-    { path: "/contact", label: "Contact Us" },
     { path: "/services", label: "Our Services" },
+    { path: "/contact", label: "Contact Us" },
   ];
 
   const homeStyles = {
     navLinkBase: "text-white",
-    navLinkInactive: "text-white/80 hover:text-white after:border-[#FFC700]",
-    navLinkActive:
-      "text-white font-bold after:border-[#FFC700] after:-translate-x-1/2 after:w-1/2 after:border-b-2",
+    navLinkInactive: "text-white/70 hover:text-white",
+    navLinkActive: "text-white font-semibold",
     hamburgerColor: "text-white",
     downloadBtn:
-      "py-3 px-6 bg-yellow-400 rounded-tl-2xl rounded-br-2xl text-black font-semibold text-lg flex items-center gap-2",
-    mobileMenuBg: "bg-black",
+      "relative px-6 py-2.5 bg-gradient-to-r from-yellow-400 to-yellow-300 hover:from-yellow-300 hover:to-yellow-200 text-black font-bold text-sm rounded-xl transition-all duration-300 shadow-lg hover:shadow-yellow-400/50 flex items-center gap-2",
+    mobileMenuBg: "bg-black/95 backdrop-blur-lg",
     navBg: "bg-transparent",
     borderBottom: "border-b-0",
     logo: Logo,
   };
 
   const otherStyles = {
-    navLinkBase: "text-black",
-    navLinkInactive: "text-black hover:text-gray-700 after:border-[#FFC700]",
-    navLinkActive:
-      "text-black after:-translate-x-1/2 after:w-1/2 after:border-b-2 font-bold after:border-[#FFC700]",
-    hamburgerColor: "text-black",
+    navLinkBase: "text-gray-800",
+    navLinkInactive: "text-gray-600 hover:text-gray-900",
+    navLinkActive: "text-gray-900 font-semibold",
+    hamburgerColor: "text-gray-800",
     downloadBtn:
-      "py-3 px-6 bg-yellow-400 rounded-tl-2xl rounded-br-2xl text-black font-semibold text-lg flex items-center gap-2",
-    mobileMenuBg: "bg-white",
-    navBg: "bg-white/95 backdrop-blur-sm shadow-sm",
+      "relative px-6 py-2.5 bg-gradient-to-r from-yellow-400 to-yellow-300 hover:from-yellow-300 hover:to-yellow-200 text-black font-bold text-sm rounded-xl transition-all duration-300 shadow-lg hover:shadow-yellow-400/50 flex items-center gap-2",
+    mobileMenuBg: "bg-white/98 backdrop-blur-lg",
+    navBg: "bg-white/80 backdrop-blur-xl shadow-sm border-b border-gray-200/50",
     logo: LogoAlt,
   };
 
@@ -78,112 +87,201 @@ useEffect(() => {
 
   return (
     <nav
-      className={`w-full fixed top-0 left-0 z-50 transition-all duration-300 ${styles.navBg} ${styles.borderBottom}`}
+      className={`w-full fixed top-0 left-0 z-50 transition-all duration-500 ${styles.navBg}`}
       aria-label="Main navigation"
     >
-      <div className="flex flex-nowrap justify-between items-center px-4 py-3 md:px-16">
-        {/* Logo */}
-        <div className="flex items-center gap-2 z-50">
+      {/* Main Navbar Container */}
+      <div className="flex flex-nowrap justify-between items-center px-4 py-3 md:px-16 max-w-7xl mx-auto">
+        {/* Logo with Hover Effect */}
+        <motion.div
+          className="flex items-center gap-2 z-50"
+          whileHover={{ scale: 1.05 }}
+          transition={{ duration: 0.3 }}
+        >
           <NavLink to="/" onClick={() => setMenuOpen(false)}>
             <img
               src={styles.logo}
               alt="Zusko Logo"
-              className="w-28 md:w-36"
+              className="w-28 md:w-36 transition-all duration-300"
               style={{ imageRendering: "auto" }}
             />
           </NavLink>
-        </div>
+        </motion.div>
 
-        {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-12 text-lg">
-          {navLinks.map((link) => (
+        {/* Desktop Navigation Links */}
+        <div className="hidden md:flex items-center gap-1 text-base">
+          {navLinks.map((link, index) => (
             <NavLink
               key={link.path}
               to={link.path}
               end
-              className={({ isActive }) =>
-                `relative inline-block pb-1 transition-all duration-300 ${styles.navLinkBase} after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:transition-all after:duration-300 ${
-                  isActive
-                    ? `${styles.navLinkActive} after:w-1/2`
-                    : `${styles.navLinkInactive} after:w-0 hover:after:w-1/2`
-                }`
-              }
+              className={({ isActive }) => {
+                const baseClasses =
+                  "relative px-4 py-2 transition-all duration-300 group";
+                const colorClass = isActive
+                  ? `${styles.navLinkActive}`
+                  : `${styles.navLinkInactive}`;
+
+                return `${baseClasses} ${colorClass}`;
+              }}
               onClick={() => setMenuOpen(false)}
             >
-              {link.label}
+              {({ isActive }) => (
+                <>
+                  <span>{link.label}</span>
+
+                  {/* Animated Underline */}
+                  {isActive ? (
+                    <motion.div
+                      layoutId="navbar-underline"
+                      className="absolute bottom-1 left-4 right-4 h-1 bg-linear-to-r from-yellow-400 to-yellow-300 rounded-full"
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 30,
+                      }}
+                    />
+                  ) : (
+                    <div className="absolute bottom-1 left-4 right-4 h-1 bg-yellow-400/0 group-hover:bg-yellow-400/30 rounded-full transition-colors duration-300" />
+                  )}
+                </>
+              )}
             </NavLink>
           ))}
         </div>
 
-        {/* Download App Button (desktop) */}
-        <div className="hidden md:block">
-          <a href="/auth/login" className={styles.downloadBtn}>
-            Book Laundry<FaExternalLinkAlt />
-          </a>
-        </div>
-
-        {/* Mobile small download link (keeps layout similar when menu closed) */}
-        {!menuOpen && (
-          <div className="md:hidden">
-            <a
-              href="#"
-              className={`underline ml-4 ${useHomeLook ? "text-white" : "text-black"}`}
-            >
-              Download Zusko App
-            </a>
-          </div>
-        )}
-
-        {/* Mobile Menu Button (hamburger) */}
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className={`md:hidden text-2xl ml-4 ${styles.hamburgerColor} z-60`}
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
+        {/* Desktop CTA Button */}
+        <motion.div
+          className="hidden md:block"
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.96 }}
+          transition={{ duration: 0.2 }}
         >
-          {menuOpen ? <FaTimes /> : <FaBars />}
-        </button>
+          <a href="/auth/login" className={styles.downloadBtn}>
+            <span>Book Now</span>
+            <motion.span animate={{ x: [0, 3, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>
+              <FaExternalLinkAlt size={14} />
+            </motion.span>
+          </a>
+        </motion.div>
+
+        {/* Mobile Menu & Download Link Container */}
+        <div className="md:hidden flex items-center gap-3">
+          {/* Mobile Download Link */}
+          {!menuOpen && (
+            <motion.a
+              href="/auth/login"
+              className={`text-xs font-semibold ${useHomeLook ? "text-yellow-400" : "text-yellow-500"} hover:opacity-80 transition-opacity`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              Book
+            </motion.a>
+          )}
+
+          {/* Hamburger Menu Button */}
+          <motion.button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className={`text-2xl transition-colors duration-300 ${styles.hamburgerColor}`}
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            whileTap={{ scale: 0.9 }}
+          >
+            <AnimatePresence mode="wait">
+              {menuOpen ? (
+                <motion.div
+                  key="close"
+                  initial={{ rotate: -90, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: 90, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <FaTimes />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="open"
+                  initial={{ rotate: 90, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: -90, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <FaBars />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.button>
+        </div>
       </div>
 
-      {/* Mobile Dropdown Menu */}
-      {menuOpen && (
-        <div
-          className={`md:hidden ${styles.mobileMenuBg} flex flex-col items-center gap-6 py-6 text-lg font-semibold shadow-md border-t z-40`}
-        >
-          {navLinks.map((link) => (
-            <NavLink
-              key={link.path}
-              to={link.path}
-              onClick={() => setMenuOpen(false)}
-              end
-              className={({ isActive }) =>
-                [
-                  "relative inline-block pb-1 transition-all duration-300",
-                  // use styles.navLinkBase so color matches mobile bg (white on dark, black on light)
-                  styles.navLinkBase,
-                  isActive
-                    ? // active underline + bold
-                      `font-bold after:content-[''] after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-1/3 after:border-b-2 after:border-[#FFC700]`
-                    : // inactive hover state
-                      `${useHomeLook ? "hover:text-white/90" : "hover:text-gray-600"}`,
-                ].join(" ")
-              }
-            >
-              {link.label}
-            </NavLink>
-          ))}
+      {/* Mobile Dropdown Menu with Framer Motion */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0, y: -20 }}
+            animate={{ opacity: 1, height: "auto", y: 0 }}
+            exit={{ opacity: 0, height: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className={`md:hidden ${styles.mobileMenuBg} overflow-hidden border-t ${useHomeLook ? "border-white/10" : "border-gray-200/30"}`}
+          >
+            <div className="flex flex-col items-center gap-2 py-6 px-4">
+              {navLinks.map((link, index) => (
+                <motion.div
+                  key={link.path}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="w-full"
+                >
+                  <NavLink
+                    to={link.path}
+                    onClick={() => setMenuOpen(false)}
+                    end
+                    className={({ isActive }) => {
+                      const baseClasses =
+                        "block w-full py-3 px-4 rounded-lg transition-all duration-300 text-center font-semibold";
+                      const activeClass = isActive
+                        ? `${styles.navLinkActive} ${useHomeLook ? "bg-white/10" : "bg-yellow-100/50"}`
+                        : `${styles.navLinkInactive} hover:${useHomeLook ? "bg-white/5" : "bg-gray-100/50"}`;
 
-          <a href="#" className={styles.downloadBtn}>
-            Download Zusko App <FaExternalLinkAlt />
-          </a>
-        </div>
-      )}
-      {/* Scroll progress indicator */}
-<div className="absolute bottom-0 left-0 w-full h-0.5 bg-transparent overflow-hidden">
-  <div
-    className="h-full bg-[#FFC700] transition-[width] duration-150 ease-out"
-    style={{ width: `${scrollProgress * 100}%` }}
-  />
-</div>
+                      return `${baseClasses} ${activeClass}`;
+                    }}
+                  >
+                    {link.label}
+                  </NavLink>
+                </motion.div>
+              ))}
+
+              {/* Mobile CTA Button */}
+              <motion.a
+                href="/auth/login"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: navLinks.length * 0.05 }}
+                className={`w-full mt-2 ${styles.downloadBtn} justify-center`}
+              >
+                <span>Book Laundry</span>
+                <FaExternalLinkAlt size={14} />
+              </motion.a>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Scroll Progress Indicator */}
+      <motion.div
+        className="absolute bottom-0 left-0 w-full h-1 bg-transparent overflow-hidden"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: scrolled ? 0.8 : 0.4 }}
+        transition={{ duration: 0.3 }}
+      >
+        <motion.div
+          className="h-full bg-linear-to-r from-yellow-400 via-yellow-300 to-transparent"
+          style={{ width: `${scrollProgress * 100}%` }}
+          transition={{ duration: 0.2 }}
+        />
+      </motion.div>
     </nav>
   );
 };
