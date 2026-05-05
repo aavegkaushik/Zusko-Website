@@ -321,7 +321,7 @@ export default function ContactSimple() {
                   custom={0.4}
                 >
                   <div className="flex items-start gap-4">
-                    <div className="w-11 h-11 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 border border-gray-200/80">
+                    <div className="w-11 h-11 bg-gray-100 rounded-lg flex items-center justify-center shrink-0 border border-gray-200/80">
                       <Phone className="w-5 h-5 text-gray-700" strokeWidth={2.5} />
                     </div>
                     <div className="flex-1">
