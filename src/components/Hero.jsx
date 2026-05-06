@@ -46,11 +46,11 @@ export default function Hero({
       </video>
 
       {/* Premium gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/40 to-black/70" />
+      <div className="absolute inset-0 bg-linear-to-b from-black/45 via-black/40 to-black/70" />
       
       {/* Subtle animated light accent */}
       <motion.div
-        className="absolute top-0 right-0 w-1/2 h-1/2 bg-gradient-to-bl from-yellow-400/10 to-transparent rounded-full blur-3xl -z-10"
+        className="absolute top-0 right-0 w-1/2 h-1/2 bg-linear-to-bl from-yellow-400/10 to-transparent rounded-full blur-3xl -z-10"
         animate={{
           opacity: [0.3, 0.5, 0.3],
         }}
@@ -83,7 +83,7 @@ export default function Hero({
             variants={itemVariants}
             className="text-5xl sm:text-6xl md:text-7xl font-black text-white leading-tight tracking-tight"
           >
-            <span className="bg-gradient-to-r from-white via-white to-yellow-200 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-white via-white to-yellow-200 bg-clip-text text-transparent">
               Fresh & Folded
             </span>
             <br />
@@ -107,7 +107,7 @@ export default function Hero({
               href="#get-started"
               whileHover={{ scale: 1.05, boxShadow: "0 20px 50px rgba(250, 204, 21, 0.3)" }}
               whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-300 hover:from-yellow-300 hover:to-yellow-200 text-black font-bold text-lg uppercase tracking-widest shadow-2xl transition-all duration-300"
+              className="px-8 py-4 rounded-full bg-linear-to-r from-yellow-400 to-yellow-300 hover:from-yellow-300 hover:to-yellow-200 text-black font-bold text-lg uppercase tracking-widest shadow-2xl transition-all duration-300"
             >
               Get Started
             </motion.a>
