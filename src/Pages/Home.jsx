@@ -52,6 +52,33 @@ const stats = [
   },
 ];
 
+// const fadeUp = {
+//   hidden: { opacity: 0, y: 50 },
+//   show: {
+//     opacity: 1,
+//     y: 0,
+//     transition: { duration: 0.8, ease: "easeOut" },
+//   },
+// };
+ 
+// const fadeIn = {
+//   hidden: { opacity: 0 },
+//   show: {
+//     opacity: 1,
+//     transition: { duration: 0.8 },
+//   },
+// };
+ 
+const imageVariants = {
+  hidden: { opacity: 0, scale: 0.95, y: 30 },
+  show: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: { duration: 0.8, ease: "easeOut" },
+  },
+};
+
 const Home = () => {
   return (
     <div className="overflow-hidden">
@@ -60,52 +87,176 @@ const Home = () => {
       {/* Service Section */}
       <div className="">
         {/* To make Life easier section */}
-  <div className="relative flex flex-col md:flex-row items-center justify-between px-6 sm:px-8 md:px-16 mb-20 lg:px-24 overflow-visible mt-40 gap-8 md:gap-12">
-  {/* Text + Decorative Points */}
-  <motion.div
-    className="relative w-full md:w-1/2"
-    variants={fadeUp}
-    initial="hidden"
-    whileInView="show"
-    viewport={{ once: true, amount: 0.2 }}
-  >
-    {/* Decorative dots: hidden on very small screens, smaller on small screens */}
-    <img
-      src={points}
-      alt="Zusko"
-      aria-hidden="true"
-      className="hidden sm:block absolute -top-40 sm:-top-10 -left-6 sm:-left-10 w-36 sm:w-56 opacity-90 z-0 pointer-events-none"
-      loading="lazy"
-    />
-
-    <span className="relative z-10 block text-3xl sm:text-4xl md:text-5xl lg:text-6xl mt-6 sm:mt-10 font-bold leading-tight text-gray-900">
-      To Make Life Easier
-    </span>
-
-    <p className="z-10 text-base sm:text-lg md:text-[20px] mt-4 text-gray-700 max-w-xl">
-      At Zusko, we are committed to providing our customers with the freedom from
-      the daily laundry hassles and providing them with the convenience of their
-      daily needs.
-    </p>
-  </motion.div>
-
-  {/* Right Image */}
-  <motion.div
-    className="w-full md:w-1/2 flex justify-center md:justify-end"
-    variants={fadeIn}
-    initial="hidden"
-    whileInView="show"
-    viewport={{ once: true, amount: 0.3 }}
-  >
-    <img
-      src={restImage}
-      alt="Laundry service illustration"
-      loading="lazy"
-      className="w-11/12 sm:w-9/12 md:w-[85%] lg:w-[80%] max-w-[520px] object-contain"
-      style={{ willChange: "transform" }}
-    />
-  </motion.div>
-</div>
+<section className="relative w-full py-20 md:py-32 lg:py-40 overflow-hidden bg-linear-to-br from-white via-slate-50/50 to-white">
+      {/* Background decorative elements */}
+      <div className="absolute top-20 right-0 w-96 h-96 bg-yellow-400/5 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-96 h-96 bg-blue-400/3 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+ 
+      <div className="relative flex flex-col md:flex-row items-center justify-between px-6 sm:px-8 md:px-16 lg:px-24 overflow-visible gap-8 md:gap-12 lg:gap-16">
+        
+        {/* Left Content Section */}
+        <motion.div
+          className="relative w-full md:w-1/2"
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.2 }}
+        >
+          {/* Decorative dots background */}
+          <motion.img
+            src={points}
+            alt="Zusko"
+            aria-hidden="true"
+            className="hidden sm:block absolute -top-40 sm:-top-20 -left-6 sm:-left-16 w-40 sm:w-64 lg:w-72 opacity-80 z-0 pointer-events-none"
+            loading="lazy"
+            initial={{ opacity: 0, y: -30 }}
+            whileInView={{ opacity: 0.8, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+          />
+ 
+          {/* Content Container */}
+          <motion.div
+            className="relative z-10 space-y-6 md:space-y-8"
+            variants={fadeUp}
+          >
+            {/* Badge */}
+            <motion.div
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-100/60 border border-yellow-300/40 text-yellow-700 text-sm font-semibold"
+              variants={fadeUp}
+            >
+              <span className="w-2 h-2 bg-yellow-600 rounded-full"></span>
+              Our Mission
+            </motion.div>
+ 
+            {/* Main Heading with gradient */}
+            <motion.h2
+              className="text-4xl sm:text-5xl md:text-5xl lg:text-6xl font-black leading-tight text-gray-900"
+              variants={fadeUp}
+              transition={{ delay: 0.1 }}
+            >
+              <span className="bg-linear-to-r from-gray-900 via-gray-800 to-yellow-600 bg-clip-text text-transparent">
+                To Make Life
+              </span>
+              <br />
+              <span className="text-gray-900">Easier</span>
+            </motion.h2>
+ 
+            {/* Underline accent */}
+            <motion.div
+              className="w-20 h-1.5 bg-linear-to-r from-yellow-400 to-yellow-300 rounded-full"
+              initial={{ width: 0 }}
+              whileInView={{ width: 80 }}
+              transition={{ delay: 0.3, duration: 0.8 }}
+              viewport={{ once: true }}
+            />
+ 
+            {/* Description */}
+            <motion.p
+              className="text-base sm:text-lg md:text-lg lg:text-xl text-gray-600 leading-relaxed max-w-lg font-light"
+              variants={fadeUp}
+              transition={{ delay: 0.2 }}
+            >
+              At Zusko, we believe everyone deserves freedom from laundry hassles. Our mission is to deliver premium laundry care with the convenience you deserve, so you can focus on what truly matters.
+            </motion.p>
+ 
+            {/* Key benefits list */}
+            <motion.div
+              className="space-y-4 pt-4"
+              variants={fadeUp}
+              transition={{ delay: 0.3 }}
+            >
+              {[
+                { icon: "✓", text: "Quick & hassle-free pickup & delivery" },
+                { icon: "✓", text: "Premium care with expert attention" },
+                { icon: "✓", text: "Fresh, folded, and delivered on time" },
+              ].map((item, index) => (
+                <motion.div
+                  key={index}
+                  className="flex items-center gap-3 text-gray-700 font-medium"
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 + index * 0.1, duration: 0.6 }}
+                  viewport={{ once: true }}
+                >
+                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-yellow-400/20 border border-yellow-400/40">
+                    <span className="text-yellow-600 font-bold text-sm">{item.icon}</span>
+                  </span>
+                  <span>{item.text}</span>
+                </motion.div>
+              ))}
+            </motion.div>
+ 
+            {/* CTA Button */}
+            <motion.div
+              className="pt-4"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ delay: 0.7, duration: 0.6 }}
+              viewport={{ once: true }}
+            >
+              {/* <motion.a
+                href="#get-started"
+                whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(250, 204, 21, 0.2)" }}
+                whileTap={{ scale: 0.95 }}
+                className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-linear-to-r from-yellow-400 to-yellow-300 hover:from-yellow-300 hover:to-yellow-200 text-black font-bold text-lg uppercase tracking-wide transition-all duration-300 shadow-xl"
+              >
+                Start Your Journey
+                <motion.span
+                  animate={{ x: [0, 5, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  →
+                </motion.span>
+              </motion.a> */}
+            </motion.div>
+          </motion.div>
+        </motion.div>
+ 
+        {/* Right Image Section */}
+        <motion.div
+          className="w-full md:w-1/2 flex justify-center md:justify-end items-center"
+          variants={imageVariants}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.3 }}
+        >
+          {/* Image container with hover effect */}
+          <motion.div
+            className="relative w-11/12 sm:w-9/12 md:w-[90%] lg:w-[85%] max-w-[550px]"
+            whileHover={{ y: -10 }}
+            transition={{ duration: 0.4 }}
+          >
+            {/* Soft shadow/glow effect */}
+            <div className="absolute inset-0 bg-linear-to-t from-yellow-400/10 to-transparent rounded-3xl blur-2xl -z-10"></div>
+ 
+            {/* Main Image */}
+            <motion.img
+              src={restImage}
+              alt="Laundry service illustration - Easy and convenient"
+              loading="lazy"
+              className="w-full object-contain drop-shadow-lg"
+              style={{ willChange: "transform" }}
+              animate={{ 
+                y: [0, -8, 0],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+ 
+            {/* Decorative circle accent */}
+            <motion.div
+              className="absolute -bottom-10 -right-10 w-40 h-40 border-2 border-yellow-400/20 rounded-full pointer-events-none"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            />
+          </motion.div>
+        </motion.div>
+      </div>
+    </section>
 
 
         {/* What's in it for you Section */}
