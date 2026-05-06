@@ -1,23 +1,38 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { ChevronDown } from "lucide-react";
 import logo from '../assets/Zusko White Logo.png'
-// Usage:
-// <RinseHero
-//    videoSrc="/path/to/your-video.mp4"
-//    poster="/path/to/fallback.jpg"
-//    logoSrc="/path/to/logo.png"
-// />
 
 export default function Hero({
   videoSrc = "https://video.rinse.com/assets/rebrand/video/landing_2023_v2.webm",
   poster = "/images/hero-poster.jpg",
   logoSrc = logo,
 }) {
-  const [open, setOpen] = useState(false);
+
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+        delayChildren: 0.3,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.8, ease: "easeOut" },
+    },
+  };
 
   return (
-    <header className="relative w-full h-screen overflow-hidden bg-black">
-      {/* Background video */}
+    <header className="relative w-full h-screen overflow-hidden bg-black" id="hero">
+      {/* Background video with elegant overlay */}
       <video
         aria-hidden="true"
         className="absolute inset-0 w-full h-full object-cover"
@@ -28,94 +43,125 @@ export default function Hero({
         poster={poster}
       >
         <source src={videoSrc} type="video/mp4" />
-        {/* Fallback: poster image will show on browsers that block autoplay */}
       </video>
 
-      {/* Dark overlay for readable text */}
-      <div className="absolute inset-0 bg-linear-to-b from-black/40 via-black/25 to-black/65" />
+      {/* Premium gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/40 to-black/70" />
+      
+      {/* Subtle animated light accent */}
+      <motion.div
+        className="absolute top-0 right-0 w-1/2 h-1/2 bg-gradient-to-bl from-yellow-400/10 to-transparent rounded-full blur-3xl -z-10"
+        animate={{
+          opacity: [0.3, 0.5, 0.3],
+        }}
+        transition={{ duration: 8, repeat: Infinity }}
+      />
 
-      {/* Navbar (on top of the video) */}
-      <nav className="absolute top-0 left-0 right-0 z-30">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
-          <div className="flex items-center justify-between h-20">
-          </div>
 
-          {/* Mobile menu panel */}
-          {open && (
-            <div className="md:hidden bg-black/60 backdrop-blur-sm rounded-lg mt-3 p-4 text-white font-medium">
-              <a href="#services" className="block py-2">Services</a>
-              <a href="#how" className="block py-2">How it works</a>
-              <a href="#pricing" className="block py-2">Pricing</a>
-              <a href="#contact" className="block py-2">Contact</a>
-              <a href="#signup" className="block mt-3 bg-white text-black text-center px-4 py-2 rounded-full font-semibold">Sign up</a>
-            </div>
-          )}
-        </div>
-      </nav>
 
       {/* Hero content */}
       <div className="relative z-30 flex items-center justify-center h-full">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white leading-tight"
+        <motion.div
+          className="max-w-4xl mx-auto px-6 text-center"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          {/* Badge */}
+          {/* <motion.div
+            variants={itemVariants}
+            className="mt-5"
           >
-            Premium laundry & dry cleaning
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/80 text-sm font-medium">
+              <span className="w-2 h-2 bg-yellow-400 rounded-full"></span>
+              Welcome to Premium Laundry Service
+            </div>
+          </motion.div> */}
+
+          {/* Main heading with elegant styling */}
+          <motion.h1
+            variants={itemVariants}
+            className="text-5xl sm:text-6xl md:text-7xl font-black text-white leading-tight tracking-tight"
+          >
+            <span className="bg-gradient-to-r from-white via-white to-yellow-200 bg-clip-text text-transparent">
+              Fresh & Folded
+            </span>
+            <br />
+            <span className="text-white">In Seconds</span>
           </motion.h1>
 
+          {/* Subheading */}
           <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.25, duration: 0.8 }}
-            className="mt-6 text-lg sm:text-xl text-white/85 max-w-3xl mx-auto"
+            variants={itemVariants}
+            className="mt-8 text-xl sm:text-2xl text-white/80 max-w-2xl mx-auto font-light leading-relaxed"
           >
-            Schedule pickup in seconds. We pick up, clean, and deliver — fresh and folded.
+            Schedule pickup, we handle the rest. Premium laundry care delivered to your door.
           </motion.p>
 
+          {/* CTA Buttons */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="mt-8 flex items-center justify-center gap-4"
+            variants={itemVariants}
+            className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            <a
+            <motion.a
               href="#get-started"
-              className="px-6 py-3 rounded-full bg-black text-white font-semibold shadow-md"
+              whileHover={{ scale: 1.05, boxShadow: "0 20px 50px rgba(250, 204, 21, 0.3)" }}
+              whileTap={{ scale: 0.95 }}
+              className="px-8 py-4 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-300 hover:from-yellow-300 hover:to-yellow-200 text-black font-bold text-lg uppercase tracking-widest shadow-2xl transition-all duration-300"
             >
-              Get started
-            </a>
+              Get Started
+            </motion.a>
 
-            <a href="/about" className="px-4 py-3 rounded-full bg-yellow-400 text-black font-medium">
-              Learn more
-            </a>
+            <motion.a
+              href="#how"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="px-8 py-4 rounded-full bg-white/10 hover:bg-white/20 border border-white/30 text-white font-semibold text-lg uppercase tracking-widest backdrop-blur-sm transition-all duration-300"
+            >
+              Learn More
+            </motion.a>
           </motion.div>
 
-          {/* subtle scroll hint */}
-          <div className="mt-12 flex items-center justify-center text-white/70">
-            <svg className="animate-bounce" width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M12 5v14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M19 12l-7 7-7-7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
-        </div>
+          {/* Trust indicators */}
+          <motion.div
+            variants={itemVariants}
+            className="mt-16 flex flex-wrap items-center justify-center gap-8 text-white/70 text-sm font-medium"
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-yellow-400 font-bold">✓</span>
+              Fast Delivery
+            </div>
+            <div className="hidden sm:flex items-center gap-2">
+              <span className="text-yellow-400 font-bold">✓</span>
+              Premium Quality
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-yellow-400 font-bold">✓</span>
+              Expert Care
+            </div>
+          </motion.div>
+        </motion.div>
       </div>
 
+      {/* Scroll indicator with premium styling */}
+      <motion.div
+        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-30"
+        animate={{ y: [0, 8, 0] }}
+        transition={{ duration: 2.5, repeat: Infinity }}
+      >
+        <div className="flex flex-col items-center gap-2">
+          <span className="text-white/60 text-xs uppercase tracking-widest font-semibold">Scroll to explore</span>
+          <ChevronDown className="w-5 h-5 text-yellow-400" strokeWidth={2} />
+        </div>
+      </motion.div>
+
       {/* Accessibility: skip to content link */}
-      <a href="#main" className="sr-only focus:not-sr-only focus:absolute top-20 left-6 z-40 bg-white text-black px-3 py-2 rounded">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute top-24 left-6 z-40 bg-white text-black px-4 py-2 rounded-lg font-semibold"
+      >
         Skip to content
       </a>
     </header>
   );
 }
-
-/*
-Notes & integration tips:
-1. Tailwind: This component assumes Tailwind CSS is configured in your project. The classes use Tailwind v3+ utilities.
-2. Framer Motion: The file imports `motion` from framer-motion for small entrance animations — optional. Remove if you don't want it.
-3. Video hosting: Use an optimized MP4 (H.264) or an adaptive streaming service. Keep file size small for fast loads.
-4. Autoplay & mobile: Many mobile browsers disable autoplay with sound. The `muted` attribute enables autoplay in most browsers. Provide a high-quality poster image as fallback.
-5. Accessibility: Provide descriptive alt text for the logo and ensure link text is descriptive. Use semantic header/nav elements as shown.
-6. Swap copy, links, and colors to match your brand. The layout mimics rinse.com: full-screen video, overlayed navbar, centered hero copy, and CTA buttons.
-*/
