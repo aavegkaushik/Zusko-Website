@@ -78,7 +78,7 @@ const Footer = () => {
       {/* Bottom section: logo + copyright */}
       <div className="border-t border-gray-800 pt-6 flex flex-col md:flex-row items-center justify-between">
         <img src={LogowithLine} alt="YourApp Logo" className="w-52 mb-4 md:mb-0" />
-        <span className="text-sm text-gray-500">© {new Date().getFullYear()} Zusko Corporation. All rights reserved.</span>
+        <span className="text-sm text-gray-500">© {new Date().getFullYear()} Zusko Laundry Services Pvt Ltd. All rights reserved.</span>
       </div>
     </footer>
   );
