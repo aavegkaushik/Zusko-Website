@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { FaExternalLinkAlt, FaBars, FaTimes } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -157,12 +157,12 @@ const Navbar = () => {
           whileTap={{ scale: 0.96 }}
           transition={{ duration: 0.2 }}
         >
-          <a href="/auth/login" className={styles.downloadBtn}>
+          <Link href="/auth/login" className={styles.downloadBtn}>
             <span>Book Now</span>
             <motion.span animate={{ x: [0, 3, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>
               <FaExternalLinkAlt size={14} />
             </motion.span>
-          </a>
+          </Link>
         </motion.div>
 
         {/* Mobile Menu & Download Link Container */}
