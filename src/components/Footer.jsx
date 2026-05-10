@@ -3,7 +3,18 @@ import { FaGooglePlay, FaAppStoreIos } from "react-icons/fa";
 import Logo from '../assets/Logo.png'
 import LogowithLine from '../assets/fullLogo.png'
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 const Footer = () => {
+  const currentYear = new Date().getFullYear();
+
+    const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: "easeOut" },
+    },
+  };
   return (
     <footer className="w-full mt-10 bg-gray-200 text-black px-6 md:px-20 py-12">
       {/* Top section: Company / Contact / Legal / Download */}
@@ -51,8 +62,8 @@ const Footer = () => {
         </div>
 
         {/* Download App + Social */}
-        <div>
-          <h4 className="text-md text-black font-bold uppercase mb-4">Download Zusko App</h4>
+        <div className="">
+          {/* <h4 className="text-md text-black font-bold uppercase mb-4">Download Zusko App</h4>
           <div className="flex items-center space-x-4 mb-6">
             <a href="#" className="flex items-center bg-white text-black px-3 py-2 rounded-md hover:bg-gray-200 transition">
               <FaGooglePlay className="text-xl mr-2" />
@@ -62,7 +73,7 @@ const Footer = () => {
               <FaAppStoreIos className="text-xl mr-2" />
               <span className="text-sm font-medium">App Store</span>
             </a>
-          </div>
+          </div> */}
           <div className="text-md text-black font-bold uppercase mb-4">
             <span>Social Links</span>
           </div>
@@ -75,11 +86,39 @@ const Footer = () => {
         </div>
       </div>
 
+      
+
       {/* Bottom section: logo + copyright */}
-      <div className="border-t border-gray-800 pt-6 flex flex-col md:flex-row items-center justify-between">
-        <img src={LogowithLine} alt="YourApp Logo" className="w-52 mb-4 md:mb-0" />
-        <span className="text-sm text-gray-500">© {new Date().getFullYear()} Zusko Laundry Services Pvt Ltd. All rights reserved.</span>
-      </div>
+      <motion.div
+          className="flex flex-col md:flex-row items-center justify-between gap-8"
+          variants={itemVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
+          {/* Logo */}
+          <motion.div
+            className="shrink-0"
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.3 }}
+          >
+            <img
+              src={LogowithLine}
+              alt="Zusko Logo"
+              className="w-48 h-auto object-contain"
+            />
+          </motion.div>
+ 
+          {/* Copyright & Company Info */}
+          <div className="flex-1 text-center md:text-right space-y-2">
+            <p className="text-sm text-gray-500">
+              © {currentYear} <span className="font-semibold text-gray-500">Zusko Laundry Services Pvt Ltd.</span>
+            </p>
+            <p className="text-xs text-gray-500">
+              All rights reserved. Designed with ❤️ for your convenience.
+            </p>
+          </div>
+        </motion.div>
     </footer>
   );
 };
