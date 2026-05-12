@@ -157,7 +157,7 @@ const Navbar = () => {
           whileTap={{ scale: 0.96 }}
           transition={{ duration: 0.2 }}
         >
-          <Link href="/auth/login" className={styles.downloadBtn}>
+          <Link to="/auth/login" className={styles.downloadBtn}>
             <span>Book Now</span>
             <motion.span animate={{ x: [0, 3, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>
               <FaExternalLinkAlt size={14} />

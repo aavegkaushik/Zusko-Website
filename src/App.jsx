@@ -21,11 +21,19 @@ import ForBusiness from "./Pages/ForBusiness.jsx";
 import Blog from "./Pages/Blog.jsx";
 import PartnerWithUs from "./Pages/PartnerwithUs.jsx";
 import CityAvailability from "./Pages/CityAvailability.jsx";
-
+import Order from './Pages/Order.jsx'
 import UnderDevelopmentPopup from "./components/UnderDevelopmentPopup";
+import Login from "./Pages/Login.jsx";
+import CartBar from "./components/CartBar.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import Cart from "./Pages/Cart.jsx";
+import Checkout from "./Pages/Checkout.jsx";
+import Payment from "./Pages/Payment.jsx";
+import Success from "./Pages/Success.jsx";
 
 const App = () => {
   const [showPopup, setShowPopup] = useState(true);
+  const hideCartRoutes = ["/checkout", "/success"];
 
   useEffect(() => {
     const seen = localStorage.getItem("under_dev_seen");
@@ -45,7 +53,7 @@ const App = () => {
 
       <ScrollToTop />
       <Navbar />
-
+      <ProtectedRoute>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
@@ -64,8 +72,17 @@ const App = () => {
         <Route path="/partnerwithus" element={<PartnerWithUs />} />
         <Route path="/available/:city" element={<CityAvailability />} />
         <Route path="*" element={<PageNotFound />} />
+        <Route path="/auth/login" element={<Login />} />
+        <Route path="/place-order" element={<Order />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/payment" element={<Payment />} />
+        <Route path="/success" element={<Success />} />
       </Routes>
-
+      </ProtectedRoute>
+      {!hideCartRoutes.includes(location.pathname) && (
+        <CartBar />
+      )}
       <Footer />
     </>
   );
