@@ -384,149 +384,206 @@ const Home = () => {
 
         {/* App Download Section */}
         <motion.section
-      className="w-full bg-linear-to-br from-black via-slate-950 to-black text-white flex flex-col lg:flex-row items-center justify-between px-6 md:px-12 lg:px-20 py-16 md:py-24 overflow-hidden relative"
-      variants={fadeIn}
-      initial="hidden"
-      whileInView="show"
-      id="get-started"
-      viewport={{ once: true, amount: 0.3 }}
-    >
-      {/* Decorative Background Elements */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-yellow-400/5 rounded-full blur-3xl -z-10"></div>
-      <div className="absolute bottom-0 left-0 w-72 h-72 bg-blue-400/5 rounded-full blur-3xl -z-10"></div>
- 
-      {/* Left Content */}
-      <motion.div
-        className="flex-1 flex flex-col items-start text-left space-y-8 max-w-2xl z-10"
+  className="
+    w-full relative overflow-hidden
+    bg-gradient-to-br from-black via-zinc-950 to-black
+    text-white
+    flex flex-col lg:flex-row
+    items-center justify-between
+    px-6 md:px-12 lg:px-20
+    py-16 md:py-24
+  "
+  variants={fadeIn}
+  initial="hidden"
+  whileInView="show"
+  id="get-started"
+  viewport={{ once: true, amount: 0.3 }}
+>
+  {/* PREMIUM BACKGROUND */}
+  <div className="absolute inset-0 overflow-hidden">
+    <motion.div
+      animate={{ y: [0, -30, 0], x: [0, 20, 0] }}
+      transition={{ duration: 10, repeat: Infinity }}
+      className="absolute w-72 h-72 md:w-96 md:h-96 bg-yellow-400/10 rounded-full blur-3xl top-0 left-0"
+    />
+
+    <motion.div
+      animate={{ y: [0, 30, 0], x: [0, -20, 0] }}
+      transition={{ duration: 12, repeat: Infinity }}
+      className="absolute w-72 h-72 md:w-96 md:h-96 bg-yellow-500/10 rounded-full blur-3xl bottom-0 right-0"
+    />
+
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,214,10,0.08),transparent_40%)]" />
+  </div>
+
+  {/* LEFT CONTENT */}
+  <motion.div
+    className="
+      flex-1 flex flex-col
+      items-center lg:items-start
+      text-center lg:text-left
+      space-y-8
+      max-w-2xl
+      z-10
+    "
+    variants={fadeUp}
+  >
+    {/* LOGO */}
+    <motion.img
+      src={Logo}
+      alt="Zusko Logo"
+      className="w-28 md:w-36"
+      whileHover={{ scale: 1.08 }}
+    />
+
+    {/* HEADING */}
+    <div className="space-y-5">
+      <motion.h2
+        className="
+          text-4xl md:text-5xl lg:text-6xl
+          font-black
+          leading-tight
+        "
         variants={fadeUp}
       >
-        {/* Logo */}
-        <motion.img
-          src={Logo}
-          alt="Zusko Logo"
-          className="w-28 md:w-36 hover:scale-110 transition-transform duration-300"
-          whileHover={{ scale: 1.1 }}
-        />
- 
-        {/* Main Heading */}
-        <div className="space-y-4">
-          <motion.h2
-            className="text-4xl md:text-5xl lg:text-6xl font-black leading-tight bg-linear-to-r from-white via-white to-gray-400 bg-clip-text text-transparent"
-            variants={fadeUp}
-          >
-            Book Your Laundry in Seconds
-          </motion.h2>
- 
-          <motion.p
-            className="text-gray-400 text-base md:text-lg max-w-xl leading-relaxed"
-            variants={fadeUp}
-            transition={{ delay: 0.1 }}
-          >
-            No more waiting. Schedule your pickup, choose premium services, and relax — we'll handle the rest with meticulous care and attention to detail.
-          </motion.p>
-        </div>
- 
-        {/* CTA Button with enhanced styling */}
-        <motion.button
-          onClick={() => navigate('/auth/login')}
-          className="relative group px-8 py-4 bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-lg rounded-xl transition-all duration-300 shadow-2xl hover:shadow-yellow-400/50 overflow-hidden"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.98 }}
-          variants={fadeUp}
-          transition={{ delay: 0.2 }}
-        >
-          <span className="relative z-10 flex items-center gap-2">
-            Book Laundry Now
-            <motion.span
-              animate={{ x: [0, 5, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            >
-              →
-            </motion.span>
-          </span>
-          <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-        </motion.button>
- 
-        {/* Trust Indicators */}
-        <motion.div
-          className="flex items-center gap-6 pt-4 text-sm text-gray-400"
-          variants={fadeUp}
-          transition={{ delay: 0.3 }}
-        >
-          <div className="flex items-center gap-2">
-            <span className="text-green-400 font-bold">✓</span>
-            <span>Secure & Instant Booking</span>
-          </div>
-          <div className="hidden sm:flex items-center gap-2">
-            <span className="text-green-400 font-bold">✓</span>
-            <span>24/7 Support</span>
-          </div>
-        </motion.div>
-      </motion.div>
- 
-      {/* Right Side - Stats Cards */}
-      <motion.div
-        className="flex-1 flex items-center justify-center mt-16 lg:mt-0 w-full lg:w-auto"
-        variants={scaleIn}
-        transition={{ delay: 0.2 }}
+        Book Your Laundry
+        <br />
+        <span className="bg-linear-to-r from-yellow-300 via-yellow-400 to-yellow-500 bg-clip-text text-transparent">
+          In Seconds
+        </span>
+      </motion.h2>
+
+      <motion.p
+        className="
+          text-zinc-400
+          text-base md:text-lg
+          max-w-xl
+          leading-relaxed
+        "
+        variants={fadeUp}
+        transition={{ delay: 0.1 }}
       >
-        <div className="relative w-full max-w-md">
-          {/* Cards Container */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-4">
-            {stats.map((stat, index) => (
+        Premium laundry pickup, expert garment care, and lightning-fast delivery —
+        all crafted for a luxury experience.
+      </motion.p>
+    </div>
+
+    {/* CTA BUTTON */}
+    <motion.button
+      onClick={() => navigate("/auth/login")}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.96 }}
+      variants={fadeUp}
+      transition={{ delay: 0.2 }}
+      className="
+        relative group
+        px-8 py-4
+        rounded-2xl
+        bg-gradient-to-r from-yellow-400 to-yellow-500
+        text-black
+        font-bold
+        text-lg
+        shadow-[0_15px_50px_rgba(250,204,21,0.25)]
+        hover:shadow-[0_20px_60px_rgba(250,204,21,0.45)]
+        transition-all duration-300
+        overflow-hidden
+      "
+    >
+      <span className="relative z-10 flex items-center gap-2">
+        Book Laundry Now
+        <motion.span
+          animate={{ x: [0, 5, 0] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+        >
+          →
+        </motion.span>
+      </span>
+
+      <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+    </motion.button>
+
+    {/* TRUST BADGES */}
+    <motion.div
+      className="
+        flex flex-col sm:flex-row
+        items-center
+        gap-4 sm:gap-6
+        pt-4
+        text-sm text-zinc-400
+      "
+      variants={fadeUp}
+      transition={{ delay: 0.3 }}
+    >
+      <div className="flex items-center gap-2">
+        <span className="text-yellow-400 font-bold">✓</span>
+        <span>Secure Instant Booking</span>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <span className="text-yellow-400 font-bold">✓</span>
+        <span>24/7 Customer Support</span>
+      </div>
+    </motion.div>
+  </motion.div>
+
+  {/* RIGHT STATS */}
+  <motion.div
+    className="
+      flex-1 flex items-center justify-center
+      mt-16 lg:mt-0
+      w-full
+      z-10
+    "
+    variants={scaleIn}
+    transition={{ delay: 0.2 }}
+  >
+    <div className="w-full max-w-5xl">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {stats.map((stat, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 + index * 0.1 }}
+            viewport={{ once: true }}
+            whileHover={{ y: -8, scale: 1.03 }}
+            className="
+              group relative
+              rounded-3xl
+              overflow-hidden
+              bg-white/5
+              backdrop-blur-xl
+              border border-yellow-400/10
+              hover:border-yellow-400/30
+              transition-all duration-300
+              p-8
+            "
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+            <div className="relative flex flex-col items-center text-center space-y-4">
               <motion.div
-                key={index}
-                className="group relative h-48 rounded-2xl overflow-hidden"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 + index * 0.1, duration: 0.6 }}
-                viewport={{ once: true }}
+                className="text-5xl text-yellow-400"
+                animate={{ y: [0, -6, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}
               >
-                {/* Card Background with gradient */}
-                <div className="absolute inset-0 bg-linear-to-br from-slate-800/80 via-slate-900/60 to-black/80 border border-yellow-400/20 rounded-2xl"></div>
- 
-                {/* Hover effect overlay */}
-                <div className="absolute inset-0 bg-linear-to-br from-yellow-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl"></div>
- 
-                {/* Content */}
-                <div className="relative h-full flex flex-col items-center justify-center space-y-3 px-6 py-8">
-                  {/* Icon */}
-                  <motion.div
-                    className="text-5xl"
-                    animate={{ y: [0, -5, 0] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    {stat.icon}
-                  </motion.div>
- 
-                  {/* Number */}
-                  <motion.div
-                    className="text-4xl md:text-3xl font-black bg-linear-to-r from-yellow-300 to-yellow-100 bg-clip-text text-transparent"
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    transition={{ delay: 0.4 + index * 0.1 }}
-                  >
-                    {stat.number}
-                  </motion.div>
- 
-                  {/* Label */}
-                  <p className="text-gray-300 text-sm font-medium text-center leading-tight">
-                    {stat.label}
-                  </p>
-                </div>
- 
-                {/* Border accent on hover */}
-                <div className="absolute inset-0 border border-yellow-400/0 group-hover:border-yellow-400/30 rounded-2xl transition-colors duration-300"></div>
+                {stat.icon}
               </motion.div>
-            ))}
-          </div>
- 
-          {/* Decorative Elements */}
-          <div className="absolute -top-10 -right-10 w-40 h-40 bg-yellow-400/5 rounded-full blur-2xl pointer-events-none"></div>
-          <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-blue-400/5 rounded-full blur-2xl pointer-events-none"></div>
-        </div>
-      </motion.div>
-    </motion.section>
+
+              <div className="text-4xl font-black bg-linear-to-r from-yellow-300 to-yellow-500 bg-clip-text text-transparent">
+                {stat.number}
+              </div>
+
+              <p className="text-zinc-300 text-sm font-medium">
+                {stat.label}
+              </p>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  </motion.div>
+</motion.section>
       </div>
     </div>
   );
