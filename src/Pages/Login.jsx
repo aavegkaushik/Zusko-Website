@@ -103,14 +103,14 @@ useEffect(() => {
     </div>
 
     {/* LAUNDRY BOY IMAGE */}
-    <motion.img
+    {/* <motion.img
       src=""
       alt="Laundry Service"
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.6 }}
       className="absolute bottom-0 right-0 w-[420px] object-contain drop-shadow-xl"
-    />
+    /> */}
 
     {/* BOTTOM TEXT */}
     <div className="text-sm text-gray-500">
