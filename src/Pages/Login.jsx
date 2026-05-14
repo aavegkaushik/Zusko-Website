@@ -69,7 +69,7 @@ useEffect(() => {
   };
 
   return (
-    <div className="min-h-screen mt-10 flex flex-col md:flex-row">
+    <div className="min-h-screen mt-18 flex flex-col md:flex-row">
       {/* Left Side */}
       <motion.div
   initial={{ opacity: 0, x: -50 }}
@@ -221,21 +221,25 @@ useEffect(() => {
 </motion.div>
 
       {/* RIGHT SIDE - LOGIN */}
-      <div className="flex w-full md:w-1/2 items-center justify-center bg-linear-to-br from-yellow-50 via-white to-yellow-100 p-4">
+      <div className="flex w-full md:w-1/2
+    items-center justify-center
+    min-h-screen md:min-h-auto
+    bg-linear-to-br from-yellow-50 via-white to-yellow-100
+    p-4">
 
-  <motion.div
-    initial={{ opacity: 0, y: 40 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5 }}
-
-    className="
-      w-full max-w-md 
-      bg-white/90 backdrop-blur-xl
-      p-8 rounded-3xl 
-      border border-yellow-100
-      shadow-[0_20px_60px_rgba(0,0,0,0.08)]
-    "
-  >
+<motion.div
+  initial={{ opacity: 0, y: 40 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.5 }}
+  className="
+    w-full max-w-md
+    bg-white/90 backdrop-blur-xl
+    p-6 sm:p-8
+    rounded-3xl
+    border border-yellow-100
+    shadow-[0_20px_60px_rgba(0,0,0,0.08)]
+  "
+>
     
     {/* HEADING */}
     <h1 className="text-3xl font-extrabold mb-6 text-center tracking-tight">
