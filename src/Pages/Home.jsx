@@ -8,6 +8,7 @@ import Eco from "../assets/Eco.svg";
 import Mobile from "../assets/mobile1.png";
 import Logo from "../assets/Logo.png";
 import Hero from '../components/Hero.jsx'
+import { useNavigate } from "react-router-dom";
 const fadeIn = {
   hidden: { opacity: 0 },
   show: {
@@ -80,6 +81,7 @@ const imageVariants = {
 };
 
 const Home = () => {
+  const navigate = useNavigate();
   return (
     <div className="overflow-hidden">
       <Hero />

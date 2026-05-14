@@ -125,7 +125,7 @@ useEffect(() => {
         <h2 className="text-5xl lg:text-6xl font-black leading-tight mb-6">
           Your Clothes.
           <br />
-          <span className="bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 bg-clip-text text-transparent">
+          <span className="bg-linear-to-r from-yellow-300 via-yellow-400 to-yellow-500 bg-clip-text text-transparent">
             Our Responsibility.
           </span>
         </h2>
