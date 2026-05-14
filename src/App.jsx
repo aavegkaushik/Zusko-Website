@@ -1,6 +1,5 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-
 import Home from "./Pages/Home.jsx";
 import About from "./Pages/About.jsx";
 import Navbar from "./components/Navbar.jsx";
@@ -33,6 +32,8 @@ import Success from "./Pages/Success.jsx";
 
 const App = () => {
   const [showPopup, setShowPopup] = useState(true);
+  const location = useLocation();
+
   const hideCartRoutes = ["/checkout", "/success"];
 
   useEffect(() => {
@@ -53,8 +54,9 @@ const App = () => {
 
       <ScrollToTop />
       <Navbar />
-      <ProtectedRoute>
+
       <Routes>
+        {/* Public routes */}
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
@@ -71,18 +73,59 @@ const App = () => {
         <Route path="/cookie-policy" element={<CookiePolicy />} />
         <Route path="/partnerwithus" element={<PartnerWithUs />} />
         <Route path="/available/:city" element={<CityAvailability />} />
-        <Route path="*" element={<PageNotFound />} />
         <Route path="/auth/login" element={<Login />} />
-        <Route path="/place-order" element={<Order />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/checkout" element={<Checkout />} />
-        <Route path="/payment" element={<Payment />} />
-        <Route path="/success" element={<Success />} />
+
+        {/* Protected routes */}
+        <Route
+          path="/place-order"
+          element={
+            <ProtectedRoute>
+              <Order />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/cart"
+          element={
+            <ProtectedRoute>
+              <Cart />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/checkout"
+          element={
+            <ProtectedRoute>
+              <Checkout />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/payment"
+          element={
+            <ProtectedRoute>
+              <Payment />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/success"
+          element={
+            <ProtectedRoute>
+              <Success />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route path="*" element={<PageNotFound />} />
       </Routes>
-      </ProtectedRoute>
-      {!hideCartRoutes.includes(location.pathname) && (
-        <CartBar />
-      )}
+
+      {!hideCartRoutes.includes(location.pathname) && <CartBar />}
+
       <Footer />
     </>
   );
