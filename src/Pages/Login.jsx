@@ -5,6 +5,14 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import gsap from "gsap";
 import API from '../config/api'
+import {
+  Zap,
+  ShieldCheck,
+  Sparkles,
+  Users,
+  PackageCheck,
+  Star,
+} from "lucide-react";
 export default function Login() {
   const { login, user } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -49,76 +57,168 @@ useEffect(() => {
     }
   };
 
+    // Animation Variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+  };
+ 
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+  };
+
   return (
-    <div className="min-h-screen mt-20 flex flex-col md:flex-row">
-      
-<div className="hidden md:flex w-1/2 relative overflow-hidden bg-linear-to-br from-yellow-50 via-white to-yellow-100 text-black">
+    <div className="min-h-screen mt-10 flex flex-col md:flex-row">
+      {/* Left Side */}
+      <motion.div
+  initial={{ opacity: 0, x: -50 }}
+  animate={{ opacity: 1, x: 0 }}
+  transition={{ duration: 0.8 }}
+  className="hidden md:flex w-1/2 relative overflow-hidden bg-black text-white"
+>
+  {/* Premium Animated Background */}
+  <div className="absolute inset-0 overflow-hidden">
+    <motion.div
+      animate={{ y: [0, -30, 0], x: [0, 20, 0] }}
+      transition={{ duration: 10, repeat: Infinity }}
+      className="absolute w-96 h-96 bg-yellow-400/15 rounded-full blur-3xl top-10 left-10"
+    />
 
-  {/* SOFT BACKGROUND BLOBS */}
-  <div className="absolute w-72 h-72 bg-yellow-300 rounded-full blur-3xl opacity-30 top-[-50px] left-[-50px]"></div>
-  <div className="absolute w-72 h-72 bg-yellow-400 rounded-full blur-3xl opacity-30 bottom-[-50px] right-[-50px]"></div>
+    <motion.div
+      animate={{ y: [0, 30, 0], x: [0, -20, 0] }}
+      transition={{ duration: 12, repeat: Infinity }}
+      className="absolute w-96 h-96 bg-yellow-500/10 rounded-full blur-3xl bottom-10 right-10"
+    />
 
-  <div className="relative z-10 flex flex-col justify-between w-full p-10">
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,214,10,0.08),transparent_40%)]" />
+  </div>
 
-    {/* TOP LOGO */}
-    <div className="flex justify-between items-center">
-      <h1 className="text-2xl font-extrabold tracking-wide">
+  <div className="relative z-10 flex flex-col justify-between w-full p-12 lg:p-16">
+    {/* Branding */}
+    {/* <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.2 }}
+      className="space-y-3"
+    >
+      <h1 className="text-4xl font-black tracking-tight">
         ZUSKO
       </h1>
 
-      <span className="text-sm bg-yellow-200 px-3 py-1 rounded-full">
-        Premium Laundry
-      </span>
-    </div>
-
-    {/* CENTER CONTENT */}
-    <div className="mt-10">
-
-      <motion.h1
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-5xl font-extrabold leading-tight"
-      >
-        Laundry,
-        <br />
-        <span className="bg-linear-to-r from-yellow-500 to-yellow-700 bg-clip-text text-transparent">
-          but effortless.
-        </span>
-      </motion.h1>
-
-      <p className="mt-6 text-lg text-gray-600 max-w-md">
-        Pickup. Clean. Deliver.  
-        Experience premium laundry service with zero hassle.
-      </p>
-
-      {/* GLASS CARDS */}
-      <div className="flex gap-4 mt-8">
-        <div className="bg-white/70 backdrop-blur-md px-4 py-3 rounded-xl border border-yellow-100 shadow-sm hover:scale-105 transition">
-          ⚡ Same Day Delivery
-        </div>
-        <div className="bg-white/70 backdrop-blur-md px-4 py-3 rounded-xl border border-yellow-100 shadow-sm hover:scale-105 transition">
-          💧 Premium Care
-        </div>
+      <div className="flex items-center gap-3">
+        <div className="w-2.5 h-2.5 bg-yellow-400 rounded-full animate-pulse" />
+        <p className="text-sm text-yellow-400 font-semibold uppercase tracking-wider">
+          India’s Premium Laundry Experience
+        </p>
       </div>
-    </div>
+    </motion.div> */}
 
-    {/* LAUNDRY BOY IMAGE */}
-    {/* <motion.img
-      src=""
-      alt="Laundry Service"
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.6 }}
-      className="absolute bottom-0 right-0 w-[420px] object-contain drop-shadow-xl"
-    /> */}
+    {/* Main Hero */}
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.4 }}
+      className="space-y-10"
+    >
+      <div>
+        <h2 className="text-5xl lg:text-6xl font-black leading-tight mb-6">
+          Your Clothes.
+          <br />
+          <span className="bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 bg-clip-text text-transparent">
+            Our Responsibility.
+          </span>
+        </h2>
 
-    {/* BOTTOM TEXT */}
-    <div className="text-sm text-gray-500">
-      Trusted by 1000+ happy customers
-    </div>
+        <p className="text-lg text-zinc-300 max-w-md leading-relaxed">
+          Pickup • Professional Cleaning • Fast Delivery
+        </p>
+      </div>
 
+      {/* Features */}
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="space-y-4"
+      >
+        {[
+          {
+            icon: <Zap size={22} />,
+            title: "Same-Day Delivery",
+            desc: "Quick turnaround for urgent orders",
+          },
+          {
+            icon: <Sparkles size={22} />,
+            title: "Premium Fabric Care",
+            desc: "Luxury cleaning for every garment",
+          },
+          {
+            icon: <ShieldCheck size={22} />,
+            title: "Secure Payments",
+            desc: "100% safe & encrypted checkout",
+          },
+        ].map((feature, i) => (
+          <motion.div
+            key={i}
+            variants={itemVariants}
+            whileHover={{ x: 8, scale: 1.02 }}
+            className="flex items-center gap-4 p-5 rounded-2xl bg-white/5 backdrop-blur-xl border border-yellow-400/10 hover:border-yellow-400/30 hover:bg-white/10 transition-all cursor-pointer"
+          >
+            <div className="w-12 h-12 rounded-xl bg-yellow-400/10 flex items-center justify-center text-yellow-400">
+              {feature.icon}
+            </div>
+
+            <div>
+              <p className="font-semibold text-white">
+                {feature.title}
+              </p>
+              <p className="text-sm text-zinc-400">
+                {feature.desc}
+              </p>
+            </div>
+          </motion.div>
+        ))}
+      </motion.div>
+    </motion.div>
+
+    {/* Stats */}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.8 }}
+      className="grid grid-cols-3 gap-6 pt-8 border-t border-yellow-400/10"
+    >
+      {[
+        {
+          icon: <Users size={18} />,
+          number: "10K+",
+          label: "Happy Customers",
+        },
+        {
+          icon: <PackageCheck size={18} />,
+          number: "50K+",
+          label: "Orders Delivered",
+        },
+        {
+          icon: <Star size={18} />,
+          number: "4.9★",
+          label: "Customer Rating",
+        },
+      ].map((stat, i) => (
+        <div key={i}>
+          <div className="flex items-center gap-2 text-yellow-400 mb-2">
+            {stat.icon}
+            <p className="text-2xl font-black">{stat.number}</p>
+          </div>
+          <p className="text-xs text-zinc-400 uppercase tracking-wide">
+            {stat.label}
+          </p>
+        </div>
+      ))}
+    </motion.div>
   </div>
-</div>
+</motion.div>
 
       {/* RIGHT SIDE - LOGIN */}
       <div className="flex w-full md:w-1/2 items-center justify-center bg-linear-to-br from-yellow-50 via-white to-yellow-100 p-4">
