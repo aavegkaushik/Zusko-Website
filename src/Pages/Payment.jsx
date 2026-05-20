@@ -31,42 +31,41 @@ const handleCOD = async () => {
   };
 
   const handleOnlinePayment = async () => {
-    const { data } = await API.post(
-  "/payment/create-order",
-  { amount: orderData.total }
-);
-
-    const options = {
-      key: "rzp_test_SeawcubEUW2ev1",
-      amount: data.amount,
-      currency: "INR",
-      name: "Zusko Laundry",
-      description: "Laundry Order Payment",
-      order_id: data.id,
-
-      handler: async function (response) {
-        await API.post("/orders/create", {
-  ...orderData,
-  payment: {
-    method: "ONLINE",
-    status: "paid",
+  const response = await API.post("/payment/create-order", {
     amount: orderData.total,
-    razorpayPaymentId: response.razorpay_payment_id,
-  },
-});
+  });
 
-        setTimeout(() => {
-          clearCart();
-          navigate("/success");
-        }, 200);
-      },
+  const razorpayOrder = response.data.data;
 
-      theme: { color: "#000" },
-    };
+  const options = {
+    key: "rzp_test_SeawcubEUW2ev1",
+    amount: razorpayOrder.amount,
+    currency: "INR",
+    name: "Zusko Laundry",
+    description: "Laundry Order Payment",
+    order_id: razorpayOrder.id,
 
-    const rzp = new window.Razorpay(options);
-    rzp.open();
+    handler: async function (response) {
+      await API.post("/orders/create", {
+        ...orderData,
+        payment: {
+          method: "ONLINE",
+          status: "paid",
+          amount: orderData.total,
+          razorpayPaymentId: response.razorpay_payment_id,
+        },
+      });
+
+      clearCart();
+      navigate("/success");
+    },
+
+    theme: { color: "#000" },
   };
+
+  const rzp = new window.Razorpay(options);
+  rzp.open();
+};
 
   return (
     <div className="min-h-screen mt-10 bg-linear-to-br from-yellow-50 via-white to-yellow-100 pt-20 pb-32">
