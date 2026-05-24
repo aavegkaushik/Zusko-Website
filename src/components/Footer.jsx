@@ -149,7 +149,7 @@ const Footer = () => {
           </div>
           <div className="flex items-center space-x-4">
             <a
-              href="#"
+              href="https://www.facebook.com/profile.php?id=61590306813283"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Facebook"
