@@ -6,7 +6,7 @@ import SaveMoney from "../assets/Saving money-cuate.svg";
 import delivery from "../assets/In no time-cuate.svg";
 import Eco from "../assets/Eco.svg";
 import Mobile from "../assets/mobile1.png";
-import Logo from "../assets/Logo.png";
+import Logo from "../assets/Zusko White Logo.png";
 import Hero from '../components/Hero.jsx'
 import { useNavigate } from "react-router-dom";
 const fadeIn = {
@@ -386,7 +386,7 @@ const Home = () => {
         <motion.section
   className="
     w-full relative overflow-hidden
-    bg-gradient-to-br from-black via-zinc-950 to-black
+    bg-linear-to-br from-black via-zinc-950 to-black
     text-white
     flex flex-col lg:flex-row
     items-center justify-between
@@ -479,7 +479,7 @@ const Home = () => {
         relative group
         px-8 py-4
         rounded-2xl
-        bg-gradient-to-r from-yellow-400 to-yellow-500
+        bg-linear-to-r from-yellow-400 to-yellow-500
         text-black
         font-bold
         text-lg
@@ -559,7 +559,7 @@ const Home = () => {
               p-8
             "
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="absolute inset-0 bg-linear-to-br from-yellow-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
             <div className="relative flex flex-col items-center text-center space-y-4">
               <motion.div
