@@ -68,29 +68,58 @@ export default function Checkout() {
     }
   }, [pincode, total]);
 
-  const fetchCity = async (pin) => {
-    try {
-      setCheckingPin(true);
-      setPinError("");
+const fetchCity = async (pin) => {
+  try {
+    setCheckingPin(true);
+    setPinError("");
+    setCity("");
 
-      const res = await axios.get(
-        `https://api.postalpincode.in/pincode/${pin}`,
+    // Primary API
+    const res = await axios.get(
+      `https://api.postalpincode.in/pincode/${pin}`,
+      {
+        timeout: 8000,
+      }
+    );
+
+    if (
+      res.data?.[0]?.Status === "Success" &&
+      res.data?.[0]?.PostOffice?.length
+    ) {
+      const postOffice = res.data[0].PostOffice[0];
+      setCity(postOffice.District);
+      return;
+    }
+
+    setPinError("Invalid Pincode ❌");
+
+  } catch (err) {
+    console.log("Primary API failed:", err.message);
+
+    // Fallback API
+    try {
+      const fallback = await axios.get(
+        `https://api.zippopotam.us/IN/${pin}`,
+        {
+          timeout: 8000,
+        }
       );
 
-      if (res.data[0].Status === "Success") {
-        const postOffice = res.data[0].PostOffice[0];
-        setCity(postOffice.District);
-      } else {
-        setCity("");
-        setPinError("Invalid Pincode ❌");
+      if (fallback.data?.places?.length) {
+        setCity(fallback.data.places[0]["place name"]);
+        return;
       }
-    } catch (err) {
-      setCity("");
-      setPinError("Error fetching location");
-    } finally {
-      setCheckingPin(false);
+
+      setPinError("Invalid Pincode ❌");
+
+    } catch (fallbackErr) {
+      console.log("Fallback API failed:", fallbackErr.message);
+      setPinError("Location service temporarily unavailable");
     }
-  };
+  } finally {
+    setCheckingPin(false);
+  }
+};
 
   const onSubmit = async (data) => {
     const { fullAddress, pincode, date, time } = data;
