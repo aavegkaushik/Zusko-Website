@@ -48,6 +48,7 @@ export default function Checkout() {
   const [pinError, setPinError] = useState("");
 
   const pincode = watch("pincode");
+const selectedDate = watch("date");
 
   useEffect(() => {
     if (!user) navigate("/login");
@@ -120,6 +121,26 @@ const fetchCity = async (pin) => {
   } finally {
     setCheckingPin(false);
   }
+};
+
+const getAvailableTimeSlots = () => {
+  const allSlots = [
+    { label: "9 AM - 12 PM", endHour: 12 },
+    { label: "12 PM - 3 PM", endHour: 15 },
+    { label: "3 PM - 6 PM", endHour: 18 },
+  ];
+
+  if (!selectedDate) return allSlots;
+
+  const today = new Date().toISOString().split("T")[0];
+
+  if (selectedDate !== today) {
+    return allSlots;
+  }
+
+  const currentHour = new Date().getHours();
+
+  return allSlots.filter((slot) => slot.endHour > currentHour);
 };
 
   const onSubmit = async (data) => {
@@ -277,26 +298,38 @@ const fetchCity = async (pin) => {
 
         {/* 📅 Pickup */}
         <motion.div className="bg-white rounded-2xl p-4 shadow space-y-3">
-          <h2 className="font-semibold">Pickup Schedule</h2>
+  <h2 className="font-semibold">Pickup Schedule</h2>
 
-          <input
-            type="date"
-            {...register("date", { required: "Select date" })}
-            className="w-full border p-3 rounded-xl"
-          />
-          <p className="text-red-500 text-xs">{errors.date?.message}</p>
+  <input
+    type="date"
+    min={new Date().toISOString().split("T")[0]}
+    {...register("date", { required: "Select date" })}
+    className="w-full border p-3 rounded-xl"
+  />
+  <p className="text-red-500 text-xs">{errors.date?.message}</p>
 
-          <select
-            {...register("time", { required: "Select time" })}
-            className="w-full border p-3 rounded-xl"
-          >
-            <option value="">Select Time</option>
-            <option>9 AM - 12 PM</option>
-            <option>12 PM - 3 PM</option>
-            <option>3 PM - 6 PM</option>
-          </select>
-          <p className="text-red-500 text-xs">{errors.time?.message}</p>
-        </motion.div>
+  <select
+    {...register("time", { required: "Select time" })}
+    className="w-full border p-3 rounded-xl"
+  >
+    <option value="">Select Time</option>
+
+    {getAvailableTimeSlots().map((slot) => (
+      <option key={slot.label} value={slot.label}>
+        {slot.label}
+      </option>
+    ))}
+  </select>
+
+  <p className="text-red-500 text-xs">{errors.time?.message}</p>
+
+  {selectedDate === new Date().toISOString().split("T")[0] &&
+    getAvailableTimeSlots().length === 0 && (
+      <p className="text-red-500 text-xs">
+        No pickup slots available for today
+      </p>
+    )}
+</motion.div>
       </div>
 
       {/* 💳 Bottom CTA */}
