@@ -138,7 +138,7 @@ const HelpSupport = () => {
             href="tel:+919876543210"
             className="flex items-center gap-2 bg-black text-white px-6 py-3 rounded-full font-medium hover:bg-gray-800 transition"
           >
-            <FaPhoneAlt /> +91 63968 64741
+            <FaPhoneAlt /> +91 80044 11976
           </a>
         </div>
       </motion.div>

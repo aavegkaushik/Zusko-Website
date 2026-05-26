@@ -205,11 +205,13 @@ const Footer = () => {
           whileHover={{ scale: 1.05 }}
           transition={{ duration: 0.3 }}
         >
+          <a href="/">
           <img
             src={LogowithLine}
             alt="Zusko Logo"
             className="w-48 h-auto object-contain"
           />
+          </a>
         </motion.div>
 
         {/* Copyright & Company Info */}

@@ -194,7 +194,7 @@ export default function ContactSimple() {
                   <label className="block text-gray-700 font-semibold mb-3 text-sm uppercase tracking-wide">Phone Number</label>
                   <input
                     type="tel"
-                    placeholder="+91 63968 64741"
+                    placeholder="+91 80044 11976"
                     {...register("mobile", {
                       required: "Mobile number is required",
                       pattern: { value: /^[0-9]{10}$/, message: "Enter a valid 10-digit mobile number" },
@@ -327,10 +327,10 @@ export default function ContactSimple() {
                     <div className="flex-1">
                       <h4 className="text-gray-900 font-semibold text-base mb-2">Telephone</h4>
                       <a
-                        href="tel:+916396864741"
+                        href="tel:+918004411976"
                         className="text-gray-900 font-medium text-sm hover:text-yellow-600 transition-colors duration-300 block mb-1"
                       >
-                        +91 63968 64741
+                        +91 80044 11976
                       </a>
                       <p className="text-gray-500 text-xs uppercase tracking-wide">
                         Monday – Friday: 9:00 AM – 6:00 PM IST

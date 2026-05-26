@@ -169,7 +169,7 @@ const TermsAndConditions = () => {
               <strong>Email:</strong> info@zusko.in
             </li>
             <li>
-              <strong>Phone:</strong> +91 63968 64741
+              <strong>Phone:</strong> +91 80044 11976
             </li>
           </ul>
         </section>
