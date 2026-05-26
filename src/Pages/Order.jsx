@@ -75,7 +75,7 @@ const services = [
   { name: "Wash & Iron", multiplier: 1 },
   { name: "Dry Clean", multiplier: 3 },
   { name: "Steam Iron", multiplier: 0.7 },
-  { name: "Premium Laundry", multiplier: 2 },
+  // { name: "Premium Laundry", multiplier: 2 },
 ];
 
 export default function BookLaundry() {
