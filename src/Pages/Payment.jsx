@@ -15,57 +15,61 @@ export default function Payment() {
   const { orderData } = state;
 
 const handleCOD = async () => {
-  await API.post("/orders/create", {
-    ...orderData,
-    payment: {
-      method: "COD",
-      status: "pending",
-      amount: orderData.total,
-    },
-  });
+  alert("🚀 We are starting our laundry service very soon. Stay tuned!");
+  // await API.post("/orders/create", {
+  //   ...orderData,
+  //   payment: {
+  //     method: "COD",
+  //     status: "pending",
+  //     amount: orderData.total,
+  //   },
+  // });
 
-    setTimeout(() => {
-      clearCart();
-      navigate("/success");
-    }, 200);
+  //   setTimeout(() => {
+  //     clearCart();
+  //     navigate("/success");
+  //   }, 200);
   };
 
   const handleOnlinePayment = async () => {
-    const { data } = await API.post(
-  "/payment/create-order",
-  { amount: orderData.total }
-);
 
-    const options = {
-      key: "rzp_test_SeawcubEUW2ev1",
-      amount: data.amount,
-      currency: "INR",
-      name: "Zusko Laundry",
-      description: "Laundry Order Payment",
-      order_id: data.id,
+      alert("🚀 We are starting our laundry service very soon. Online payments will be available shortly!");
 
-      handler: async function (response) {
-        await API.post("/orders/create", {
-  ...orderData,
-  payment: {
-    method: "ONLINE",
-    status: "paid",
-    amount: orderData.total,
-    razorpayPaymentId: response.razorpay_payment_id,
-  },
-});
+//     const { data } = await API.post(
+//   "/payment/create-order",
+//   { amount: orderData.total }
+// );
 
-        setTimeout(() => {
-          clearCart();
-          navigate("/success");
-        }, 200);
-      },
+//     const options = {
+//       key: "rzp_test_SeawcubEUW2ev1",
+//       amount: data.amount,
+//       currency: "INR",
+//       name: "Zusko Laundry",
+//       description: "Laundry Order Payment",
+//       order_id: data.id,
 
-      theme: { color: "#000" },
-    };
+//       handler: async function (response) {
+//         await API.post("/orders/create", {
+//   ...orderData,
+//   payment: {
+//     method: "ONLINE",
+//     status: "paid",
+//     amount: orderData.total,
+//     razorpayPaymentId: response.razorpay_payment_id,
+//   },
+// });
 
-    const rzp = new window.Razorpay(options);
-    rzp.open();
+//         setTimeout(() => {
+//           clearCart();
+//           navigate("/success");
+//         }, 200);
+//       },
+
+//       theme: { color: "#000" },
+//     };
+
+//     const rzp = new window.Razorpay(options);
+//     rzp.open();
   };
 
   return (
