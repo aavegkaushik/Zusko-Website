@@ -1,5 +1,6 @@
-import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
+
 import Home from "./Pages/Home.jsx";
 import About from "./Pages/About.jsx";
 import Navbar from "./components/Navbar.jsx";
@@ -20,7 +21,7 @@ import ForBusiness from "./Pages/ForBusiness.jsx";
 import Blog from "./Pages/Blog.jsx";
 import PartnerWithUs from "./Pages/PartnerwithUs.jsx";
 import CityAvailability from "./Pages/CityAvailability.jsx";
-import Order from './Pages/Order.jsx'
+import Order from "./Pages/Order.jsx";
 import UnderDevelopmentPopup from "./components/UnderDevelopmentPopup";
 import Login from "./Pages/Login.jsx";
 import CartBar from "./components/CartBar.jsx";
@@ -29,104 +30,124 @@ import Cart from "./Pages/Cart.jsx";
 import Checkout from "./Pages/Checkout.jsx";
 import Payment from "./Pages/Payment.jsx";
 import Success from "./Pages/Success.jsx";
+import SplashScreen from "./components/SplashScreen";
 
 const App = () => {
   const [showPopup, setShowPopup] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
   const location = useLocation();
 
   const hideCartRoutes = ["/checkout", "/success"];
 
+  // Under development popup logic
   useEffect(() => {
     const seen = localStorage.getItem("under_dev_seen");
 
     if (!seen) {
       setShowPopup(true);
       localStorage.setItem("under_dev_seen", "true");
+    } else {
+      setShowPopup(false);
     }
+  }, []);
+
+  // Splash screen logic
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 1200);
+
+    return () => clearTimeout(timer);
   }, []);
 
   return (
     <>
-      <UnderDevelopmentPopup
-        isOpen={showPopup}
-        onClose={() => setShowPopup(false)}
-      />
+      <SplashScreen show={showSplash} />
 
-      <ScrollToTop />
-      <Navbar />
+      {!showSplash && (
+        <>
+          <UnderDevelopmentPopup
+            isOpen={showPopup}
+            onClose={() => setShowPopup(false)}
+          />
 
-      <Routes>
-        {/* Public routes */}
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/services" element={<Services />} />
-        <Route path="/career" element={<Career />} />
-        <Route path="/career/:jobId" element={<JobDetails />} />
-        <Route path="/apply/:jobId" element={<ApplyJob />} />
-        <Route path="/team" element={<Team />} />
-        <Route path="/help" element={<HelpSupport />} />
-        <Route path="/terms" element={<TermsAndConditions />} />
-        <Route path="/privacy" element={<PrivacyPolicy />} />
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/for-business" element={<ForBusiness />} />
-        <Route path="/cookie-policy" element={<CookiePolicy />} />
-        <Route path="/partnerwithus" element={<PartnerWithUs />} />
-        <Route path="/available/:city" element={<CityAvailability />} />
-        <Route path="/auth/login" element={<Login />} />
+          <ScrollToTop />
+          <Navbar />
 
-        {/* Protected routes */}
-        <Route
-          path="/place-order"
-          element={
-            <ProtectedRoute>
-              <Order />
-            </ProtectedRoute>
-          }
-        />
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/services" element={<Services />} />
+            <Route path="/career" element={<Career />} />
+            <Route path="/career/:jobId" element={<JobDetails />} />
+            <Route path="/apply/:jobId" element={<ApplyJob />} />
+            <Route path="/team" element={<Team />} />
+            <Route path="/help" element={<HelpSupport />} />
+            <Route path="/terms" element={<TermsAndConditions />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/for-business" element={<ForBusiness />} />
+            <Route path="/cookie-policy" element={<CookiePolicy />} />
+            <Route path="/partnerwithus" element={<PartnerWithUs />} />
+            <Route path="/available/:city" element={<CityAvailability />} />
+            <Route path="/auth/login" element={<Login />} />
 
-        <Route
-          path="/cart"
-          element={
-            <ProtectedRoute>
-              <Cart />
-            </ProtectedRoute>
-          }
-        />
+            {/* Protected routes */}
+            <Route
+              path="/place-order"
+              element={
+                <ProtectedRoute>
+                  <Order />
+                </ProtectedRoute>
+              }
+            />
 
-        <Route
-          path="/checkout"
-          element={
-            <ProtectedRoute>
-              <Checkout />
-            </ProtectedRoute>
-          }
-        />
+            <Route
+              path="/cart"
+              element={
+                <ProtectedRoute>
+                  <Cart />
+                </ProtectedRoute>
+              }
+            />
 
-        <Route
-          path="/payment"
-          element={
-            <ProtectedRoute>
-              <Payment />
-            </ProtectedRoute>
-          }
-        />
+            <Route
+              path="/checkout"
+              element={
+                <ProtectedRoute>
+                  <Checkout />
+                </ProtectedRoute>
+              }
+            />
 
-        <Route
-          path="/success"
-          element={
-            <ProtectedRoute>
-              <Success />
-            </ProtectedRoute>
-          }
-        />
+            <Route
+              path="/payment"
+              element={
+                <ProtectedRoute>
+                  <Payment />
+                </ProtectedRoute>
+              }
+            />
 
-        <Route path="*" element={<PageNotFound />} />
-      </Routes>
+            <Route
+              path="/success"
+              element={
+                <ProtectedRoute>
+                  <Success />
+                </ProtectedRoute>
+              }
+            />
 
-      {!hideCartRoutes.includes(location.pathname) && <CartBar />}
+            <Route path="*" element={<PageNotFound />} />
+          </Routes>
 
-      <Footer />
+          {!hideCartRoutes.includes(location.pathname) && <CartBar />}
+
+          <Footer />
+        </>
+      )}
     </>
   );
 };
