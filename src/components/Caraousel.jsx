@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import image1 from '../assets/image1.png'
 const Carousel = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   
