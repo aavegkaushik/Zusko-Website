@@ -46,7 +46,7 @@ export default function Checkout() {
   const [city, setCity] = useState("");
   const [checkingPin, setCheckingPin] = useState(false);
   const [pinError, setPinError] = useState("");
-
+  const [alternateContact, setAlternateContact] = useState(false);
   const pincode = watch("pincode");
 const selectedDate = watch("date");
 
@@ -163,6 +163,17 @@ const getAvailableTimeSlots = () => {
         vendorId: "6962ad3e962db6a05ddb10dd",
         customerName: user.name,
         customerPhone: user.phone,
+
+          pickupContact: alternateContact
+    ? {
+        name: data.pickupContactName,
+        phone: data.pickupContactPhone,
+      }
+    : {
+        name: user.name,
+        phone: user.phone,
+      },
+
         pickup: { date, time },
 
         address: {
@@ -295,6 +306,61 @@ const getAvailableTimeSlots = () => {
 </span>
           )}
         </motion.div>
+
+        {/* Alternate Mobile at pickup  */}
+        <motion.div className="bg-white rounded-2xl p-4 shadow space-y-3">
+  <h2 className="font-semibold">Pickup Contact</h2>
+
+  <label className="flex items-center gap-2 text-sm">
+    <input
+      type="checkbox"
+      checked={alternateContact}
+      onChange={(e) => setAlternateContact(e.target.checked)}
+    />
+
+    Someone else will hand over the clothes
+  </label>
+
+  {alternateContact && (
+    <>
+      <input
+  {...register("pickupContactName", {
+    required: alternateContact
+      ? "Pickup contact name is required"
+      : false,
+  })}
+  placeholder="Contact Name"
+  className="w-full border p-3 rounded-xl"
+/>
+
+<p className="text-red-500 text-xs">
+  {errors.pickupContactName?.message}
+</p>
+
+<input
+  {...register("pickupContactPhone", {
+    required: alternateContact
+      ? "Pickup contact number is required"
+      : false,
+    pattern: {
+      value: /^[6-9]\d{9}$/,
+      message: "Enter a valid 10-digit mobile number",
+    },
+  })}
+  placeholder="Mobile Number"
+  className="w-full border p-3 rounded-xl"
+/>
+
+<p className="text-red-500 text-xs">
+  {errors.pickupContactPhone?.message}
+</p>
+
+<p className="text-xs text-gray-500">
+  This number will be used during pickup coordination.
+</p>
+    </>
+  )}
+</motion.div>
 
         {/* 📅 Pickup */}
         <motion.div className="bg-white rounded-2xl p-4 shadow space-y-3">
