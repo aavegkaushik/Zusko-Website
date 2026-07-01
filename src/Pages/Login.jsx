@@ -13,11 +13,19 @@ import {
   PackageCheck,
   Star,
 } from "lucide-react";
+import OtpInput from "react-otp-input";
+import { AnimatePresence } from "framer-motion";
 export default function Login() {
   const { login, user } = useContext(AuthContext);
   const navigate = useNavigate();
-
+  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+  });
+  const [otp, setOtp] = useState("");
 
   useEffect(() => {
     if (user) {
@@ -33,35 +41,67 @@ export default function Login() {
     );
   }, []);
 
-  const [form, setForm] = useState({
-    name: "",
-    phone: "",
-    email: "",
-  });
-
-  const handleSubmit = async () => {
-    if (!form.phone) return alert("Phone is required");
-
-    setLoading(true);
+  const sendOtp = async () => {
     try {
-      const res = await API.post("/auth/login", form);
+      setLoading(true);
 
-      login(res.data.user, res.data.token);
-      navigate("/place-order");
-    } catch (err) {
-  console.log("STATUS:", err.response?.status);
-  console.log("DATA:", err.response?.data);
-  console.log("ERROR:", err);
+      const { data } = await API.post("/auth/send-otp", {
+        email: formData.email,
+      });
 
-  alert(
-    err.response?.data?.message ||
-    JSON.stringify(err.response?.data) ||
-    "Login failed"
-  );
-} finally {
+      if (data.success) {
+        setStep(2);
+      }
+    } catch (error) {
+      alert(error.response?.data?.message);
+    } finally {
       setLoading(false);
     }
   };
+
+  const verifyOtp = async () => {
+    try {
+      setLoading(true);
+
+      const { data } = await API.post("/auth/login", {
+        ...formData,
+        otp,
+      });
+
+      if (data.success) {
+        login(data.user, data.token);
+        navigate("/place-order");
+      }
+    } catch (error) {
+      alert(error.response?.data?.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // const handleSubmit = async () => {
+  //   if (!form.phone) return alert("Phone is required");
+
+  //   setLoading(true);
+  //   try {
+  //     const res = await API.post("/auth/login", form);
+
+  //     login(res.data.user, res.data.token);
+  //     navigate("/place-order");
+  //   } catch (err) {
+  //     console.log("STATUS:", err.response?.status);
+  //     console.log("DATA:", err.response?.data);
+  //     console.log("ERROR:", err);
+
+  //     alert(
+  //       err.response?.data?.message ||
+  //         JSON.stringify(err.response?.data) ||
+  //         "Login failed",
+  //     );
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   // Animation Variants
   const containerVariants = {
@@ -249,49 +289,172 @@ export default function Login() {
           </h1>
 
           {/* INPUTS */}
-          <div className="space-y-4">
-            <input
-              type="text"
-              placeholder="Name*"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="
-          input w-full p-3 rounded-xl 
-          bg-gray-50 border border-gray-200
-          focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400
-          outline-none transition
-        "
-            />
+          <AnimatePresence mode="wait">
 
-            <input
-              type="text"
-              placeholder="Phone *"
-              value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              className="
-          input w-full p-3 rounded-xl 
-          bg-gray-50 border border-gray-200
-          focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400
-          outline-none transition
-        "
-            />
+  {step === 1 ? (
 
-            <input
-              type="email"
-              placeholder="Email*"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="
-          input w-full p-3 rounded-xl 
-          bg-gray-50 border border-gray-200
-          focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400
-          outline-none transition
+    <motion.div
+      key="details"
+      initial={{ x: 60, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: -60, opacity: 0 }}
+      transition={{ duration: 0.35 }}
+      className="space-y-4"
+    >
+
+      <input
+        type="text"
+        placeholder="Name"
+        value={formData.name}
+        onChange={(e) =>
+          setFormData({
+            ...formData,
+            name: e.target.value,
+          })
+        }
+        className="input w-full p-3 rounded-xl bg-gray-50 border"
+      />
+
+      <input
+        type="text"
+        placeholder="Phone"
+        value={formData.phone}
+        onChange={(e) =>
+          setFormData({
+            ...formData,
+            phone: e.target.value,
+          })
+        }
+        className="input w-full p-3 rounded-xl bg-gray-50 border"
+      />
+
+      <input
+        type="email"
+        placeholder="Email"
+        value={formData.email}
+        onChange={(e) =>
+          setFormData({
+            ...formData,
+            email: e.target.value,
+          })
+        }
+        className="input w-full p-3 rounded-xl bg-gray-50 border"
+      />
+      <p className="text-sm">* OTP & all Necessary Info will be send on this mail</p>
+
+      <motion.button
+        whileTap={{ scale: 0.95 }}
+        onClick={sendOtp}
+        disabled={loading}
+        className="
+          w-full
+          mt-2
+          bg-yellow-400
+          py-3
+          rounded-xl
+          font-semibold
         "
-            />
-          </div>
+      >
+        {loading
+          ? "Sending OTP..."
+          : "Continue"}
+      </motion.button>
+
+    </motion.div>
+
+  ) : (
+
+    <motion.div
+      key="otp"
+      initial={{ x: 60, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: -60, opacity: 0 }}
+      transition={{ duration: 0.35 }}
+      className="space-y-5"
+    >
+
+      <div className="text-center">
+
+        <h3 className="font-bold text-xl">
+          Verify Email
+        </h3>
+
+        <p className="text-gray-500 mt-2">
+          OTP sent to
+        </p>
+
+        <p className="font-semibold">
+          {formData.email}
+        </p>
+
+      </div>
+
+      <OtpInput
+        value={otp}
+        onChange={setOtp}
+        numInputs={6}
+        renderSeparator={<span />}
+        containerStyle={{
+          justifyContent: "center",
+          gap: "8px",
+        }}
+        renderInput={(props) => (
+          <input
+            {...props}
+            className="
+              w-12
+              h-12
+              text-center
+              text-xl
+              font-bold
+              border-2
+              border-gray-300
+              rounded-xl
+            "
+          />
+        )}
+      />
+
+      <motion.button
+        whileTap={{ scale: 0.95 }}
+        onClick={verifyOtp}
+        disabled={
+          loading ||
+          otp.length !== 6
+        }
+        className="
+          w-full
+          bg-black
+          text-white
+          py-3
+          rounded-xl
+          font-semibold
+        "
+      >
+        {loading
+          ? "Verifying..."
+          : "Verify & Login"}
+      </motion.button>
+
+      <button
+        onClick={() => setStep(1)}
+        className="
+          w-full
+          text-sm
+          text-gray-500
+        "
+      >
+        ← Change Email
+      </button>
+
+    </motion.div>
+
+  )}
+
+</AnimatePresence>
 
           {/* BUTTON */}
-          <motion.button
+          {/* <motion.button
             whileTap={{ scale: 0.95 }}
             whileHover={{ scale: 1.03 }}
             onClick={handleSubmit}
@@ -314,7 +477,7 @@ export default function Login() {
             ) : (
               "Continue"
             )}
-          </motion.button>
+          </motion.button> */}
 
           {/* FOOTER */}
           <p className="text-center text-sm text-gray-500 mt-5">

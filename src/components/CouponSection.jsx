@@ -63,11 +63,11 @@ export default function CouponSection() {
   };
 
   return (
-    <div className="bg-white p-4 rounded-2xl shadow mt-4">
-      <div className="flex items-center gap-2 mb-2">
+    <div className="bg-white p-4 rounded-2xl mt-4">
+      {/* <div className="flex items-center gap-2 mb-2">
         <Tag size={18} />
         <h3 className="font-semibold">Apply Coupon</h3>
-      </div>
+      </div> */}
 
       {!coupon ? (
         <>

@@ -105,6 +105,7 @@ const addItem = (item) => {
   };
 
   const total = cart.reduce((acc, i) => acc + i.qty * i.price, 0);
+  const handlingCharge = total > 0 ? 15 : 0;
 
     // 🎟️ APPLY COUPON
   const applyCoupon = (code) => {
@@ -134,11 +135,14 @@ const addItem = (item) => {
     setDiscount(0);
   };
 
-  const finalTotal = Math.max(total - discount, 0);
+  const finalTotal = Math.max(
+  total + handlingCharge - discount,
+  0
+);
 
   return (
     <CartContext.Provider
-  value={{ cart, addItem,  clearCart, removeItem, increaseQty, decreaseQty, total, finalTotal,
+  value={{ cart, addItem,  clearCart, removeItem, increaseQty, decreaseQty, total, handlingCharge, finalTotal,
         discount,
         coupon,
         applyCoupon,

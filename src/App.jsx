@@ -31,7 +31,14 @@ import Checkout from "./Pages/Checkout.jsx";
 import Payment from "./Pages/Payment.jsx";
 import Success from "./Pages/Success.jsx";
 import SplashScreen from "./components/SplashScreen";
-
+import CareerNavbar from "./components/CareerNavbar.jsx";
+import CareerSuccess from "./Pages/CareerSuccess.jsx";
+import TrackOrder from "./Pages/TrackOrder.jsx";
+import MyOrders from "./Pages/MyOrders.jsx";
+import RateOrder from "./Pages/RateOrder.jsx";
+import Profile from "./Pages/Profile.jsx";
+import EditProfile from "./Pages/EditProfile.jsx";
+import Addresses from "./Pages/Addresses.jsx";
 const App = () => {
   const [showPopup, setShowPopup] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
@@ -72,7 +79,12 @@ const App = () => {
           />
 
           <ScrollToTop />
-          <Navbar />
+
+          {location.pathname.startsWith("/career") ? (
+            <CareerNavbar />
+          ) : (
+            <Navbar />
+          )}
 
           <Routes>
             {/* Public routes */}
@@ -93,8 +105,57 @@ const App = () => {
             <Route path="/partnerwithus" element={<PartnerWithUs />} />
             <Route path="/available/:city" element={<CityAvailability />} />
             <Route path="/auth/login" element={<Login />} />
-
+            <Route path="/career/success" element={<CareerSuccess />} />
+            <Route
+  path="/track-order/:id"
+  element={<TrackOrder />}
+/>
             {/* Protected routes */}
+            <Route
+              path="/my-orders"
+              element={
+                <ProtectedRoute>
+                  <MyOrders />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/user/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/profile/edit"
+              element={
+                <ProtectedRoute>
+                  <EditProfile />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+  path="/addresses"
+  element={
+    <ProtectedRoute>
+  <Addresses />
+  </ProtectedRoute>
+  }
+/>
+
+            <Route
+              path="/orders/:id/rate"
+              element={
+                <ProtectedRoute>
+                  <RateOrder />
+                </ProtectedRoute>
+              }
+            />
+
             <Route
               path="/place-order"
               element={
@@ -143,7 +204,7 @@ const App = () => {
             <Route path="*" element={<PageNotFound />} />
           </Routes>
 
-          {!hideCartRoutes.includes(location.pathname) && <CartBar />}
+          {/* {!hideCartRoutes.includes(location.pathname) && <CartBar />} */}
 
           <Footer />
         </>

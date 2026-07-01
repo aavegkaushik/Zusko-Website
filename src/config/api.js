@@ -25,10 +25,18 @@ API.interceptors.request.use(
 API.interceptors.response.use(
   (response) => response,
   (error) => {
+
+    console.log("INTERCEPTOR STATUS:",
+      error.response?.status
+    );
+
     if (error.response?.status === 401) {
+      console.log("REDIRECTING TO LOGIN");
+
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      window.location.href = "/login";
+
+      window.location.href = "/auth/login";
     }
 
     return Promise.reject(error);

@@ -1,4 +1,9 @@
-import { createContext, useState, useEffect } from "react";
+import {
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+} from "react";
 
 export const AuthContext = createContext();
 
@@ -22,12 +27,14 @@ export const AuthProvider = ({ children }) => {
 //   }
 // }, []);
 
-const login = (userData, jwtToken) => {
-  setUser(userData);
-  setToken(jwtToken);
+const login = (userData, token) => {
+  localStorage.setItem("token", token);
+  localStorage.setItem(
+    "user",
+    JSON.stringify(userData)
+  );
 
-  localStorage.setItem("token", jwtToken);
-  localStorage.setItem("user", JSON.stringify(userData));
+  setUser(userData);
 };
 
   const logout = () => {
@@ -41,4 +48,8 @@ const login = (userData, jwtToken) => {
       {children}
     </AuthContext.Provider>
   );
+};
+
+export const useAuth = () => {
+  return useContext(AuthContext);
 };

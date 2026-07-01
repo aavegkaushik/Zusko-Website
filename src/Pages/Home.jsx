@@ -9,6 +9,7 @@ import Mobile from "../assets/mobile1.png";
 import Logo from "../assets/Zusko White Logo.png";
 import Hero from '../components/Hero.jsx'
 import { useNavigate } from "react-router-dom";
+import Whatisinitforyou from "../components/Whatisinitforyou.jsx";
 const fadeIn = {
   hidden: { opacity: 0 },
   show: {
@@ -368,6 +369,12 @@ const Home = () => {
             </p>
           </motion.div>
         </section>
+
+        {/* <Whatisinitforyou 
+  SaveMoney={SaveMoneyImg} 
+  delivery={deliveryImg} 
+  Eco={EcoImg} 
+/> */}
 
         {/* Let's Start Section */}
         <motion.div
