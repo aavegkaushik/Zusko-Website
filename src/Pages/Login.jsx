@@ -26,6 +26,47 @@ export default function Login() {
     phone: "",
   });
   const [otp, setOtp] = useState("");
+  const [timer, setTimer] = useState(60);
+const [canResend, setCanResend] = useState(false);
+
+useEffect(() => {
+  if (step !== 2) return;
+
+  setTimer(60);
+  setCanResend(false);
+
+  const interval = setInterval(() => {
+    setTimer((prev) => {
+      if (prev <= 1) {
+        clearInterval(interval);
+        setCanResend(true);
+        return 0;
+      }
+      return prev - 1;
+    });
+  }, 1000);
+
+  return () => clearInterval(interval);
+}, [step]);
+
+const resendOtp = async () => {
+  try {
+    setLoading(true);
+
+    const { data } = await API.post("/auth/send-otp", {
+      email: formData.email,
+    });
+
+    if (data.success) {
+      setTimer(60);
+      setCanResend(false);
+    }
+  } catch (error) {
+    alert(error.response?.data?.message || "Failed to resend OTP");
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     if (user) {
@@ -53,8 +94,17 @@ export default function Login() {
         setStep(2);
       }
     } catch (error) {
-      alert(error.response?.data?.message);
-    } finally {
+  console.log(error);
+  console.log(error.response);
+  console.log(error.response?.data);
+
+  alert(
+    error.response?.data?.message ||
+    error.response?.data?.error ||
+    error.message ||
+    "Something went wrong"
+  );
+} finally {
       setLoading(false);
     }
   };
@@ -402,8 +452,8 @@ export default function Login() {
           <input
             {...props}
             className="
-              w-12
-              h-12
+              w-12!
+              h-12!
               text-center
               text-xl
               font-bold
@@ -435,6 +485,22 @@ export default function Login() {
           ? "Verifying..."
           : "Verify & Login"}
       </motion.button>
+
+      <div className="text-center">
+  {canResend ? (
+    <button
+      onClick={resendOtp}
+      disabled={loading}
+      className="text-yellow-600 font-semibold hover:underline"
+    >
+      Resend OTP
+    </button>
+  ) : (
+    <p className="text-sm text-gray-500">
+      Resend OTP in <span className="font-semibold">{timer}s</span>
+    </p>
+  )}
+</div>
 
       <button
         onClick={() => setStep(1)}

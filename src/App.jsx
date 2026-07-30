@@ -1,6 +1,6 @@
 import { Route, Routes, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-
+import { Toaster } from "react-hot-toast";
 import Home from "./Pages/Home.jsx";
 import About from "./Pages/About.jsx";
 import Navbar from "./components/Navbar.jsx";
@@ -69,6 +69,23 @@ const App = () => {
 
   return (
     <>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            borderRadius: "16px",
+            background: "#111827",
+            color: "#fff",
+          },
+          success: {
+            iconTheme: {
+              primary: "#22c55e",
+              secondary: "#fff",
+            },
+          },
+        }}
+      />
       <SplashScreen show={showSplash} />
 
       {!showSplash && (

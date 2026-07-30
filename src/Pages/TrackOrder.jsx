@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Package,
   Calendar,
@@ -11,22 +12,27 @@ import {
   Phone,
   X,
   Ban,
+  ArrowLeft,
+  Truck,
+  Sparkles,
+  AlertCircle,
+  ChevronDown,
+  Copy,
 } from "lucide-react";
 import API from "../config/api";
 import OrderAssistant from "../components/OrderAssistant";
-import axios from "axios";
 
-export default function TrackOrder() {
+export default function EnhancedTrackOrder() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showHelp, setShowHelp] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const fetchOrder = async () => {
     try {
       const { data } = await API.get(`/orders/${id}`);
-
       setOrder(data.data);
     } catch (error) {
       console.error(error);
@@ -42,97 +48,60 @@ export default function TrackOrder() {
       });
 
       const razorOrder = data.data;
-
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY,
-
         amount: razorOrder.amount,
-
         currency: razorOrder.currency,
-
         order_id: razorOrder.id,
-
         name: "Zusko Laundry",
-
         description: "Pending Order Payment",
-
         handler: async function (response) {
           const { data } = await API.post("/payment/pay-pending", {
             orderId: order._id,
-
             razorpay_order_id: response.razorpay_order_id,
-
             razorpay_payment_id: response.razorpay_payment_id,
-
             razorpay_signature: response.razorpay_signature,
           });
-
-          setOrder(data.data);
-
           setOrder(data.data);
         },
-
-        theme: {
-          color: "#000",
-        },
+        theme: { color: "#fbbf24" },
       };
 
       const rzp = new window.Razorpay(options);
-
       rzp.open();
     } catch (err) {
       console.error(err);
-
       alert(err.response?.data?.message || "Payment failed");
     }
   };
 
-  const getStatusLabel = (status) => {
-    switch (status) {
-      case "pending":
-        return "ORDER CONFIRMED";
-      case "picked-up":
-        return "ORDER PICKED UP";
-      default:
-        return status.replaceAll("-", " ").toUpperCase();
-    }
-  };
-
   const handleCancelOrder = async (orderId) => {
-    try {
-      const { data } = await API.patch(`/orders/${orderId}/cancel`);
-
-      alert(data.message);
-
-      fetchOrder();
-    } catch (err) {
-      console.error(err);
-
-      alert(err.response?.data?.message || "Failed to cancel order");
+    if (window.confirm("Are you sure you want to cancel this order?")) {
+      try {
+        const { data } = await API.patch(`/orders/${orderId}/cancel`);
+        alert(data.message);
+        fetchOrder();
+      } catch (err) {
+        console.error(err);
+        alert(err.response?.data?.message || "Failed to cancel order");
+      }
     }
   };
 
-  // Support Message
   const getOrderStatusMessage = () => {
-    switch (order.status) {
+    switch (order?.status) {
       case "pending":
         return "We've received your order. Pickup has not started yet.";
-
       case "in-progress":
         return "Your clothes are currently being processed by our team.";
-
       case "ready-for-delivery":
         return "Your order is packed and ready for delivery.";
-
       case "out-for-delivery":
         return "Your rider is on the way. Please keep your phone available.";
-
       case "completed":
         return "Your order has been successfully delivered. Thank you for choosing Zusko.";
-
       case "cancelled":
         return "This order has been cancelled.";
-
       default:
         return "Please contact support for assistance.";
     }
@@ -140,604 +109,721 @@ export default function TrackOrder() {
 
   useEffect(() => {
     fetchOrder();
-
     const interval = setInterval(fetchOrder, 30000);
-
     return () => clearInterval(interval);
   }, [id]);
 
   const steps = [
-    {
-      key: "pending",
-      label: "Order Placed",
-    },
-    {
-      key: "picked-up",
-      label: "Order Picked Up",
-    },
-    {
-      key: "in-progress",
-      label: "In Progress",
-    },
-    {
-      key: "ready-for-delivery",
-      label: "Ready",
-    },
-    {
-      key: "out-for-delivery",
-      label: "Out for Delivery",
-    },
-    {
-      key: "completed",
-      label: "Delivered",
-    },
+    { key: "pending", label: "Order Placed", icon: Package },
+    { key: "picked-up", label: "Picked Up", icon: Package },
+    { key: "in-progress", label: "Processing", icon: Truck },
+    { key: "ready-for-delivery", label: "Ready", icon: CheckCircle },
+    { key: "out-for-delivery", label: "Out Delivery", icon: Truck },
+    { key: "completed", label: "Delivered", icon: CheckCircle },
   ];
 
+  const getStatusColor = (status) => {
+    const colors = {
+      pending: "from-yellow-400 to-orange-400",
+      "picked-up": "from-blue-400 to-cyan-400",
+      "in-progress": "from-purple-400 to-pink-400",
+      "ready-for-delivery": "from-green-400 to-emerald-400",
+      "out-for-delivery": "from-orange-400 to-red-400",
+      completed: "from-green-500 to-emerald-500",
+      cancelled: "from-red-400 to-pink-400",
+    };
+    return colors[status] || colors["pending"];
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1, delayChildren: 0.1 },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] },
+    },
+  };
+
+  // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-24 pb-10">
-        <div className="max-w-4xl mx-auto px-4 animate-pulse">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 pt-32 pb-24"
+      >
+        <div className="max-w-5xl mx-auto px-4 lg:px-6">
           {/* Header Skeleton */}
-          <div className="bg-white rounded-3xl p-6 shadow-sm mb-6">
-            <div className="flex justify-between items-start">
-              <div>
-                <div className="h-8 w-40 bg-gray-200 rounded-lg mb-3" />
-                <div className="h-4 w-32 bg-gray-200 rounded" />
-              </div>
-
-              <div className="h-8 w-28 bg-gray-200 rounded-full" />
-            </div>
+          <div className="mb-8 animate-pulse">
+            <div className="h-10 w-48 bg-gradient-to-r from-gray-200 to-gray-300 rounded-2xl mb-4" />
+            <div className="h-5 w-64 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg" />
           </div>
 
           {/* Progress Skeleton */}
-          <div className="bg-white rounded-3xl p-6 shadow-sm mb-6">
-            <div className="h-6 w-40 bg-gray-200 rounded mb-8" />
-
-            <div className="flex justify-between">
-              {[1, 2, 3, 4, 5].map((item) => (
-                <div key={item} className="flex flex-col items-center">
-                  <div className="w-10 h-10 rounded-full bg-gray-200" />
-
-                  <div className="h-3 w-16 bg-gray-200 rounded mt-3" />
+          <div className="bg-white/50 backdrop-blur-xl rounded-3xl p-8 shadow-lg animate-pulse border border-white/80 mb-8">
+            <div className="h-6 w-40 bg-gradient-to-r from-gray-200 to-gray-300 rounded mb-8" />
+            <div className="flex justify-between gap-2">
+              {[1, 2, 3, 4, 5, 6].map((item) => (
+                <div key={item} className="flex-1 flex flex-col items-center">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-gray-200 to-gray-300" />
+                  <div className="h-3 w-12 bg-gradient-to-r from-gray-200 to-gray-300 rounded mt-3" />
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Details Skeleton */}
-          <div className="grid md:grid-cols-2 gap-6">
+          {/* Cards Skeleton */}
+          <div className="grid md:grid-cols-2 gap-6 mb-6">
             {[1, 2].map((item) => (
-              <div key={item} className="bg-white rounded-3xl p-6 shadow-sm">
-                <div className="h-6 w-40 bg-gray-200 rounded mb-6" />
-
-                <div className="space-y-4">
-                  <div className="h-4 w-full bg-gray-200 rounded" />
-                  <div className="h-4 w-2/3 bg-gray-200 rounded" />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Items Skeleton */}
-          <div className="bg-white rounded-3xl p-6 shadow-sm mt-6">
-            <div className="h-6 w-36 bg-gray-200 rounded mb-6" />
-
-            {[1, 2, 3].map((item) => (
               <div
                 key={item}
-                className="flex justify-between border-b pb-4 mb-4"
+                className="bg-white/50 backdrop-blur-xl rounded-3xl p-8 shadow-lg animate-pulse border border-white/80"
               >
-                <div>
-                  <div className="h-5 w-28 bg-gray-200 rounded mb-2" />
-                  <div className="h-4 w-20 bg-gray-200 rounded" />
-                </div>
-
-                <div>
-                  <div className="h-5 w-12 bg-gray-200 rounded mb-2" />
-                  <div className="h-5 w-16 bg-gray-200 rounded" />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Timeline Skeleton */}
-          <div className="bg-white rounded-3xl p-6 shadow-sm mt-6">
-            <div className="h-6 w-40 bg-gray-200 rounded mb-6" />
-
-            {[1, 2, 3, 4].map((item) => (
-              <div key={item} className="flex gap-4 mb-6">
-                <div className="w-3 h-3 rounded-full bg-gray-200 mt-2" />
-
-                <div className="flex-1">
-                  <div className="h-5 w-32 bg-gray-200 rounded mb-2" />
-                  <div className="h-4 w-48 bg-gray-200 rounded" />
+                <div className="h-6 w-32 bg-gradient-to-r from-gray-200 to-gray-300 rounded mb-6" />
+                <div className="space-y-4">
+                  <div className="h-4 w-full bg-gradient-to-r from-gray-200 to-gray-300 rounded" />
+                  <div className="h-4 w-3/4 bg-gradient-to-r from-gray-200 to-gray-300 rounded" />
                 </div>
               </div>
             ))}
           </div>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   if (!order) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        Order not found
-      </div>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center pt-32 pb-24 px-4"
+      >
+        <div className="text-center bg-white/50 backdrop-blur-xl rounded-3xl p-12 shadow-lg border border-white/80">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Order not found</h2>
+          <p className="text-gray-600 mb-6">The order you're looking for doesn't exist.</p>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate("/my-orders")}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-400 text-black font-bold shadow-lg hover:shadow-xl transition-all"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back to Orders
+          </motion.button>
+        </div>
+      </motion.div>
     );
   }
 
   const currentStep = steps.findIndex((step) => step.key === order.status);
+  const statusGradient = getStatusColor(order.status);
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 pb-10">
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="flex justify-end mb-5">
-          <button
-            onClick={() => {
-              setOpen(true);
-              setHasUnread(false);
-            }}
-            className="
-      flex items-center gap-2
-      bg-black text-white
-      px-4 py-2
-      rounded-xl
-      hover:opacity-90
-    "
-          >
-            <MessageCircle size={18} />
-            Need Help?
-          </button>
-        </div>
-
-        {/* Customer Information */}
-
-        <div className="grid md:grid-cols-2 gap-6 mb-6">
-          {/* Customer */}
-
-          <div className="bg-white rounded-3xl p-6 shadow-sm">
-            <h3 className="font-bold text-lg mb-4">Customer Information</h3>
-
-            <div className="space-y-3">
-              <div>
-                <p className="text-sm text-gray-500">Customer Name</p>
-
-                <p className="font-medium">{order.customerName || "N/A"}</p>
-              </div>
-
-              <div>
-                <p className="text-sm text-gray-500">Phone Number</p>
-
-                <p className="font-medium">{order.customerPhone || "N/A"}</p>
-              </div>
-
-              <div>
-                <p className="text-sm text-gray-500">Email Address</p>
-
-                <p className="font-medium break-all">
-                  {order.customerEmail || "N/A"}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Pickup Contact */}
-
-          <div className="bg-white rounded-3xl p-6 shadow-sm">
-            <h3 className="font-bold text-lg mb-4">Pickup Contact</h3>
-
-            <div className="space-y-3">
-              <div>
-                <p className="text-sm text-gray-500">Contact Name</p>
-
-                <p className="font-medium">
-                  {order.pickupContact?.name || "N/A"}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-sm text-gray-500">Contact Number</p>
-
-                <p className="font-medium">
-                  {order.pickupContact?.phone || "N/A"}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-sm text-gray-500">Alternate Contact</p>
-
-                <p className="font-medium">
-                  {order.pickupContact?.isAlternate ? "Yes" : "No"}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Header */}
-        <div className="bg-white rounded-3xl p-6 shadow-sm mb-6">
-          <div className="flex flex-col md:flex-row md:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold">Track Order</h1>
-
-              <p className="text-gray-500 mt-1">Order ID: {order.orderId}</p>
-            </div>
-
-            <div
-              className={
-                order.status === "cancelled"
-                  ? "bg-red-100 text-red-700 px-4 py-2 rounded-full font-semibold h-fit"
-                  : "bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full font-semibold h-fit"
-              }
-            >
-              {getStatusLabel(order.status)}
-            </div>
-          </div>
-        </div>
-
-        {order.status === "cancelled" && (
-          <div
-            className="
-        bg-red-50
-        border border-red-200
-        rounded-3xl
-        p-6
-        mb-6
-      "
-          >
-            <div className="flex items-center gap-4">
-              <div
-                className="
-            w-14 h-14
-            rounded-full
-            bg-red-100
-            flex items-center
-            justify-center
-          "
-              >
-                <Ban className="text-red-600" />
-              </div>
-
-              <div>
-                <h2 className="text-xl font-bold text-red-600">
-                  Order Cancelled
-                </h2>
-
-                <p className="text-gray-600">
-                  This order was cancelled and will not be processed.
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-4 text-sm text-gray-600">
-              Cancelled on{" "}
-              {new Date(
-                order.history?.[order.history.length - 1]?.changedAt,
-              ).toLocaleString()}
-            </div>
-
-            <button
-              onClick={() => navigate("/place-order")}
-              className="
-          mt-5
-          bg-black
-          text-white
-          px-5
-          py-3
-          rounded-xl
-          font-semibold
-        "
-            >
-              Book New Order
-            </button>
-          </div>
-        )}
-
-        {order.status === "pending" && (
-          <button
-            onClick={() => {
-              if (
-                window.confirm("Are you sure you want to cancel this order?")
-              ) {
-                handleCancelOrder(order._id);
-              }
-            }}
-            className="
-        mt-3
-        bg-red-500
-        text-white
-        px-4
-        py-2
-        rounded-xl
-        hover:bg-red-600
-      "
-          >
-            Cancel Order
-          </button>
-        )}
-
-        {/* Progress */}
-        {order.status !== "cancelled" && (
-          <div className="bg-white rounded-3xl p-6 shadow-sm mb-6">
-            <h2 className="font-bold text-lg mb-8">Order Progress</h2>
-
-            <div className="flex justify-between relative">
-              <div className="absolute top-5 left-0 w-full h-1 bg-gray-200 rounded-full" />
-
-              <div
-                className="absolute top-5 left-0 h-1 bg-yellow-400 rounded-full transition-all duration-500"
-                style={{
-                  width: `${(currentStep / (steps.length - 1)) * 100}%`,
-                }}
-              />
-
-              {steps.map((step, index) => (
-                <div
-                  key={step.key}
-                  className="relative z-10 flex flex-col items-center"
-                >
-                  <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center font-bold
-                  ${
-                    index <= currentStep
-                      ? "bg-yellow-400 text-black"
-                      : "bg-gray-200 text-gray-500"
-                  }`}
-                  >
-                    {index <= currentStep ? (
-                      <CheckCircle size={18} />
-                    ) : (
-                      index + 1
-                    )}
-                  </div>
-
-                  <span className="text-xs mt-3 text-center max-w-20">
-                    {step.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Order Details */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Pickup */}
-          <div className="bg-white rounded-3xl p-6 shadow-sm">
-            <div className="flex items-center gap-2 mb-4">
-              <Calendar />
-              <h3 className="font-bold">Pickup Details</h3>
-            </div>
-
-            <p>
-              <strong>Date:</strong> {order.pickup?.date}
-            </p>
-
-            <p>
-              <strong>Time:</strong> {order.pickup?.time}
-            </p>
-          </div>
-
-          {/* Address */}
-          <div className="bg-white rounded-3xl p-6 shadow-sm">
-            <div className="flex items-center gap-2 mb-4">
-              <MapPin />
-              <h3 className="font-bold">Pickup & Delivery Address</h3>
-            </div>
-
-            <p>{order.address?.fullAddress}</p>
-
-            <p>
-              {order.address?.city} - {order.address?.pincode}
-            </p>
-          </div>
-        </div>
-
-        {/* Items */}
-        <div className="bg-white rounded-3xl p-6 shadow-sm mt-6">
-          <div className="flex items-center gap-2 mb-5">
-            <Package />
-            <h3 className="font-bold text-lg">Order Summary</h3>
-          </div>
-
-          {/* Items */}
-          <div className="space-y-4">
-            {order.items.map((item, index) => (
-              <div
-                key={index}
-                className="
-          flex items-center
-          justify-between
-          border-b
-          pb-4
-        "
-              >
-                <div>
-                  <p className="font-semibold text-gray-900">{item.name}</p>
-
-                  <p className="text-sm text-gray-500">{item.service}</p>
-
-                  <p className="text-xs text-gray-400 mt-1">
-                    ₹{item.price} × {item.qty}
-                  </p>
-                </div>
-
-                <div className="font-semibold">₹{item.price * item.qty}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Pricing Breakdown */}
-          <div className="mt-6 space-y-3">
-            <div className="flex justify-between text-gray-600">
-              <span>Subtotal</span>
-              <span>
-                ₹
-                {order.originalTotal ||
-                  order.items.reduce(
-                    (acc, item) => acc + item.price * item.qty,
-                    0,
-                  )}
-              </span>
-            </div>
-
-            <div className="flex justify-between text-gray-600">
-              <span>Handling Charges</span>
-              <span>₹{order.handlingFee || 0}</span>
-            </div>
-
-            <div className="flex justify-between text-gray-600">
-              <span>Delivery Charges</span>
-              <span>
-                {order.deliveryFee > 0 ? `₹${order.deliveryFee}` : "FREE"}
-              </span>
-            </div>
-
-            {order.discount > 0 && (
-              <div className="flex justify-between text-green-600 font-medium">
-                <span>Discount</span>
-                <span>-₹{order.discount}</span>
-              </div>
-            )}
-
-            <div className="border-t pt-4 mt-2">
-              <div className="flex justify-between font-bold text-xl">
-                <span>Total Amount</span>
-                <span>₹{order.total}</span>
-              </div>
-
-              <p className="text-xs text-gray-500 mt-1">
-                Inclusive of all applicable charges
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Payment */}
-        <div className="bg-white rounded-3xl p-6 shadow-sm mt-6">
-          <div className="flex items-center gap-2 mb-4">
-            <CreditCard />
-            <h3 className="font-bold">Payment Details</h3>
-          </div>
-
-          <p>
-            <strong>Method:</strong> {order.payment?.method}
-          </p>
-
-          <p>
-            <strong>Status:</strong> {order.payment?.status}
-          </p>
-
-          <p>
-            <strong>Amount:</strong> ₹{order.payment?.amount}
-          </p>
-          <p>
-            <strong>Order Created:</strong>{" "}
-            {new Date(order.createdAt).toLocaleString()}
-          </p>
-
-          {order.payment?.method === "COD" &&
-            order.payment?.status !== "paid" &&
-            ["pending"].includes(order.status) && (
-              <button
-                onClick={handlePayPendingOrder}
-                className="
-        bg-green-600
-        text-white
-        px-5
-        py-3
-        rounded-xl
-        font-semibold
-        w-full
-      "
-              >
-                Pay Online Now ₹{order.payment?.amount}
-              </button>
-            )}
-        </div>
-
-        {order.refund && order.refund.status !== "none" && (
-          <div className="mt-5 rounded-2xl bg-green-50 p-5">
-            <h3 className="font-bold text-lg">Refund Details</h3>
-
-            <p>
-              Status :<b> {order.refund.status}</b>
-            </p>
-
-            <p>Amount : ₹{order.refund.amount}</p>
-
-            {order.refund.completedAt && (
-              <p>
-                Refunded At :
-                {new Date(order.refund.completedAt).toLocaleString()}
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* Additional Information */}
-
-        <div className="bg-white rounded-3xl p-6 shadow-sm mt-6">
-          <h3 className="font-bold text-lg mb-4">Additional Information</h3>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <p className="text-sm text-gray-500">Estimated Delivery</p>
-
-              <p className="font-medium">
-                {order.estimatedDelivery
-                  ? new Date(order.estimatedDelivery).toLocaleString()
-                  : "Not Available"}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500">Delivery Agent</p>
-
-              <p className="font-medium">
-                {order.deliveryAgent?.name || "Not Assigned"}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Timeline */}
-        <div className="bg-white rounded-3xl p-6 shadow-sm mt-6">
-          <div className="flex items-center gap-2 mb-6">
-            <Clock />
-            <h3 className="font-bold">Order Timeline</h3>
-          </div>
-
-          <div className="space-y-5">
-            {order.history?.map((entry, index) => (
-              <div key={index} className="flex gap-4">
-                <div className="w-3 h-3 rounded-full bg-yellow-400 mt-2" />
-
-                <div>
-                  <p className="font-medium">
-                    {entry.status.replaceAll("-", " ").toUpperCase()}
-                  </p>
-
-                  <p className="text-sm text-gray-500">
-                    {new Date(entry.changedAt).toLocaleString()}
-                  </p>
-
-                  {entry.note && (
-                    <p className="text-sm text-gray-400">{entry.note}</p>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 pt-32 pb-24 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <motion.div
+          animate={{ y: [0, -30, 0] }}
+          transition={{ duration: 10, repeat: Infinity }}
+          className="absolute top-10 right-10 w-96 h-96 bg-gradient-to-br from-yellow-200 to-orange-200 rounded-full blur-3xl opacity-20"
+        />
+        <motion.div
+          animate={{ y: [0, 30, 0] }}
+          transition={{ duration: 12, repeat: Infinity, delay: 1 }}
+          className="absolute bottom-10 left-10 w-96 h-96 bg-gradient-to-tr from-blue-200 to-cyan-200 rounded-full blur-3xl opacity-20"
+        />
       </div>
 
-      {/* Assistant */}
-      {showHelp && (
-        <OrderAssistant order={order} onClose={() => setShowHelp(false)} />
-      )}
+      <div className="max-w-5xl mx-auto px-4 lg:px-6 relative z-10">
+        {/* Header */}
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={containerVariants}
+          className="mb-10"
+        >
+          <motion.button
+            variants={itemVariants}
+            whileHover={{ scale: 1.05, x: -5 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate("/my-orders")}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-semibold mb-6 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back to Orders
+          </motion.button>
+
+          <motion.div variants={itemVariants} className="flex items-center gap-3 mb-3">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              className={`p-3 rounded-2xl bg-gradient-to-br ${statusGradient}`}
+            >
+              <Sparkles className="w-6 h-6 text-white" />
+            </motion.div>
+            <div>
+              <h1 className="text-4xl lg:text-5xl font-black text-gray-900">
+                Track Order
+              </h1>
+              <p className="text-gray-600">{order.orderId}</p>
+            </div>
+          </motion.div>
+
+          <motion.p variants={itemVariants} className="text-lg text-gray-600 max-w-2xl">
+            {getOrderStatusMessage()}
+          </motion.p>
+        </motion.div>
+
+        {/* Status Badge */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="mb-10"
+        >
+          <motion.span
+            whileHover={{ scale: 1.05 }}
+            className={`inline-block px-6 py-3 rounded-full text-sm font-bold bg-gradient-to-r ${statusGradient} text-white shadow-lg`}
+          >
+            {order.status.replaceAll("-", " ").toUpperCase()}
+          </motion.span>
+        </motion.div>
+
+        {/* Progress Tracker */}
+        {!["cancelled"].includes(order.status) && (
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={itemVariants}
+            className="relative bg-white/60 backdrop-blur-xl rounded-3xl p-8 shadow-lg border border-white/80 mb-10 overflow-hidden group"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/0 via-yellow-400/10 to-orange-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+            <h3 className="text-xl font-black text-gray-900 mb-8 relative z-10">Order Progress</h3>
+
+            <div className="relative">
+              {/* Progress line background */}
+              <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200 rounded-full"></div>
+
+              {/* Progress line fill */}
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+                transition={{ duration: 1, delay: 0.3 }}
+                className={`absolute top-5 left-0 h-1 bg-gradient-to-r ${statusGradient} rounded-full`}
+              ></motion.div>
+
+              {/* Steps */}
+              <div className="relative z-10 flex justify-between">
+                {steps.map((step, index) => {
+                  const StepIcon = step.icon;
+                  const isCompleted = index <= currentStep;
+                  const isActive = index === currentStep;
+
+                  return (
+                    <motion.div
+                      key={step.key}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.2 + index * 0.1 }}
+                      className="flex flex-col items-center"
+                    >
+                      <motion.div
+                        whileHover={{ scale: 1.15 }}
+                        className={`relative w-12 h-12 rounded-full flex items-center justify-center font-bold transition-all ${
+                          isCompleted
+                            ? `bg-gradient-to-br ${statusGradient} text-white shadow-lg`
+                            : "bg-gray-200 text-gray-500"
+                        } ${isActive ? "ring-4 ring-yellow-400/30" : ""}`}
+                      >
+                        {isCompleted ? (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: 0.3 + index * 0.1 }}
+                          >
+                            <CheckCircle size={24} />
+                          </motion.div>
+                        ) : (
+                          <span>{index + 1}</span>
+                        )}
+                      </motion.div>
+
+                      <motion.span
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 + index * 0.1 }}
+                        className="text-xs mt-3 text-center max-w-20 font-semibold text-gray-700"
+                      >
+                        {step.label}
+                      </motion.span>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Main Content Grid */}
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={containerVariants}
+          className="space-y-6"
+        >
+          {/* Pickup & Address */}
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Pickup Details */}
+            <motion.div
+              variants={itemVariants}
+              whileHover={{ y: -5 }}
+              className="group relative"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 to-orange-400/20 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-2xl -z-10"></div>
+
+              <div className="relative bg-white/60 backdrop-blur-xl rounded-3xl p-8 shadow-lg group-hover:shadow-2xl transition-all duration-300 border border-white/80 group-hover:border-yellow-300/50 overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-400 to-orange-400"></div>
+
+                <div className="flex items-center gap-3 mb-6">
+                  <motion.div className="p-3 rounded-xl bg-yellow-100">
+                    <Calendar className="w-6 h-6 text-yellow-600" />
+                  </motion.div>
+                  <h3 className="text-lg font-bold text-gray-900">Pickup Details</h3>
+                </div>
+
+                <div className="space-y-4">
+                  <motion.div
+                    whileHover={{ x: 5 }}
+                    className="p-3 rounded-lg bg-white/50 hover:bg-white/80 transition-all"
+                  >
+                    <p className="text-xs text-gray-500 mb-1">Date</p>
+                    <p className="font-semibold text-gray-900">{order.pickup?.date}</p>
+                  </motion.div>
+
+                  <motion.div
+                    whileHover={{ x: 5 }}
+                    className="p-3 rounded-lg bg-white/50 hover:bg-white/80 transition-all"
+                  >
+                    <p className="text-xs text-gray-500 mb-1">Time</p>
+                    <p className="font-semibold text-gray-900">{order.pickup?.time}</p>
+                  </motion.div>
+                </div>
+
+                <motion.div
+                  className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                />
+              </div>
+            </motion.div>
+
+            {/* Address */}
+            <motion.div
+              variants={itemVariants}
+              whileHover={{ y: -5 }}
+              className="group relative"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-cyan-400/20 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-2xl -z-10"></div>
+
+              <div className="relative bg-white/60 backdrop-blur-xl rounded-3xl p-8 shadow-lg group-hover:shadow-2xl transition-all duration-300 border border-white/80 group-hover:border-blue-300/50 overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-400 to-cyan-400"></div>
+
+                <div className="flex items-center gap-3 mb-6">
+                  <motion.div className="p-3 rounded-xl bg-blue-100">
+                    <MapPin className="w-6 h-6 text-blue-600" />
+                  </motion.div>
+                  <h3 className="text-lg font-bold text-gray-900">Address</h3>
+                </div>
+
+                <div className="space-y-4">
+                  <motion.div
+                    whileHover={{ x: 5 }}
+                    className="p-3 rounded-lg bg-white/50 hover:bg-white/80 transition-all"
+                  >
+                    <p className="text-xs text-gray-500 mb-1">Full Address</p>
+                    <p className="font-semibold text-gray-900">{order.address?.fullAddress}</p>
+                  </motion.div>
+
+                  <motion.div
+                    whileHover={{ x: 5 }}
+                    className="p-3 rounded-lg bg-white/50 hover:bg-white/80 transition-all"
+                  >
+                    <p className="text-xs text-gray-500 mb-1">City & Pincode</p>
+                    <p className="font-semibold text-gray-900">
+                      {order.address?.city} - {order.address?.pincode}
+                    </p>
+                  </motion.div>
+                </div>
+
+                <motion.div
+                  className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                />
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Order Summary */}
+          <motion.div
+            variants={itemVariants}
+            whileHover={{ y: -5 }}
+            className="group relative"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-2xl -z-10"></div>
+
+            <div className="relative bg-white/60 backdrop-blur-xl rounded-3xl p-8 shadow-lg group-hover:shadow-2xl transition-all duration-300 border border-white/80 group-hover:border-purple-300/50 overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-400 to-pink-400"></div>
+
+              <div className="flex items-center gap-3 mb-6">
+                <motion.div className="p-3 rounded-xl bg-purple-100">
+                  <Package className="w-6 h-6 text-purple-600" />
+                </motion.div>
+                <h3 className="text-lg font-bold text-gray-900">Order Summary</h3>
+              </div>
+
+              {/* Items */}
+              <div className="space-y-4 mb-8">
+                {order.items?.map((item, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 + index * 0.1 }}
+                    whileHover={{ x: 5, backgroundColor: "rgba(255,255,255,0.8)" }}
+                    className="flex items-center justify-between p-4 rounded-lg bg-white/50 border border-gray-200 transition-all"
+                  >
+                    <div className="flex-1">
+                      <p className="font-semibold text-gray-900">{item.name}</p>
+                      <p className="text-sm text-gray-600">{item.service}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        ₹{item.price} × {item.qty}
+                      </p>
+                    </div>
+                    <motion.div
+                      whileHover={{ scale: 1.1 }}
+                      className="font-bold text-lg bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent"
+                    >
+                      ₹{item.price * item.qty}
+                    </motion.div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Pricing Breakdown */}
+              <div className="space-y-3 p-6 rounded-xl bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200">
+                <div className="flex justify-between text-gray-700">
+                  <span>Subtotal</span>
+                  <span className="font-semibold">
+                    ₹
+                    {order.originalTotal ||
+                      order.items.reduce((acc, item) => acc + item.price * item.qty, 0)}
+                  </span>
+                </div>
+
+                <div className="flex justify-between text-gray-700">
+                  <span>Handling Charges</span>
+                  <span className="font-semibold">₹{order.handlingFee || 0}</span>
+                </div>
+
+                <div className="flex justify-between text-gray-700">
+                  <span>Delivery Charges</span>
+                  <span className="font-semibold">
+                    {order.deliveryFee > 0 ? `₹${order.deliveryFee}` : "FREE"}
+                  </span>
+                </div>
+
+                {order.discount > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="flex justify-between text-green-600 font-semibold"
+                  >
+                    <span>Discount</span>
+                    <span>-₹{order.discount}</span>
+                  </motion.div>
+                )}
+
+                <div className="border-t border-purple-300 pt-4 mt-4">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-gray-900">Total Amount</span>
+                    <motion.span
+                      whileHover={{ scale: 1.1 }}
+                      className="text-3xl font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent"
+                    >
+                      ₹{order.total}
+                    </motion.span>
+                  </div>
+                  <p className="text-xs text-gray-600 mt-2">
+                    Inclusive of all applicable charges
+                  </p>
+                </div>
+              </div>
+
+              <motion.div
+                className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+              />
+            </div>
+          </motion.div>
+
+          {/* Payment Details */}
+          <motion.div
+            variants={itemVariants}
+            whileHover={{ y: -5 }}
+            className="group relative"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 to-emerald-400/20 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-2xl -z-10"></div>
+
+            <div className="relative bg-white/60 backdrop-blur-xl rounded-3xl p-8 shadow-lg group-hover:shadow-2xl transition-all duration-300 border border-white/80 group-hover:border-green-300/50 overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-green-400 to-emerald-400"></div>
+
+              <div className="flex items-center gap-3 mb-6">
+                <motion.div className="p-3 rounded-xl bg-green-100">
+                  <CreditCard className="w-6 h-6 text-green-600" />
+                </motion.div>
+                <h3 className="text-lg font-bold text-gray-900">Payment Details</h3>
+              </div>
+
+              <div className="space-y-4">
+                <motion.div
+                  whileHover={{ x: 5 }}
+                  className="p-4 rounded-lg bg-white/50 hover:bg-white/80 transition-all"
+                >
+                  <p className="text-xs text-gray-500 mb-1">Payment Method</p>
+                  <p className="font-semibold text-gray-900">{order.payment?.method}</p>
+                </motion.div>
+
+                <motion.div
+                  whileHover={{ x: 5 }}
+                  className="p-4 rounded-lg bg-white/50 hover:bg-white/80 transition-all"
+                >
+                  <p className="text-xs text-gray-500 mb-1">Payment Status</p>
+                  <motion.span
+                    whileHover={{ scale: 1.05 }}
+                    className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
+                      order.payment?.status === "paid"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-orange-100 text-orange-700"
+                    }`}
+                  >
+                    {order.payment?.status.toUpperCase()}
+                  </motion.span>
+                </motion.div>
+
+                <motion.div
+                  whileHover={{ x: 5 }}
+                  className="p-4 rounded-lg bg-white/50 hover:bg-white/80 transition-all"
+                >
+                  <p className="text-xs text-gray-500 mb-1">Amount</p>
+                  <p className="font-semibold text-gray-900">₹{order.payment?.amount}</p>
+                </motion.div>
+
+                <motion.div
+                  whileHover={{ x: 5 }}
+                  className="p-4 rounded-lg bg-white/50 hover:bg-white/80 transition-all"
+                >
+                  <p className="text-xs text-gray-500 mb-1">Order Created</p>
+                  <p className="font-semibold text-gray-900">
+                    {new Date(order.createdAt).toLocaleString()}
+                  </p>
+                </motion.div>
+              </div>
+
+              {/* Pay Online Button */}
+              {order.payment?.method === "COD" &&
+                order.payment?.status !== "paid" &&
+                ["pending"].includes(order.status) && (
+                  <motion.button
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handlePayPendingOrder}
+                    className="w-full mt-6 py-4 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold text-lg shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+                  >
+                    <CreditCard className="w-5 h-5" />
+                    Pay Online Now ₹{order.payment?.amount}
+                  </motion.button>
+                )}
+
+              <motion.div
+                className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+              />
+            </div>
+          </motion.div>
+
+          {/* Refund Details */}
+          {order.refund && order.refund.status !== "none" && (
+            <motion.div
+              variants={itemVariants}
+              className="p-6 rounded-2xl bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300"
+            >
+              <h3 className="font-bold text-lg text-green-900 mb-4">Refund Details</h3>
+              <div className="space-y-3 text-green-800">
+                <div className="flex justify-between">
+                  <span>Status:</span>
+                  <span className="font-semibold">{order.refund.status.toUpperCase()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Amount:</span>
+                  <span className="font-semibold">₹{order.refund.amount}</span>
+                </div>
+                {order.refund.completedAt && (
+                  <div className="flex justify-between">
+                    <span>Refunded At:</span>
+                    <span className="font-semibold">
+                      {new Date(order.refund.completedAt).toLocaleString()}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Additional Info */}
+          <motion.div
+            variants={itemVariants}
+            whileHover={{ y: -5 }}
+            className="group relative"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-400/20 to-blue-400/20 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-2xl -z-10"></div>
+
+            <div className="relative bg-white/60 backdrop-blur-xl rounded-3xl p-8 shadow-lg group-hover:shadow-2xl transition-all duration-300 border border-white/80 group-hover:border-indigo-300/50 overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-400 to-blue-400"></div>
+
+              <h3 className="text-lg font-bold text-gray-900 mb-6">Additional Information</h3>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <motion.div
+                  whileHover={{ x: 5 }}
+                  className="p-4 rounded-lg bg-white/50 hover:bg-white/80 transition-all"
+                >
+                  <p className="text-xs text-gray-500 mb-2">Estimated Delivery</p>
+                  <p className="font-semibold text-gray-900">
+                    {order.estimatedDelivery
+                      ? new Date(order.estimatedDelivery).toLocaleString()
+                      : "Not Available"}
+                  </p>
+                </motion.div>
+
+                <motion.div
+                  whileHover={{ x: 5 }}
+                  className="p-4 rounded-lg bg-white/50 hover:bg-white/80 transition-all"
+                >
+                  <p className="text-xs text-gray-500 mb-2">Delivery Agent</p>
+                  <p className="font-semibold text-gray-900">
+                    {order.deliveryAgent?.name || "Not Assigned"}
+                  </p>
+                </motion.div>
+              </div>
+
+              <motion.div
+                className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+              />
+            </div>
+          </motion.div>
+
+          {/* Timeline */}
+          <motion.div
+            variants={itemVariants}
+            whileHover={{ y: -5 }}
+            className="group relative"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-orange-400/20 to-red-400/20 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-2xl -z-10"></div>
+
+            <div className="relative bg-white/60 backdrop-blur-xl rounded-3xl p-8 shadow-lg group-hover:shadow-2xl transition-all duration-300 border border-white/80 group-hover:border-orange-300/50 overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-400 to-red-400"></div>
+
+              <div className="flex items-center gap-3 mb-6">
+                <motion.div className="p-3 rounded-xl bg-orange-100">
+                  <Clock className="w-6 h-6 text-orange-600" />
+                </motion.div>
+                <h3 className="text-lg font-bold text-gray-900">Order Timeline</h3>
+              </div>
+
+              <div className="space-y-6 relative">
+                {/* Timeline line */}
+                <div className="absolute left-6 top-0 bottom-0 w-1 bg-gradient-to-b from-orange-400 to-red-400 rounded-full"></div>
+
+                {order.history?.map((entry, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 + index * 0.1 }}
+                    whileHover={{ x: 5 }}
+                    className="flex gap-6 relative z-10"
+                  >
+                    <motion.div
+                      whileHover={{ scale: 1.2 }}
+                      className="w-6 h-6 rounded-full bg-gradient-to-r from-orange-400 to-red-400 mt-1 flex-shrink-0 shadow-lg"
+                    />
+
+                    <div className="p-4 rounded-lg bg-white/50 hover:bg-white/80 transition-all flex-1">
+                      <p className="font-semibold text-gray-900">
+                        {entry.status.replaceAll("-", " ").toUpperCase()}
+                      </p>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {new Date(entry.changedAt).toLocaleString()}
+                      </p>
+                      {entry.note && (
+                        <p className="text-sm text-gray-500 mt-2 italic">{entry.note}</p>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              <motion.div
+                className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+              />
+            </div>
+          </motion.div>
+
+          {/* Action Buttons */}
+          <motion.div
+            variants={itemVariants}
+            className="flex gap-4 flex-col sm:flex-row"
+          >
+            {["pending", "picked-up", "in-progress"].includes(order.status) && (
+              <motion.button
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => handleCancelOrder(order._id)}
+                className="flex-1 px-6 py-4 rounded-xl border-2 border-red-400 text-red-600 font-bold hover:bg-red-50 transition-all flex items-center justify-center gap-2"
+              >
+                <Ban className="w-5 h-5" />
+                Cancel Order
+              </motion.button>
+            )}
+
+            <motion.button
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowHelp(!showHelp)}
+              className="flex-1 px-6 py-4 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+            >
+              <MessageCircle className="w-5 h-5" />
+              Need Help?
+            </motion.button>
+          </motion.div>
+        </motion.div>
+      </div>
+
+      {/* Assistant Modal */}
+      <AnimatePresence>
+        {showHelp && (
+          <OrderAssistant order={order} onClose={() => setShowHelp(false)} />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -92,3 +92,12 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 } */
+@keyframes marquee {
+  from {
+    transform: translateX(0%);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
