@@ -140,13 +140,65 @@ const addItem = (item) => {
   0
 );
 
+const reorderItems = (items = []) => {
+  const reorderedItems = items
+    .map((item) => ({
+      name:
+        item.name ||
+        item.itemName ||
+        item.title ||
+        "Laundry Item",
+
+      service:
+        item.service ||
+        item.serviceType ||
+        item.serviceName ||
+        "Wash & Fold",
+
+      price: Number(item.price || 0),
+
+      qty: Number(
+        item.qty ||
+        item.quantity ||
+        1
+      ),
+    }))
+    .filter(
+      (item) =>
+        item.name &&
+        item.service &&
+        item.price > 0 &&
+        item.qty > 0
+    );
+
+  setCart(reorderedItems);
+
+  // Old order coupon/discount should NEVER
+  // carry over to a new order.
+  setCoupon(null);
+  setDiscount(0);
+
+  return reorderedItems;
+};
+
   return (
     <CartContext.Provider
-  value={{ cart, addItem,  clearCart, removeItem, increaseQty, decreaseQty, total, handlingCharge, finalTotal,
-        discount,
-        coupon,
-        applyCoupon,
-        removeCoupon }}
+  value={{
+    cart,
+    addItem,
+    clearCart,
+    reorderItems,
+    removeItem,
+    increaseQty,
+    decreaseQty,
+    total,
+    handlingCharge,
+    finalTotal,
+    discount,
+    coupon,
+    applyCoupon,
+    removeCoupon,
+  }}
 >
       {children}
     </CartContext.Provider>
