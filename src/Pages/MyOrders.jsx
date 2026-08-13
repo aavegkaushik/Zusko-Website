@@ -244,7 +244,7 @@ export default function MyOrders() {
             </p>
 
             <button
-              onClick={() => navigate("/services")}
+              onClick={() => navigate("/place-order")}
               className="mt-6 bg-black text-white px-6 py-3 rounded-xl"
             >
               Book Laundry Service
