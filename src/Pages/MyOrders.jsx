@@ -770,13 +770,15 @@ export default function MyOrders() {
                             : "Book Again"}
                         </button>
 
-                        <button
-                          onClick={() => window.print()}
-                          className="flex-1 bg-white border border-gray-200 py-3 rounded-xl flex items-center justify-center gap-2 font-semibold hover:bg-gray-50 transition"
-                        >
-                          <Receipt size={18} />
-                          View Invoice
-                        </button>
+                        {isCompleted && (
+  <button
+    onClick={() => window.print()}
+    className="flex-1 bg-white border border-gray-200 py-3 rounded-xl flex items-center justify-center gap-2 font-semibold hover:bg-gray-50 transition"
+  >
+    <Receipt size={18} />
+    View Invoice
+  </button>
+)}
                       </div>
                     </div>
                   </motion.div>
