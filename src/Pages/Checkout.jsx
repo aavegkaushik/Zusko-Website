@@ -138,7 +138,15 @@ function SectionCard({ icon: Icon, iconColor = "#FFD700", iconBg = "#FFF9E6", ti
 
 // ─── MAIN COMPONENT ────────────────────────────────────────────────────────────
 export default function Checkout() {
-  const { cart, total, finalTotal, handlingCharge, discount, clearCart } = useContext(CartContext);
+const {
+  cart,
+  total,
+  finalTotal,
+  handlingCharge,
+  discount,
+  coupon,
+  clearCart,
+} = useContext(CartContext);
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
 
@@ -213,22 +221,58 @@ export default function Checkout() {
     setLoading(true);
     try {
       const orderData = {
-        vendorId: "6962ad3e962db6a05ddb10dd",
-        customerName: user.name,
-        customerPhone: user.phone,
-        pickupContact: alternateContact
-          ? { name: data.pickupContactName, phone: data.pickupContactPhone }
-          : { name: user.name, phone: user.phone },
-        pickup: { date, time },
-        address: { fullAddress, city, pincode },
-        items: cart.map((item) => ({ name: item.name, qty: item.qty, price: item.price, service: item.service })),
-        originalTotal: total,
-        handlingFee: handlingCharge,
-        total: finalAmount,
-        discount,
-        deliveryFee,
-        payment: { status: "pending", method: "COD", amount: finalAmount },
-      };
+  vendorId: "6962ad3e962db6a05ddb10dd",
+
+  customerName: user.name,
+  customerPhone: user.phone,
+
+  pickupContact: alternateContact
+    ? {
+        name: data.pickupContactName,
+        phone: data.pickupContactPhone,
+      }
+    : {
+        name: user.name,
+        phone: user.phone,
+      },
+
+  pickup: {
+    date,
+    time,
+  },
+
+  address: {
+    fullAddress,
+    city,
+    pincode,
+  },
+
+  items: cart.map((item) => ({
+    name: item.name,
+    qty: item.qty,
+    price: item.price,
+    service: item.service,
+  })),
+
+  originalTotal: total,
+
+  handlingFee: handlingCharge,
+
+  total: finalAmount,
+
+  discount,
+
+  deliveryFee,
+
+  // 🔥 IMPORTANT
+  couponCode: coupon || null,
+
+  payment: {
+    status: "pending",
+    method: "COD",
+    amount: finalAmount,
+  },
+};
       navigate("/payment", { state: { orderData } });
     } catch (error) {
       console.error(error);
