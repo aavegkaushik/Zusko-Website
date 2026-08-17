@@ -21,22 +21,29 @@ API.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor
+let isRedirectingToLogin = false;
+
 API.interceptors.response.use(
   (response) => response,
+
   (error) => {
+    const status = error.response?.status;
 
-    console.log("INTERCEPTOR STATUS:",
-      error.response?.status
-    );
+    console.log("API ERROR:", {
+      status,
+      url: error.config?.url,
+      method: error.config?.method,
+    });
 
-    if (error.response?.status === 401) {
-      console.log("REDIRECTING TO LOGIN");
+    if (status === 401 && !isRedirectingToLogin) {
+      isRedirectingToLogin = true;
 
       localStorage.removeItem("token");
       localStorage.removeItem("user");
 
-      window.location.href = "/auth/login";
+      if (window.location.pathname !== "/auth/login") {
+        window.location.replace("/auth/login");
+      }
     }
 
     return Promise.reject(error);

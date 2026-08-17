@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import API from "../config/api";
+import { useAuth } from "../context/AuthContext";
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
 
@@ -166,6 +167,7 @@ function SkeletonCard() {
 // ─── MAIN COMPONENT ────────────────────────────────────────────────────────────
 
 export default function BookLaundry() {
+  const { user, token } = useAuth();
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState("Men");
   const [selectedService, setSelectedService] = useState("Wash & Iron");
@@ -208,14 +210,43 @@ export default function BookLaundry() {
   const cartCount = cart.reduce((sum, i) => sum + i.qty, 0);
 
   // Active order
-  useEffect(() => {
-    API.get("/orders/active")
-      .then((res) => {
-        if (res.data.data.length > 0) setActiveOrder(res.data.data[0]);
-      })
-      .catch((err) => console.error("ACTIVE ORDER ERROR:", err))
-      .finally(() => setTimeout(() => setIsLoading(false), 600));
-  }, []);
+useEffect(() => {
+  if (!user || !token) {
+    setIsLoading(false);
+    return;
+  }
+
+  let cancelled = false;
+
+  const fetchActiveOrder = async () => {
+    try {
+      const res = await API.get("/orders/active");
+
+      if (!cancelled && res.data?.data?.length > 0) {
+        setActiveOrder(res.data.data[0]);
+      }
+    } catch (err) {
+      if (err.response?.status !== 401) {
+        console.error(
+          "ACTIVE ORDER ERROR:",
+          err
+        );
+      }
+    } finally {
+      if (!cancelled) {
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 600);
+      }
+    }
+  };
+
+  fetchActiveOrder();
+
+  return () => {
+    cancelled = true;
+  };
+}, [user, token]);
 
   // Typewriter
   useEffect(() => {

@@ -34,6 +34,7 @@ const login = (userData, token) => {
     JSON.stringify(userData)
   );
 
+  setToken(token);
   setUser(userData);
 };
 
