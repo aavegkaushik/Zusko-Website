@@ -128,29 +128,89 @@ export default function CouponSection() {
     }
   };
 
-  // =========================================================
-  // FILTER COUPONS
-  // =========================================================
-  //
-  // firstOrderOnly / newUsersOnly coupons:
-  // Show ONLY when user is eligible.
-  //
-  // Normal coupons:
-  // Show both eligible and locked.
-  //
-  // =========================================================
+// =========================================================
+// FILTER + SORT COUPONS
+// =========================================================
+//
+// Existing visibility logic remains unchanged:
+//
+// firstOrderOnly / newUsersOnly:
+//   Show ONLY when user is eligible.
+//
+// Normal coupons:
+//   Show both eligible and locked.
+//
+// Sorting:
+//   1. Eligible coupons first
+//   2. Locked coupons below
+//   3. Within each group, highest discount first
+//
+// =========================================================
 
-  const visibleCoupons =
-    availableCoupons.filter((item) => {
-      if (
-        item.firstOrderOnly ||
-        item.newUsersOnly
-      ) {
-        return item.eligible === true;
-      }
+const getDiscountAmount = (item) => {
+  const cartTotal = Number(total || 0);
+  const discountValue = Number(item.discountValue || 0);
 
-      return true;
-    });
+  if (item.discountType === "percentage") {
+    let calculatedDiscount =
+      (cartTotal * discountValue) / 100;
+
+    // If backend provides maxDiscount, respect it
+    if (
+      item.maxDiscount !== undefined &&
+      item.maxDiscount !== null &&
+      Number(item.maxDiscount) > 0
+    ) {
+      calculatedDiscount = Math.min(
+        calculatedDiscount,
+        Number(item.maxDiscount)
+      );
+    }
+
+    return Math.min(
+      calculatedDiscount,
+      cartTotal
+    );
+  }
+
+  return Math.min(
+    discountValue,
+    cartTotal
+  );
+};
+
+const visibleCoupons = availableCoupons
+  .filter((item) => {
+    // KEEP EXISTING VISIBILITY LOGIC
+    if (
+      item.firstOrderOnly ||
+      item.newUsersOnly
+    ) {
+      return item.eligible === true;
+    }
+
+    return true;
+  })
+  .map((item) => ({
+    ...item,
+    calculatedDiscount: getDiscountAmount(item),
+  }))
+  .sort((a, b) => {
+    const aEligible = a.eligible === true;
+    const bEligible = b.eligible === true;
+
+    // Eligible coupons first
+    if (aEligible !== bEligible) {
+      return aEligible ? -1 : 1;
+    }
+
+    // Same eligibility group:
+    // Highest actual discount first
+    return (
+      b.calculatedDiscount -
+      a.calculatedDiscount
+    );
+  });
 
   // =========================================================
   // LOADING

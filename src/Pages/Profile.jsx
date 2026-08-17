@@ -29,21 +29,16 @@ import {
   Clock,
   Shield,
   Zap,
-  Crown,
   ChevronRight,
   LockOpen,
   Sparkles,
-  Star,
   BadgeCheck,
   Coins,
   ArrowUpRight,
   Sun,
   Moon,
   CloudSun,
-  Flame,
   Award,
-  Medal,
-  Target,
   Wallet,
   Gem,
   Rocket,
@@ -116,13 +111,6 @@ export default function EnhancedProfile() {
       icon: Wallet,
       color: "from-blue-500 to-cyan-400",
       subtitle: "Lifetime",
-    },
-    {
-      label: "Tier",
-      value: user?.memberTier || "Silver",
-      icon: Crown,
-      color: "from-purple-500 to-pink-500",
-      subtitle: "Membership",
     },
   ];
 
@@ -430,11 +418,6 @@ export default function EnhancedProfile() {
                   </div>
 
                   <div className="flex gap-3 mt-5 flex-wrap">
-                    <div className="bg-black text-white rounded-full px-5 py-2 flex items-center gap-2">
-                      <Crown size={16} />
-                      {user?.memberTier || "Silver"} Member
-                    </div>
-
                     <div className="bg-white rounded-full px-5 py-2 flex items-center gap-2">
                       <ShieldCheck size={16} className="text-green-600" />
                       Verified
@@ -480,38 +463,6 @@ export default function EnhancedProfile() {
               </div>
             </div>
 
-            <div className="mt-8 rounded-2xl bg-white/70 backdrop-blur p-5">
-              <div className="flex justify-between mb-3">
-                <div>
-                  <p className="font-bold">Membership Progress</p>
-
-                  <p className="text-sm text-gray-500">
-                    Only 50 points away from Gold Elite
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Star size={18} className="text-yellow-500 fill-yellow-400" />
-
-                  <span className="font-bold">250 / 300</span>
-                </div>
-              </div>
-
-              <div className="w-full h-3 rounded-full bg-white overflow-hidden">
-                <motion.div
-                  initial={{
-                    width: 0,
-                  }}
-                  animate={{
-                    width: "84%",
-                  }}
-                  transition={{
-                    duration: 1.2,
-                  }}
-                  className="h-full rounded-full bg-linear-to-r from-yellow-400 via-orange-400 to-yellow-500"
-                />
-              </div>
-            </div>
           </div>
         </motion.section>
 
@@ -551,7 +502,7 @@ export default function EnhancedProfile() {
           <div className="rounded-[30px] bg-linear-to-r from-[#101010] via-[#1E1E1E] to-[#2A2A2A] overflow-hidden relative p-8">
             <div className="absolute right-0 top-0 w-80 h-80 rounded-full bg-yellow-400/10 blur-3xl" />
 
-            <div className="flex flex-col lg:flex-row justify-between gap-8">
+            <div className="relative flex flex-col lg:flex-row items-center justify-between gap-8">
               <div>
                 <div className="flex items-center gap-3">
                   <Award size={28} className="text-yellow-400" />
@@ -562,82 +513,33 @@ export default function EnhancedProfile() {
                 </div>
 
                 <p className="text-gray-300 mt-3 max-w-lg">
-                  Every order earns reward points. Unlock premium perks, faster
-                  pickup, exclusive coupons and priority support.
+                  Earn reward points with your orders and use them for future
+                  benefits and offers.
                 </p>
 
-                <div className="mt-8">
-                  <div className="flex justify-between text-white mb-3">
-                    <span>Level Progress</span>
-
-                    <span>450 / 600 XP</span>
+                <div className="mt-6 flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-yellow-400/10 flex items-center justify-center">
+                    <Coins size={24} className="text-yellow-400" />
                   </div>
 
-                  <div className="h-3 rounded-full bg-white/10 overflow-hidden">
-                    <motion.div
-                      initial={{
-                        width: 0,
-                      }}
-                      animate={{
-                        width: "75%",
-                      }}
-                      transition={{
-                        duration: 1.4,
-                      }}
-                      className="h-full bg-linear-to-r from-yellow-400 via-orange-400 to-yellow-500 rounded-full"
-                    />
+                  <div>
+                    <p className="text-gray-400 text-sm">Your Reward Points</p>
+                    <p className="text-white text-2xl font-black">
+                      {user?.loyaltyPoints || 0}
+                    </p>
                   </div>
-
-                  <p className="text-gray-400 mt-3">
-                    150 XP left for Platinum Member
-                  </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  {
-                    icon: Flame,
-                    title: "Hot Streak",
-                    value: "12",
-                  },
-                  {
-                    icon: Gift,
-                    title: "Coupons",
-                    value: "8",
-                  },
-                  {
-                    icon: Medal,
-                    title: "Rank",
-                    value: "#24",
-                  },
-                  {
-                    icon: Target,
-                    title: "Goals",
-                    value: "76%",
-                  },
-                ].map((card, index) => {
-                  const Icon = card.icon;
-
-                  return (
-                    <motion.div
-                      key={index}
-                      whileHover={{
-                        scale: 1.05,
-                      }}
-                      className="rounded-2xl bg-white/5 backdrop-blur border border-white/10 p-5"
-                    >
-                      <Icon size={24} className="text-yellow-400" />
-
-                      <h3 className="text-white font-bold mt-5">
-                        {card.value}
-                      </h3>
-
-                      <p className="text-gray-400 text-sm">{card.title}</p>
-                    </motion.div>
-                  );
-                })}
-              </div>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate("/rewards")}
+                className="shrink-0 bg-[#FFD700] text-black px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-xl"
+              >
+                View Rewards
+                <ArrowRight size={18} />
+              </motion.button>
             </div>
           </div>
         </motion.section>
@@ -863,71 +765,6 @@ ${
                     Update Profile
                   </motion.button>
                 </motion.div>
-              </div>
-            </div>
-          </motion.section>
-
-          <motion.section variants={itemVariants} className="mt-8">
-            <div className="bg-white rounded-[34px] shadow-xl border border-gray-100 p-8">
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <h2 className="text-2xl font-black">Recent Activity</h2>
-
-                  <p className="text-gray-500">Your latest account activity</p>
-                </div>
-
-                <Clock className="text-yellow-500" />
-              </div>
-
-              <div className="space-y-5">
-                {recentActivities.map((activity, index) => {
-                  const Icon = activity.icon;
-
-                  return (
-                    <motion.div
-                      key={index}
-                      initial={{
-                        opacity: 0,
-                        x: -20,
-                      }}
-                      whileInView={{
-                        opacity: 1,
-                        x: 0,
-                      }}
-                      transition={{
-                        delay: index * 0.08,
-                      }}
-                      whileHover={{
-                        x: 8,
-                      }}
-                      className="flex gap-5 items-start"
-                    >
-                      <div className="relative">
-                        <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-yellow-400 to-orange-400 flex items-center justify-center shadow-lg">
-                          <Icon size={22} color="white" />
-                        </div>
-
-                        {index !== recentActivities.length - 1 && (
-                          <div className="absolute top-14 left-1/2 -translate-x-1/2 h-10 w-0.5 bg-yellow-200" />
-                        )}
-                      </div>
-
-                      <div className="flex-1">
-                        <div className="flex justify-between">
-                          <h3 className="font-bold">{activity.title}</h3>
-
-                          <span className="text-xs text-gray-400">
-                            {activity.time}
-                          </span>
-                        </div>
-
-                        <p className="text-gray-500 mt-1">
-                          {activity.description}
-                        </p>
-                      </div>
-                    </motion.div>
-                  );
-                })}
               </div>
             </div>
           </motion.section>
