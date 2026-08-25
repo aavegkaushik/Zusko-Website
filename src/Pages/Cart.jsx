@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { CartContext } from "../context/CartContext";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -77,7 +77,7 @@ export default function Cart() {
     decreaseQty,
   } = useContext(CartContext);
   const navigate = useNavigate();
-
+  const [showAllCoupons, setShowAllCoupons] = useState(false);
   const itemCount = cart.reduce((s, i) => s + i.qty, 0);
   const freeDeliveryThreshold = 200;
   const remaining = freeDeliveryThreshold - total;
@@ -111,15 +111,17 @@ export default function Cart() {
           >
             <ArrowLeft size={16} color="#111" />
           </motion.button>
-          <div>
-            <h1 className="text-base font-bold text-gray-900 leading-none">
-              Your Cart
-            </h1>
-            <p className="text-[11px] text-gray-400 mt-0.5">
+          {!showAllCoupons && (
+  <div className="...">
+    <h1>Your Cart</h1>
+    <p className="text-[11px] text-gray-400 mt-0.5">
               Review your items
             </p>
-          </div>
+  </div>
+)}
         </div>
+
+        
 
         {/* Empty illustration */}
         <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
@@ -178,36 +180,39 @@ export default function Cart() {
       }}
     >
       {/* ── HEADER ─────────────────────────────────────────────────── */}
-      <div
-        className="sticky top-0 z-40 px-5 py-4 flex items-center gap-3"
-        style={{
-          background: "rgba(248,249,251,0.88)",
-          backdropFilter: "blur(16px)",
-          borderBottom: "1px solid #EFEFEF",
-        }}
-      >
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          onClick={() => navigate("/place-order")}
-          className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{
-            background: "white",
-            border: "1px solid #F0F0F0",
-            boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-          }}
-        >
-          <ArrowLeft size={16} color="#111" />
-        </motion.button>
-        <div className="flex-1">
-          <h1 className="text-base font-bold text-gray-900 leading-none">
-            Your Cart
-          </h1>
-          <p className="text-[11px] text-gray-400 mt-0.5">
-            {itemCount} {itemCount === 1 ? "item" : "items"} · ₹{finalTotal}{" "}
-            total
-          </p>
-        </div>
-      </div>
+      {!showAllCoupons && (
+  <div
+    className="sticky top-0 z-40 px-5 py-4 flex items-center gap-3"
+    style={{
+      background: "rgba(248,249,251,0.85)",
+      backdropFilter: "blur(16px)",
+      borderBottom: "1px solid #EFEFEF",
+    }}
+  >
+    <motion.button
+      whileTap={{ scale: 0.9 }}
+      onClick={() => navigate("/place-order")}
+      className="w-9 h-9 rounded-xl flex items-center justify-center"
+      style={{
+        background: "white",
+        border: "1px solid #F0F0F0",
+        boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+      }}
+    >
+      <ArrowLeft size={16} color="#111" />
+    </motion.button>
+
+    <div>
+      <h1 className="font-black text-gray-900 text-lg">
+        Your Cart
+      </h1>
+
+      <p className="text-[11px] text-gray-400 mt-0.5">
+        Review your items
+      </p>
+    </div>
+  </div>
+)}
 
       {/* ── PAGE LAYOUT: wide on desktop ───────────────────────────── */}
       <div className="w-full max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-10 pt-5">
@@ -395,289 +400,160 @@ export default function Cart() {
             </div>
 
             {/* ── COUPON SECTION ─────────────────────────────────────── */}
-            <div
-  className="rounded-2xl overflow-hidden mb-5"
-  style={{
-    background: "white",
-    border: "1px solid #F0F0F0",
-    boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
-  }}
->
-  {/* Header */}
-  <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-50">
-    
-    {/* Left Icon */}
-    <div
-      className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-      style={{
-        background: "#FFF9E6",
-      }}
-    >
-      <Tag
-        size={15}
-        color="#D97706"
-        strokeWidth={2.2}
-      />
-    </div>
-
-    {/* Header Content */}
-    <div className="flex-1 min-w-0 flex items-center justify-between gap-3">
-      
-      {/* Text */}
-      <div className="min-w-0">
-        <h3 className="font-bold text-gray-900 text-sm leading-tight">
-          Available Offers
-        </h3>
-
-        <p className="text-[11px] text-gray-400 mt-0.5 truncate">
-          Offers picked for your account
-        </p>
-      </div>
-
-      {/* Right Sparkle */}
-      <div
-        className="
-          w-8 h-8
-          rounded-full
-          flex items-center justify-center
-          shrink-0
-        "
-        style={{
-          background: "#FFF9E6",
-        }}
-      >
-        <Sparkles
-          size={16}
-          color="#D97706"
-          strokeWidth={2}
-        />
-      </div>
-    </div>
-  </div>
-
-  {/* Coupons */}
-  <div className="px-4">
-    <CouponSection />
-  </div>
-</div>
           </div>
 
           {/* ── RIGHT: Bill summary (desktop sticky) ─────────────────── */}
-          <div className="lg:w-[340px] shrink-0 lg:sticky lg:top-24">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="rounded-2xl overflow-hidden"
-              style={{
-                background: "white",
-                border: "1px solid #F0F0F0",
-                boxShadow: "0 4px 24px rgba(0,0,0,0.07)",
-              }}
-            >
-              {/* Header */}
-              <div className="px-5 py-4 border-b border-gray-100">
-                <h2 className="font-bold text-gray-900 text-sm">
-                  Bill Details
-                </h2>
-              </div>
+<div className="lg:w-[340px] shrink-0 lg:sticky lg:top-24">
 
-              {/* Rows */}
-              <div className="px-5 py-4 space-y-3">
-                {/* Item total */}
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">Item Total</span>
-                  <span className="text-sm font-bold text-gray-900">
-                    ₹{total}
-                  </span>
-                </div>
+  {/* ── COUPON SECTION ───────────────────────────────── */}
+  <div
+    className="rounded-2xl overflow-hidden mb-5"
+    style={{
+      background: "white",
+      border: "1px solid #F0F0F0",
+      boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
+    }}
+  >
+    {/* Coupon Header */}
+    <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-50">
 
-                {/* Delivery */}
-                {/* <div className="flex items-start justify-between">
-                  <span className="text-sm text-gray-500">Pickup & Delivery</span>
-                  <span className="text-sm font-bold text-green-600">
-                    {total >= freeDeliveryThreshold ? "FREE" : "Pending"}
-                  </span>
-                </div> */}
+      <div
+        className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+        style={{ background: "#FFF9E6" }}
+      >
+        <Tag
+          size={15}
+          color="#D97706"
+          strokeWidth={2.2}
+        />
+      </div>
 
-                {/* Handling Charge */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-500">
-                      Handling Charge
-                    </span>
+      <div className="flex-1 min-w-0 flex items-center justify-between gap-3">
 
-                    <span
-                      className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
-                      style={{
-                        background: "#FFF7CC",
-                        color: "#B45309",
-                      }}
-                    >
-                      Care
-                    </span>
-                  </div>
+        <div className="min-w-0">
+          <h3 className="font-bold text-gray-900 text-sm leading-tight">
+            Available Offers
+          </h3>
 
-                  <span
-                    className={`text-sm font-bold ${
-                      handlingCharge === 0 ? "text-green-600" : "text-gray-900"
-                    }`}
-                  >
-                    {handlingCharge === 0 ? "FREE" : `₹${handlingCharge}`}
-                  </span>
-                </div>
+          <p className="text-[11px] text-gray-400 mt-0.5 truncate">
+            Offers picked for your account
+          </p>
+        </div>
 
-                {/* Discount */}
-                <AnimatePresence>
-                  {discount > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="flex items-center justify-between"
-                    >
-                      <span className="text-sm text-green-600 flex items-center gap-1.5">
-                        <Sparkles size={13} />
-                        Coupon Discount
-                      </span>
-                      <span className="text-sm font-bold text-green-600">
-                        −₹{discount}
-                      </span>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+        {/* Right corner sparkle */}
+        <div
+          className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+          style={{ background: "#FFF9E6" }}
+        >
+          <Sparkles
+            size={16}
+            color="#D97706"
+            strokeWidth={2}
+          />
+        </div>
 
-              {/* Savings banner */}
-              <AnimatePresence>
-                {discount > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="mx-4 mb-4 px-3 py-2 rounded-xl text-xs font-semibold text-green-700 flex items-center gap-2"
-                    style={{
-                      background: "#ECFDF5",
-                      border: "1px solid #D1FAE5",
-                    }}
-                  >
-                    🎉 You're saving ₹{discount} on this order!
-                  </motion.div>
-                )}
-              </AnimatePresence>
+      </div>
+    </div>
 
-              {/* Total row */}
-              <div
-                className="mx-4 mb-4 px-4 py-4 rounded-2xl flex items-center justify-between"
-                style={{ background: "#F8F9FB", border: "1px solid #EFEFEF" }}
-              >
-                <div>
-                  <p className="text-[11px] text-gray-400 mb-0.5">
-                    Total (incl. GST)
-                  </p>
-                  <p className="font-black text-gray-900 text-2xl leading-none">
-                    ₹{finalTotal}
-                  </p>
-                </div>
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center"
-                  style={{ background: "#FFF9E6" }}
-                >
-                  <span className="text-xl">🧾</span>
-                </div>
-              </div>
+    {/* Coupon content */}
+    <div className="px-4">
+      <CouponSection
+  showAllCoupons={showAllCoupons}
+  setShowAllCoupons={setShowAllCoupons}
+/>
+    </div>
+  </div>
 
-              {/* Checkout button — desktop */}
-              <div className="px-4 pb-5">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => navigate("/checkout")}
-                  className="w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2"
-                  style={{
-                    background: "linear-gradient(135deg,#101010,#1e1700)",
-                    color: "white",
-                  }}
-                >
-                  Proceed to Checkout
-                  <span
-                    className="w-6 h-6 rounded-full flex items-center justify-center"
-                    style={{ background: "#FFD700" }}
-                  >
-                    <ChevronRight size={14} color="#101010" />
-                  </span>
-                </motion.button>
+  {/* ── BILL DETAILS ──────────────────────────────────── */}
+  <motion.div
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.1 }}
+    className="rounded-2xl overflow-hidden"
+    style={{
+      background: "white",
+      border: "1px solid #F0F0F0",
+      boxShadow: "0 4px 24px rgba(0,0,0,0.07)",
+    }}
+  >
 
-                {/* Trust badges */}
-                <div className="flex items-center justify-center gap-4 mt-4">
-                  {["🔒 Secure", "🚚 Free Pickup", "✅ Trusted"].map(
-                    (badge) => (
-                      <span
-                        key={badge}
-                        className="text-[10px] text-gray-400 font-medium"
-                      >
-                        {badge}
-                      </span>
-                    ),
-                  )}
-                </div>
-              </div>
-            </motion.div>
+    <div className="px-5 py-4 border-b border-gray-100">
+      <h2 className="font-bold text-gray-900 text-sm">
+        Bill Details
+      </h2>
+    </div>
 
-            {/* Estimated timeline (desktop) */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="mt-4 rounded-2xl px-5 py-4"
-              style={{
-                background: "white",
-                border: "1px solid #F0F0F0",
-                boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
-              }}
-            >
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
-                Order Timeline
-              </p>
-              {[
-                {
-                  icon: "📦",
-                  label: "Pickup",
-                  time: "Withing the time of your booked slot",
-                },
-                {
-                  icon: "🧼",
-                  label: "Processing",
-                  time: "within 24 hours at the time of pickup",
-                },
-                {
-                  icon: "🚚",
-                  label: "Delivery",
-                  time: "After 24 hours in same slot",
-                },
-              ].map((step, i) => (
-                <div
-                  key={step.label}
-                  className="flex items-center gap-3 mb-3 last:mb-0"
-                >
-                  <div
-                    className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-base"
-                    style={{ background: "#F8F9FB" }}
-                  >
-                    {step.icon}
-                  </div>
-                  <div>
-                    <p className="text-[13px] font-bold text-gray-800 leading-none">
-                      {step.label}
-                    </p>
-                    <p className="text-[11px] text-gray-400 mt-0.5">
-                      {step.time}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </motion.div>
-          </div>
+    {/* Bill rows */}
+    <div className="px-5 py-4 space-y-3">
+
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-gray-500">
+          Item Total
+        </span>
+
+        <span className="font-semibold text-gray-800">
+          ₹{total}
+        </span>
+      </div>
+
+      {discount > 0 && (
+        <div className="flex items-center justify-between text-sm">
+          <span className="flex items-center gap-1 text-green-600">
+            <Sparkles size={12} />
+            Coupon Discount
+          </span>
+
+          <span className="font-semibold text-green-600">
+            −₹{discount}
+          </span>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-gray-500">
+          Handling Charges
+        </span>
+
+        <span className="font-semibold text-gray-800">
+          ₹{handlingCharge}
+        </span>
+      </div>
+
+    </div>
+
+    {/* Total */}
+    <div className="px-5 pb-5">
+      <div
+        className="flex items-center justify-between px-4 py-4 rounded-2xl"
+        style={{
+          background: "#F8F9FB",
+          border: "1px solid #EFEFEF",
+        }}
+      >
+        <div>
+          <p className="text-[10px] text-gray-400 uppercase tracking-wider">
+            Total Payable
+          </p>
+
+          <p className="text-xl font-black text-gray-900 mt-1">
+            ₹{finalTotal}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => navigate("/place-order")}
+          className="flex items-center gap-1.5 bg-black text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-gray-800 transition"
+        >
+          Continue
+          <ChevronRight size={14} />
+        </button>
+      </div>
+    </div>
+
+  </motion.div>
+
+</div>
         </div>
       </div>
 
