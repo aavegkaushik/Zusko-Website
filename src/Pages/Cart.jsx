@@ -542,7 +542,7 @@ export default function Cart() {
 
         <button
           type="button"
-          onClick={() => navigate("/place-order")}
+          onClick={() => navigate("/checkout")}
           className="flex items-center gap-1.5 bg-black text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-gray-800 transition"
         >
           Continue
