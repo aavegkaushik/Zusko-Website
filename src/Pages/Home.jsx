@@ -1,246 +1,727 @@
 import { motion } from "framer-motion";
-import Caraousel from "../components/Caraousel.jsx";
+import { ArrowRight, Check, Sparkles, ShieldCheck, Clock3, Leaf, Truck, Star, Zap } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
 import points from "../assets/points.png";
 import restImage from "../assets/Lo-fi concept-pana.svg";
 import SaveMoney from "../assets/Saving money-cuate.svg";
 import delivery from "../assets/In no time-cuate.svg";
 import Eco from "../assets/Eco.svg";
-import Mobile from "../assets/mobile1.png";
 import Logo from "../assets/Zusko White Logo.png";
-import Hero from '../components/Hero.jsx'
-import { useNavigate } from "react-router-dom";
-import Whatisinitforyou from "../components/Whatisinitforyou.jsx";
-const fadeIn = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { duration: 0.8 },
-  },
-};
- 
+
+import Hero from "../components/Hero.jsx";
+
 const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
+  hidden: {
+    opacity: 0,
+    y: 35,
+  },
   show: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.8 },
+    transition: {
+      duration: 0.7,
+      ease: "easeOut",
+    },
   },
 };
- 
+
+const fadeIn = {
+  hidden: {
+    opacity: 0,
+  },
+  show: {
+    opacity: 1,
+    transition: {
+      duration: 0.8,
+      ease: "easeOut",
+    },
+  },
+};
+
 const scaleIn = {
-  hidden: { opacity: 0, scale: 0.9 },
+  hidden: {
+    opacity: 0,
+    scale: 0.94,
+  },
   show: {
     opacity: 1,
     scale: 1,
-    transition: { duration: 0.8 },
+    transition: {
+      duration: 0.7,
+      ease: "easeOut",
+    },
   },
 };
- 
+
 const stats = [
   {
-    number: '5M+',
-    label: 'Loads Cleaned',
-    icon: '🧺',
+    number: "5M+",
+    label: "Loads Cleaned",
+    icon: "🧺",
   },
   {
-    number: '15K+',
-    label: 'Happy Customers',
-    icon: '⭐',
+    number: "15K+",
+    label: "Happy Customers",
+    icon: "⭐",
   },
   {
-    number: '99.8%',
-    label: 'Satisfaction Rate',
-    icon: '✓',
+    number: "99.8%",
+    label: "Satisfaction Rate",
+    icon: "✓",
   },
 ];
 
-// const fadeUp = {
-//   hidden: { opacity: 0, y: 50 },
-//   show: {
-//     opacity: 1,
-//     y: 0,
-//     transition: { duration: 0.8, ease: "easeOut" },
-//   },
-// };
- 
-// const fadeIn = {
-//   hidden: { opacity: 0 },
-//   show: {
-//     opacity: 1,
-//     transition: { duration: 0.8 },
-//   },
-// };
- 
-const imageVariants = {
-  hidden: { opacity: 0, scale: 0.95, y: 30 },
-  show: {
-    opacity: 1,
-    scale: 1,
-    y: 0,
-    transition: { duration: 0.8, ease: "easeOut" },
+const benefits = [
+  {
+    icon: SaveMoney,
+    title: "Save Time & Money",
+    description:
+      "Professional laundry care without wasting your valuable time or stretching your budget.",
   },
-};
+  {
+    icon: delivery,
+    title: "Doorstep Pickup & Delivery",
+    description:
+      "Schedule a pickup and we'll take care of the rest — right from your doorstep.",
+  },
+  {
+    icon: Eco,
+    title: "Eco Friendly Care",
+    description:
+      "Thoughtful cleaning powered by efficient processes and environmentally conscious practices.",
+  },
+];
+
+const trustItems = [
+  {
+    icon: ShieldCheck,
+    title: "Secure Booking",
+    text: "Your orders stay protected.",
+  },
+  {
+    icon: Clock3,
+    title: "On-Time Service",
+    text: "Pickup and delivery when promised.",
+  },
+  {
+    icon: Star,
+    title: "Premium Care",
+    text: "Every garment gets attention.",
+  },
+];
 
 const Home = () => {
   const navigate = useNavigate();
+
   return (
-    <div className="overflow-hidden">
+    <div className="min-h-screen overflow-hidden bg-white text-gray-900">
+
+      {/* =========================================================
+          HERO
+      ========================================================= */}
+
       <Hero />
 
-      {/* Service Section */}
-      <div className="">
-        {/* To make Life easier section */}
-<section className="relative w-full py-20 md:py-32 lg:py-40 overflow-hidden bg-linear-to-br from-white via-slate-50/50 to-white">
-      {/* Background decorative elements */}
-      <div className="absolute top-20 right-0 w-96 h-96 bg-yellow-400/5 rounded-full blur-3xl -z-10 pointer-events-none"></div>
-      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-96 h-96 bg-blue-400/3 rounded-full blur-3xl -z-10 pointer-events-none"></div>
- 
-      <div className="relative flex flex-col md:flex-row items-center justify-between px-6 sm:px-8 md:px-16 lg:px-24 overflow-visible gap-8 md:gap-12 lg:gap-16">
-        
-        {/* Left Content Section */}
-        <motion.div
-          className="relative w-full md:w-1/2"
-          variants={fadeUp}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.2 }}
-        >
-          {/* Decorative dots background */}
-          <motion.img
-            src={points}
-            alt="Zusko"
-            aria-hidden="true"
-            className="hidden sm:block absolute -top-40 sm:-top-20 -left-6 sm:-left-16 w-40 sm:w-64 lg:w-72 opacity-80 z-0 pointer-events-none"
-            loading="lazy"
-            initial={{ opacity: 0, y: -30 }}
-            whileInView={{ opacity: 0.8, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-          />
- 
-          {/* Content Container */}
+      {/* =========================================================
+          TRUST STRIP
+      ========================================================= */}
+
+      <section className="relative z-10 -mt-2 border-y border-gray-100 bg-white">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 divide-y divide-gray-100 px-5 py-6 sm:grid-cols-3 sm:divide-x sm:divide-y-0 sm:px-8">
+
+          {trustItems.map((item, index) => {
+            const Icon = item.icon;
+
+            return (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.08 }}
+                className="flex items-center justify-center gap-3 px-4 py-4 sm:py-2"
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FFF8D8]">
+                  <Icon size={18} className="text-yellow-600" />
+                </div>
+
+                <div>
+                  <p className="text-sm font-bold text-gray-900">
+                    {item.title}
+                  </p>
+
+                  <p className="text-xs text-gray-500">
+                    {item.text}
+                  </p>
+                </div>
+              </motion.div>
+            );
+          })}
+
+        </div>
+      </section>
+
+      {/* =========================================================
+          MISSION
+      ========================================================= */}
+
+      <section className="relative overflow-hidden bg-gradient-to-b from-white via-[#FCFCFA] to-white px-5 py-20 sm:px-8 md:py-28 lg:px-12">
+
+        {/* Decorative background */}
+
+        <div className="pointer-events-none absolute -right-40 top-20 h-[500px] w-[500px] rounded-full bg-yellow-300/10 blur-3xl" />
+
+        <div className="pointer-events-none absolute -left-40 bottom-0 h-[450px] w-[450px] rounded-full bg-yellow-100/30 blur-3xl" />
+
+        <div className="relative mx-auto grid max-w-7xl items-center gap-14 lg:grid-cols-2 lg:gap-20">
+
+          {/* LEFT */}
+
           <motion.div
-            className="relative z-10 space-y-6 md:space-y-8"
             variants={fadeUp}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.25 }}
           >
+
             {/* Badge */}
-            <motion.div
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-100/60 border border-yellow-300/40 text-yellow-700 text-sm font-semibold"
-              variants={fadeUp}
-            >
-              <span className="w-2 h-2 bg-yellow-600 rounded-full"></span>
+
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-yellow-200 bg-yellow-50 px-4 py-2 text-xs font-bold uppercase tracking-[0.15em] text-yellow-700">
+              <span className="h-2 w-2 rounded-full bg-yellow-500" />
               Our Mission
-            </motion.div>
- 
-            {/* Main Heading with gradient */}
-            <motion.h2
-              className="text-4xl sm:text-5xl md:text-5xl lg:text-6xl font-black leading-tight text-gray-900"
-              variants={fadeUp}
-              transition={{ delay: 0.1 }}
-            >
-              <span className="bg-linear-to-r from-gray-900 via-gray-800 to-yellow-600 bg-clip-text text-transparent">
-                To Make Life
+            </div>
+
+            {/* Heading */}
+
+            <h2 className="max-w-2xl text-4xl font-black leading-[1.05] tracking-tight text-gray-950 sm:text-5xl md:text-6xl lg:text-7xl">
+
+              Laundry should be
+              <span className="block bg-gradient-to-r from-gray-900 via-gray-700 to-yellow-600 bg-clip-text text-transparent">
+                effortless.
               </span>
-              <br />
-              <span className="text-gray-900">Easier</span>
-            </motion.h2>
- 
-            {/* Underline accent */}
-            <motion.div
-              className="w-20 h-1.5 bg-linear-to-r from-yellow-400 to-yellow-300 rounded-full"
-              initial={{ width: 0 }}
-              whileInView={{ width: 80 }}
-              transition={{ delay: 0.3, duration: 0.8 }}
-              viewport={{ once: true }}
-            />
- 
-            {/* Description */}
-            <motion.p
-              className="text-base sm:text-lg md:text-lg lg:text-xl text-gray-600 leading-relaxed max-w-lg font-light"
-              variants={fadeUp}
-              transition={{ delay: 0.2 }}
-            >
-              At Zusko, we believe everyone deserves freedom from laundry hassles. Our mission is to deliver premium laundry care with the convenience you deserve, so you can focus on what truly matters.
-            </motion.p>
- 
-            {/* Key benefits list */}
-            <motion.div
-              className="space-y-4 pt-4"
-              variants={fadeUp}
-              transition={{ delay: 0.3 }}
-            >
+
+            </h2>
+
+            <div className="mt-7 h-1.5 w-20 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-300" />
+
+            <p className="mt-7 max-w-xl text-base leading-8 text-gray-600 sm:text-lg">
+              At Zusko, we believe your time belongs to you — not your laundry.
+              We combine premium garment care, reliable pickup and delivery,
+              and a seamless digital experience to make laundry one less thing
+              to worry about.
+            </p>
+
+            {/* Benefits */}
+
+            <div className="mt-9 space-y-4">
+
               {[
-                { icon: "✓", text: "Quick & hassle-free pickup & delivery" },
-                { icon: "✓", text: "Premium care with expert attention" },
-                { icon: "✓", text: "Fresh, folded, and delivered on time" },
-              ].map((item, index) => (
+                "Quick & hassle-free pickup and delivery",
+                "Premium care from trained professionals",
+                "Fresh, folded and delivered on time",
+              ].map((text, index) => (
                 <motion.div
-                  key={index}
-                  className="flex items-center gap-3 text-gray-700 font-medium"
+                  key={text}
                   initial={{ opacity: 0, x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 + index * 0.1, duration: 0.6 }}
                   viewport={{ once: true }}
+                  transition={{ delay: 0.15 + index * 0.1 }}
+                  className="flex items-center gap-3"
                 >
-                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-yellow-400/20 border border-yellow-400/40">
-                    <span className="text-yellow-600 font-bold text-sm">{item.icon}</span>
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-yellow-100">
+                    <Check size={15} strokeWidth={3} className="text-yellow-700" />
+                  </div>
+
+                  <span className="text-sm font-semibold text-gray-700 sm:text-base">
+                    {text}
                   </span>
-                  <span>{item.text}</span>
                 </motion.div>
               ))}
-            </motion.div>
- 
-            {/* CTA Button */}
-            <motion.div
-              className="pt-4"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ delay: 0.7, duration: 0.6 }}
-              viewport={{ once: true }}
-            >
-              {/* <motion.a
-                href="#get-started"
-                whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(250, 204, 21, 0.2)" }}
-                whileTap={{ scale: 0.95 }}
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-linear-to-r from-yellow-400 to-yellow-300 hover:from-yellow-300 hover:to-yellow-200 text-black font-bold text-lg uppercase tracking-wide transition-all duration-300 shadow-xl"
-              >
-                Start Your Journey
-                <motion.span
-                  animate={{ x: [0, 5, 0] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                >
-                  →
-                </motion.span>
-              </motion.a> */}
-            </motion.div>
+
+            </div>
+
           </motion.div>
-        </motion.div>
- 
-        {/* Right Image Section */}
-        <motion.div
-          className="w-full md:w-1/2 flex justify-center md:justify-end items-center"
-          variants={imageVariants}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.3 }}
-        >
-          {/* Image container with hover effect */}
+
+          {/* RIGHT IMAGE */}
+
           <motion.div
-            className="relative w-11/12 sm:w-9/12 md:w-[90%] lg:w-[85%] max-w-[550px]"
-            whileHover={{ y: -10 }}
-            transition={{ duration: 0.4 }}
+            variants={scaleIn}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.25 }}
+            className="relative flex justify-center lg:justify-end"
           >
-            {/* Soft shadow/glow effect */}
-            <div className="absolute inset-0 bg-linear-to-t from-yellow-400/10 to-transparent rounded-3xl blur-2xl -z-10"></div>
- 
-            {/* Main Image */}
-            <motion.img
-              src={restImage}
-              alt="Laundry service illustration - Easy and convenient"
-              loading="lazy"
-              className="w-full object-contain drop-shadow-lg"
-              style={{ willChange: "transform" }}
-              animate={{ 
+
+            <motion.div
+              whileHover={{ y: -8 }}
+              transition={{ duration: 0.4 }}
+              className="relative w-full max-w-xl"
+            >
+
+              {/* Glow */}
+
+              <div className="absolute inset-10 rounded-full bg-yellow-300/20 blur-3xl" />
+
+              {/* Dot pattern */}
+
+              <img
+                src={points}
+                alt=""
+                aria-hidden="true"
+                className="absolute -left-8 -top-8 hidden w-40 opacity-50 sm:block"
+              />
+
+              {/* Card */}
+
+              <div className="relative overflow-hidden rounded-[2rem] border border-gray-100 bg-white/80 p-6 shadow-[0_30px_80px_rgba(0,0,0,0.08)] backdrop-blur-xl sm:p-10">
+
+                <motion.img
+                  src={restImage}
+                  alt="Easy and convenient laundry service"
+                  loading="lazy"
+                  className="relative z-10 w-full object-contain"
+                  animate={{
+                    y: [0, -8, 0],
+                  }}
+                  transition={{
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                />
+
+                {/* Floating card */}
+
+                <motion.div
+                  animate={{ y: [0, -5, 0] }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  className="absolute bottom-5 left-5 z-20 flex items-center gap-3 rounded-2xl border border-white/80 bg-white/90 px-4 py-3 shadow-xl backdrop-blur-xl"
+                >
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-green-50">
+                    <Check size={17} className="text-green-600" />
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-bold text-gray-900">
+                      Laundry handled
+                    </p>
+                    <p className="text-[10px] text-gray-500">
+                      You just got your time back.
+                    </p>
+                  </div>
+                </motion.div>
+
+              </div>
+
+            </motion.div>
+
+          </motion.div>
+
+        </div>
+      </section>
+
+      {/* =========================================================
+          BENEFITS
+      ========================================================= */}
+
+      <section className="relative bg-[#FAF8F0] px-5 py-20 sm:px-8 md:py-28 lg:px-12">
+
+        <div className="mx-auto max-w-7xl">
+
+          {/* Header */}
+
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            className="mx-auto max-w-2xl text-center"
+          >
+
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-yellow-200 bg-white px-4 py-2 text-xs font-bold uppercase tracking-[0.15em] text-yellow-700 shadow-sm">
+              <Sparkles size={14} />
+              Why Zusko
+            </div>
+
+            <h2 className="text-3xl font-black tracking-tight text-gray-950 sm:text-4xl md:text-5xl">
+              More than clean clothes.
+            </h2>
+
+            <p className="mt-4 text-sm leading-7 text-gray-600 sm:text-base">
+              A complete laundry experience designed around your time,
+              convenience and peace of mind.
+            </p>
+
+          </motion.div>
+
+          {/* Cards */}
+
+          <div className="mt-14 grid gap-5 md:grid-cols-3">
+
+            {benefits.map((benefit, index) => {
+              const IconImage = benefit.icon;
+
+              return (
+                <motion.div
+                  key={benefit.title}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ delay: index * 0.1 }}
+                  whileHover={{ y: -8 }}
+                  className="group relative overflow-hidden rounded-[2rem] border border-white bg-white p-7 shadow-[0_15px_50px_rgba(0,0,0,0.05)] transition-shadow duration-300 hover:shadow-[0_25px_70px_rgba(0,0,0,0.09)] sm:p-8"
+                >
+
+                  <div className="absolute right-0 top-0 h-32 w-32 rounded-full bg-yellow-100/40 blur-3xl transition-transform duration-500 group-hover:scale-150" />
+
+                  <div className="relative">
+
+                    <div className="mb-7 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#FFF8D8]">
+                      <img
+                        src={IconImage}
+                        alt=""
+                        className="h-12 w-12 object-contain"
+                        loading="lazy"
+                      />
+                    </div>
+
+                    <h3 className="text-xl font-black text-gray-900">
+                      {benefit.title}
+                    </h3>
+
+                    <p className="mt-3 text-sm leading-7 text-gray-600">
+                      {benefit.description}
+                    </p>
+
+                    <div className="mt-7 flex items-center gap-2 text-xs font-bold text-yellow-700">
+                      <span>Designed for you</span>
+                      <ArrowRight
+                        size={14}
+                        className="transition-transform duration-300 group-hover:translate-x-1"
+                      />
+                    </div>
+
+                  </div>
+
+                </motion.div>
+              );
+            })}
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* =========================================================
+          HOW IT WORKS
+      ========================================================= */}
+
+      <section className="bg-white px-5 py-20 sm:px-8 md:py-28 lg:px-12">
+
+        <div className="mx-auto max-w-7xl">
+
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            className="flex flex-col justify-between gap-6 md:flex-row md:items-end"
+          >
+
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-yellow-600">
+                Simple by design
+              </p>
+
+              <h2 className="mt-3 text-3xl font-black tracking-tight text-gray-950 sm:text-4xl md:text-5xl">
+                Laundry, without the laundry day.
+              </h2>
+            </div>
+
+            <p className="max-w-md text-sm leading-7 text-gray-500">
+              From booking to delivery, Zusko keeps the entire experience
+              simple and transparent.
+            </p>
+
+          </motion.div>
+
+          <div className="relative mt-14 grid gap-5 md:grid-cols-3">
+
+            {/* Connecting line */}
+
+            <div className="absolute left-[16%] right-[16%] top-12 hidden h-px bg-gradient-to-r from-yellow-200 via-yellow-400 to-yellow-200 md:block" />
+
+            {[
+              {
+                number: "01",
+                icon: Truck,
+                title: "Schedule a pickup",
+                text: "Choose your services, add your address and book in seconds.",
+              },
+              {
+                number: "02",
+                icon: Sparkles,
+                title: "We care for it",
+                text: "Your clothes are cleaned and handled with professional care.",
+              },
+              {
+                number: "03",
+                icon: Zap,
+                title: "Fresh at your door",
+                text: "Get your freshly cleaned clothes delivered right back to you.",
+              },
+            ].map((step, index) => {
+              const Icon = step.icon;
+
+              return (
+                <motion.div
+                  key={step.number}
+                  initial={{ opacity: 0, y: 25 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.12 }}
+                  className="relative rounded-[2rem] border border-gray-100 bg-white p-7 shadow-[0_15px_50px_rgba(0,0,0,0.04)]"
+                >
+
+                  <div className="relative z-10 flex items-center justify-between">
+
+                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-black text-yellow-400 shadow-lg">
+                      <Icon size={23} />
+                    </div>
+
+                    <span className="text-4xl font-black text-gray-100">
+                      {step.number}
+                    </span>
+
+                  </div>
+
+                  <h3 className="mt-7 text-xl font-black text-gray-900">
+                    {step.title}
+                  </h3>
+
+                  <p className="mt-3 text-sm leading-7 text-gray-600">
+                    {step.text}
+                  </p>
+
+                </motion.div>
+              );
+            })}
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* =========================================================
+          STATS / SOCIAL PROOF
+      ========================================================= */}
+
+      <section className="relative overflow-hidden bg-black px-5 py-20 text-white sm:px-8 md:py-24 lg:px-12">
+
+        <div className="pointer-events-none absolute left-1/2 top-0 h-[450px] w-[700px] -translate-x-1/2 rounded-full bg-yellow-400/10 blur-[120px]" />
+
+        <div className="relative mx-auto max-w-7xl">
+
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            className="mx-auto max-w-2xl text-center"
+          >
+
+            <div className="mx-auto mb-5 flex w-fit items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.15em] text-yellow-300">
+              <Star size={13} fill="currentColor" />
+              Trusted by thousands
+            </div>
+
+            <h2 className="text-3xl font-black tracking-tight sm:text-4xl md:text-5xl">
+              Built around your
+              <span className="text-yellow-400"> trust.</span>
+            </h2>
+
+            <p className="mt-4 text-sm leading-7 text-zinc-400 sm:text-base">
+              Every number represents real customers choosing a better way
+              to take care of their laundry.
+            </p>
+
+          </motion.div>
+
+          <div className="mt-14 grid gap-4 sm:grid-cols-3">
+
+            {stats.map((stat, index) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 25 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ y: -6 }}
+                className="group relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] p-8 text-center backdrop-blur-xl"
+              >
+
+                <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+
+                <div className="relative">
+
+                  <div className="text-4xl">
+                    {stat.icon}
+                  </div>
+
+                  <div className="mt-5 bg-gradient-to-r from-yellow-300 to-yellow-500 bg-clip-text text-4xl font-black text-transparent sm:text-5xl">
+                    {stat.number}
+                  </div>
+
+                  <p className="mt-3 text-sm font-medium text-zinc-400">
+                    {stat.label}
+                  </p>
+
+                </div>
+
+              </motion.div>
+            ))}
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* =========================================================
+          FINAL CTA
+      ========================================================= */}
+
+      <section
+        id="get-started"
+        className="relative overflow-hidden bg-gradient-to-br from-[#111111] via-[#050505] to-black px-5 py-20 text-white sm:px-8 md:py-28 lg:px-12"
+      >
+
+        {/* Background */}
+
+        <div className="absolute inset-0">
+
+          <motion.div
+            animate={{
+              x: [0, 30, 0],
+              y: [0, -20, 0],
+            }}
+            transition={{
+              duration: 10,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+            className="absolute -left-32 top-0 h-96 w-96 rounded-full bg-yellow-400/10 blur-3xl"
+          />
+
+          <motion.div
+            animate={{
+              x: [0, -25, 0],
+              y: [0, 25, 0],
+            }}
+            transition={{
+              duration: 12,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+            className="absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-yellow-500/10 blur-3xl"
+          />
+
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(250,204,21,0.08),transparent_45%)]" />
+
+        </div>
+
+        <div className="relative mx-auto grid max-w-7xl items-center gap-14 lg:grid-cols-[1.1fr_0.9fr]">
+
+          {/* Content */}
+
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+          >
+
+            <img
+              src={Logo}
+              alt="Zusko"
+              className="mb-8 w-28 sm:w-36"
+            />
+
+            <p className="mb-5 text-xs font-black uppercase tracking-[0.2em] text-yellow-400">
+              Your time is worth more
+            </p>
+
+            <h2 className="max-w-3xl text-4xl font-black leading-[1.05] tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
+              Give your laundry
+              <span className="block bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 bg-clip-text text-transparent">
+                a better life.
+              </span>
+            </h2>
+
+            <p className="mt-7 max-w-xl text-base leading-8 text-zinc-400 sm:text-lg">
+              Book premium laundry pickup and delivery in seconds.
+              We handle the clothes. You get your time back.
+            </p>
+
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+
+              <motion.button
+                type="button"
+                onClick={() => navigate("/auth/login")}
+                whileHover={{
+                  scale: 1.04,
+                  boxShadow: "0 20px 70px rgba(250,204,21,0.28)",
+                }}
+                whileTap={{ scale: 0.97 }}
+                className="group inline-flex items-center justify-center gap-3 rounded-2xl bg-yellow-400 px-7 py-4 text-base font-black text-black transition-all hover:bg-yellow-300"
+              >
+                Book Laundry Now
+
+                <ArrowRight
+                  size={19}
+                  className="transition-transform duration-300 group-hover:translate-x-1"
+                />
+              </motion.button>
+
+            </div>
+
+            <div className="mt-7 flex flex-wrap gap-x-6 gap-y-3 text-xs text-zinc-500">
+
+              <span className="flex items-center gap-2">
+                <Check size={14} className="text-yellow-400" />
+                Easy booking
+              </span>
+
+              <span className="flex items-center gap-2">
+                <Check size={14} className="text-yellow-400" />
+                Reliable pickup
+              </span>
+
+              <span className="flex items-center gap-2">
+                <Check size={14} className="text-yellow-400" />
+                Premium care
+              </span>
+
+            </div>
+
+          </motion.div>
+
+          {/* Premium visual card */}
+
+          <motion.div
+            variants={scaleIn}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            className="relative"
+          >
+
+            <motion.div
+              animate={{
                 y: [0, -8, 0],
               }}
               transition={{
@@ -248,350 +729,121 @@ const Home = () => {
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
-            />
- 
-            {/* Decorative circle accent */}
-            <motion.div
-              className="absolute -bottom-10 -right-10 w-40 h-40 border-2 border-yellow-400/20 rounded-full pointer-events-none"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            />
-          </motion.div>
-        </motion.div>
-      </div>
-    </section>
+              className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.05] p-6 shadow-[0_30px_100px_rgba(0,0,0,0.5)] backdrop-blur-xl sm:p-8"
+            >
 
+              <div className="mb-7 flex items-center justify-between">
 
-        {/* What's in it for you Section */}
-        <motion.div
-  className="
-    flex 
-    items-center 
-    justify-center 
-    font-bold 
-    px-4 
-    mt-20
-    text-3xl 
-    sm:text-4xl 
-    md:text-5xl
-    mb-8
-  "
-  variants={fadeUp}
-  initial="hidden"
-  whileInView="show"
-  viewport={{ once: true, amount: 0.3 }}
->
-  <span
-    className="
-      relative 
-      inline-block 
-      pb-1 
-      after:content-[''] 
-      after:absolute 
-      after:bottom-0 
-      after:left-1/2 
-      after:-translate-x-1/2 
-      after:border-b-4 
-      after:border-[#FFC700] 
-      after:w-1/2
-    "
-  >
-    What's in it for you
-  </span>
-</motion.div>
+                <div>
+                  <p className="text-xs font-medium text-zinc-500">
+                    YOUR LAUNDRY
+                  </p>
 
+                  <p className="mt-1 text-lg font-black">
+                    Handled by Zusko
+                  </p>
+                </div>
 
-        <section className="flex flex-col md:flex-row w-full bg-[#F9F2D7] rounded-full z-0 items-center justify-between px-10 py-12 gap-12">
-          {/* Feature 1 */}
-          <motion.div
-            className="flex-1 flex flex-col items-center text-center"
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, amount: 0.3 }}
-          >
-            <img
-              src={SaveMoney}
-              alt="Save Money"
-              className="w-[60%] max-w-[220px] object-contain mb-4"
-            />
-            <h3 className="text-xl font-semibold text-gray-800">
-              Save Time & Money
-            </h3>
-            <p className="text-gray-600 mt-2 text-sm max-w-[250px]">
-              Enjoy professional laundry care without breaking your budget or
-              wasting hours.
-            </p>
-          </motion.div>
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-yellow-400 text-black">
+                  <Sparkles size={20} />
+                </div>
 
-          {/* Feature 2 */}
-          <motion.div
-            className="flex-1 flex flex-col items-center text-center"
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ delay: 0.2 }}
-          >
-            <img
-              src={delivery}
-              alt="Fast Delivery"
-              className="w-[60%] max-w-[220px] object-contain mb-4"
-            />
-            <h3 className="text-xl font-semibold text-gray-800">
-              Doorstep Pickup & Delivery
-            </h3>
-            <p className="text-gray-600 mt-2 text-sm max-w-[250px]">
-              We will pick up your clothes and deliver them at your doorstep.
-            </p>
-          </motion.div>
-
-          {/* Feature 3 */}
-          <motion.div
-            className="flex-1 flex flex-col items-center text-center"
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ delay: 0.4 }}
-          >
-            <img
-              src={Eco}
-              alt="Eco Friendly"
-              className="w-[60%] max-w-[220px] object-contain mb-4"
-            />
-            <h3 className="text-xl font-semibold text-gray-800">
-              Eco Friendly
-            </h3>
-            <p className="text-gray-600 mt-2 text-sm max-w-[250px]">
-              We use biodegradable detergents and energy-efficient machines to
-              protect nature.
-            </p>
-          </motion.div>
-        </section>
-
-        {/* <Whatisinitforyou 
-  SaveMoney={SaveMoneyImg} 
-  delivery={deliveryImg} 
-  Eco={EcoImg} 
-/> */}
-
-        {/* Let's Start Section */}
-        <motion.div
-          className="flex items-start justify-start gap-4 mt-10 px-4 md:pl-36 text-3xl md:text-5xl font-extrabold"
-          variants={fadeUp}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.3 }}
-        >
-          <span>Let's</span>
-          <span className="text-yellow-400">Start</span>
-        </motion.div>
-
-
-        {/* App Download Section */}
-        <motion.section
-  className="
-    w-full relative overflow-hidden
-    bg-linear-to-br from-black via-zinc-950 to-black
-    text-white
-    flex flex-col lg:flex-row
-    items-center justify-between
-    px-6 md:px-12 lg:px-20
-    py-16 md:py-24
-  "
-  variants={fadeIn}
-  initial="hidden"
-  whileInView="show"
-  id="get-started"
-  viewport={{ once: true, amount: 0.3 }}
->
-  {/* PREMIUM BACKGROUND */}
-  <div className="absolute inset-0 overflow-hidden">
-    <motion.div
-      animate={{ y: [0, -30, 0], x: [0, 20, 0] }}
-      transition={{ duration: 10, repeat: Infinity }}
-      className="absolute w-72 h-72 md:w-96 md:h-96 bg-yellow-400/10 rounded-full blur-3xl top-0 left-0"
-    />
-
-    <motion.div
-      animate={{ y: [0, 30, 0], x: [0, -20, 0] }}
-      transition={{ duration: 12, repeat: Infinity }}
-      className="absolute w-72 h-72 md:w-96 md:h-96 bg-yellow-500/10 rounded-full blur-3xl bottom-0 right-0"
-    />
-
-    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,214,10,0.08),transparent_40%)]" />
-  </div>
-
-  {/* LEFT CONTENT */}
-  <motion.div
-    className="
-      flex-1 flex flex-col
-      items-center lg:items-start
-      text-center lg:text-left
-      space-y-8
-      max-w-2xl
-      z-10
-    "
-    variants={fadeUp}
-  >
-    {/* LOGO */}
-    <motion.img
-      src={Logo}
-      alt="Zusko Logo"
-      className="w-28 md:w-36"
-      whileHover={{ scale: 1.08 }}
-    />
-
-    {/* HEADING */}
-    <div className="space-y-5">
-      <motion.h2
-        className="
-          text-4xl md:text-5xl lg:text-6xl
-          font-black
-          leading-tight
-        "
-        variants={fadeUp}
-      >
-        Book Your Laundry
-        <br />
-        <span className="bg-linear-to-r from-yellow-300 via-yellow-400 to-yellow-500 bg-clip-text text-transparent">
-          In Seconds
-        </span>
-      </motion.h2>
-
-      <motion.p
-        className="
-          text-zinc-400
-          text-base md:text-lg
-          max-w-xl
-          leading-relaxed
-        "
-        variants={fadeUp}
-        transition={{ delay: 0.1 }}
-      >
-        Premium laundry pickup, expert garment care, and lightning-fast delivery —
-        all crafted for a luxury experience.
-      </motion.p>
-    </div>
-
-    {/* CTA BUTTON */}
-    <motion.button
-      onClick={() => navigate("/auth/login")}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.96 }}
-      variants={fadeUp}
-      transition={{ delay: 0.2 }}
-      className="
-        relative group
-        px-8 py-4
-        rounded-2xl
-        bg-linear-to-r from-yellow-400 to-yellow-500
-        text-black
-        font-bold
-        text-lg
-        shadow-[0_15px_50px_rgba(250,204,21,0.25)]
-        hover:shadow-[0_20px_60px_rgba(250,204,21,0.45)]
-        transition-all duration-300
-        overflow-hidden
-      "
-    >
-      <span className="relative z-10 flex items-center gap-2">
-        Book Laundry Now
-        <motion.span
-          animate={{ x: [0, 5, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-        >
-          →
-        </motion.span>
-      </span>
-
-      <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-    </motion.button>
-
-    {/* TRUST BADGES */}
-    <motion.div
-      className="
-        flex flex-col sm:flex-row
-        items-center
-        gap-4 sm:gap-6
-        pt-4
-        text-sm text-zinc-400
-      "
-      variants={fadeUp}
-      transition={{ delay: 0.3 }}
-    >
-      <div className="flex items-center gap-2">
-        <span className="text-yellow-400 font-bold">✓</span>
-        <span>Secure Instant Booking</span>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <span className="text-yellow-400 font-bold">✓</span>
-        <span>24/7 Customer Support</span>
-      </div>
-    </motion.div>
-  </motion.div>
-
-  {/* RIGHT STATS */}
-  <motion.div
-    className="
-      flex-1 flex items-center justify-center
-      mt-16 lg:mt-0
-      w-full
-      z-10
-    "
-    variants={scaleIn}
-    transition={{ delay: 0.2 }}
-  >
-    <div className="w-full max-w-5xl">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {stats.map((stat, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 + index * 0.1 }}
-            viewport={{ once: true }}
-            whileHover={{ y: -8, scale: 1.03 }}
-            className="
-              group relative
-              rounded-3xl
-              overflow-hidden
-              bg-white/5
-              backdrop-blur-xl
-              border border-yellow-400/10
-              hover:border-yellow-400/30
-              transition-all duration-300
-              p-8
-            "
-          >
-            <div className="absolute inset-0 bg-linear-to-br from-yellow-400/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-            <div className="relative flex flex-col items-center text-center space-y-4">
-              <motion.div
-                className="text-5xl text-yellow-400"
-                animate={{ y: [0, -6, 0] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                {stat.icon}
-              </motion.div>
-
-              <div className="text-4xl font-black bg-linear-to-r from-yellow-300 to-yellow-500 bg-clip-text text-transparent">
-                {stat.number}
               </div>
 
-              <p className="text-zinc-300 text-sm font-medium">
-                {stat.label}
-              </p>
-            </div>
+              {/* Timeline */}
+
+              <div className="space-y-5">
+
+                {[
+                  {
+                    title: "Pickup scheduled",
+                    text: "Your clothes are on their way to us.",
+                    done: true,
+                  },
+                  {
+                    title: "Premium cleaning",
+                    text: "Carefully cleaned & prepared.",
+                    done: true,
+                  },
+                  {
+                    title: "Coming back fresh",
+                    text: "Ready for doorstep delivery.",
+                    done: false,
+                  },
+                ].map((item, index) => (
+                  <div
+                    key={item.title}
+                    className="flex gap-4"
+                  >
+
+                    <div className="relative">
+
+                      <div
+                        className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                          item.done
+                            ? "bg-yellow-400 text-black"
+                            : "border border-white/10 bg-white/5 text-zinc-500"
+                        }`}
+                      >
+                        {item.done ? (
+                          <Check size={16} strokeWidth={3} />
+                        ) : (
+                          <Clock3 size={16} />
+                        )}
+                      </div>
+
+                      {index !== 2 && (
+                        <div className="absolute left-1/2 top-10 h-5 w-px -translate-x-1/2 bg-white/10" />
+                      )}
+
+                    </div>
+
+                    <div className="pt-1">
+
+                      <p className="text-sm font-bold">
+                        {item.title}
+                      </p>
+
+                      <p className="mt-1 text-xs leading-5 text-zinc-500">
+                        {item.text}
+                      </p>
+
+                    </div>
+
+                  </div>
+                ))}
+
+              </div>
+
+              <div className="mt-8 rounded-2xl border border-yellow-400/10 bg-yellow-400/[0.06] p-4">
+
+                <div className="flex items-center gap-3">
+
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-yellow-400/10">
+                    <Leaf size={18} className="text-yellow-400" />
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-bold text-yellow-300">
+                      Thoughtful cleaning
+                    </p>
+
+                    <p className="mt-1 text-[11px] text-zinc-500">
+                      Better care for your clothes and the planet.
+                    </p>
+                  </div>
+
+                </div>
+
+              </div>
+
+            </motion.div>
+
           </motion.div>
-        ))}
-      </div>
-    </div>
-  </motion.div>
-</motion.section>
-      </div>
+
+        </div>
+      </section>
+
     </div>
   );
 };

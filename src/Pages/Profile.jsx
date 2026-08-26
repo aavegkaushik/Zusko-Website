@@ -1,92 +1,69 @@
 import React from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   User,
   Mail,
   Phone,
   Gift,
   Package,
-  Headphones,
+  LifeBuoy,
   LogOut,
   ShieldCheck,
   Edit2,
   MapPin,
-  Heart,
   CreditCard,
   Bell,
   Lock,
-  Home,
   Receipt,
-  Settings,
-  LifeBuoy,
-  Copy,
-  CheckCircle,
-  ArrowRight,
   TrendingUp,
-  Calendar,
-  Clock,
   Shield,
-  Zap,
-  ChevronRight,
-  LockOpen,
-  Sparkles,
-  BadgeCheck,
-  Coins,
+  ArrowRight,
   ArrowUpRight,
   Sun,
   Moon,
   CloudSun,
   Award,
   Wallet,
-  Gem,
-  Rocket,
+  Sparkles,
+  Coins,
   Globe,
-  BadgeInfo,
-  Camera,
+  BadgeCheck,
+  CheckCircle,
   CircleCheckBig,
   ScanFace,
+  ChevronRight,
 } from "lucide-react";
 
 export default function EnhancedProfile() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [copied, setCopied] = React.useState(false);
 
   const handleLogout = () => {
     logout();
     navigate("/");
   };
 
-  const copyReferralCode = () => {
-    navigator.clipboard.writeText(user?.referralCode || "");
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   const hour = new Date().getHours();
-
   const greeting =
     hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
-
   const GreetingIcon = hour < 12 ? Sun : hour < 17 ? CloudSun : Moon;
 
-  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: { staggerChildren: 0.08, delayChildren: 0.1 },
+      transition: { staggerChildren: 0.06, delayChildren: 0.05 },
     },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 18 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] },
+      transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] },
     },
   };
 
@@ -107,7 +84,7 @@ export default function EnhancedProfile() {
     },
     {
       label: "Savings",
-      value: "₹" + (user?.totalSavings || 0),
+      value: `₹${user?.totalSavings || 0}`,
       icon: Wallet,
       color: "from-blue-500 to-cyan-400",
       subtitle: "Lifetime",
@@ -121,7 +98,6 @@ export default function EnhancedProfile() {
       subtitle: "Track & reorder",
       route: "/my-orders",
       color: "from-[#FFD700] to-orange-400",
-      badge: "12",
     },
     {
       icon: MapPin,
@@ -133,14 +109,14 @@ export default function EnhancedProfile() {
     {
       icon: Gift,
       label: "Rewards",
-      subtitle: "Coupons & Points",
+      subtitle: "Coupons & points",
       route: "/rewards",
       color: "from-green-500 to-emerald-500",
     },
     {
       icon: Receipt,
       label: "Invoices",
-      subtitle: "Billing History",
+      subtitle: "Billing history",
       route: "/invoices",
       color: "from-purple-500 to-pink-500",
     },
@@ -154,7 +130,7 @@ export default function EnhancedProfile() {
     {
       icon: Bell,
       label: "Notifications",
-      subtitle: "Updates",
+      subtitle: "Latest updates",
       route: "/notifications",
       color: "from-orange-500 to-red-500",
     },
@@ -168,95 +144,94 @@ export default function EnhancedProfile() {
     {
       icon: Shield,
       label: "Security",
-      subtitle: "Privacy",
+      subtitle: "Privacy & protection",
       route: "/security",
       color: "from-slate-600 to-gray-700",
     },
   ];
 
-  const recentActivities = [
+  const personalInfo = [
     {
-      type: "order",
-      title: "Order Placed",
-      description: "Order #ORD-2024-001",
-      time: "2 hours ago",
-      icon: Package,
-    },
-    {
-      type: "reward",
-      title: "Reward Earned",
-      description: "You earned 150 loyalty points",
-      time: "1 day ago",
-      icon: Gift,
-    },
-    {
-      type: "address",
-      title: "Address Updated",
-      description: "Home address was updated",
-      time: "3 days ago",
-      icon: MapPin,
-    },
-    {
-      type: "profile",
-      title: "Profile Updated",
-      description: "Email address changed",
-      time: "1 week ago",
       icon: User,
+      title: "Full Name",
+      value: user?.name || "Not Added",
+      verified: true,
+      iconBg: "bg-blue-100",
+      iconColor: "text-blue-600",
+    },
+    {
+      icon: Mail,
+      title: "Email Address",
+      value: user?.email || "Not Added",
+      verified: !!user?.isEmailVerified,
+      iconBg: "bg-green-100",
+      iconColor: "text-green-600",
+    },
+    {
+      icon: Phone,
+      title: "Phone Number",
+      value: user?.phone || "Not Added",
+      verified: !!user?.phone,
+      iconBg: "bg-purple-100",
+      iconColor: "text-purple-600",
+    },
+    {
+      icon: Globe,
+      title: "Country",
+      value: "India",
+      verified: true,
+      iconBg: "bg-orange-100",
+      iconColor: "text-orange-600",
     },
   ];
 
-  // Reusable Components
+  const securityItems = [
+    ["Email", user?.isEmailVerified ? "Verified" : "Pending", CheckCircle],
+    ["Phone", user?.phone ? "Verified" : "Not Added", Phone],
+    ["Password", "Protected", Lock],
+    ["2FA", "Coming Soon", Shield],
+  ];
+
+  const scrollTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const ActionButton = ({
     icon: Icon,
     label,
     subtitle,
     route,
     color,
-    badge,
   }) => (
     <motion.button
-      whileHover={{
-        y: -8,
-        scale: 1.02,
-      }}
-      whileTap={{
-        scale: 0.98,
-      }}
+      type="button"
+      whileHover={{ y: -5 }}
+      whileTap={{ scale: 0.985 }}
       onClick={() => navigate(route)}
-      className="group relative"
+      className="group relative w-full min-w-0 text-left"
     >
-      <div className="absolute inset-0 rounded-[28px] bg-linear-to-r from-yellow-300/20 to-orange-300/20 blur-xl opacity-0 group-hover:opacity-100 transition-all" />
+      <div className="pointer-events-none absolute inset-2 rounded-[24px] bg-yellow-300/20 blur-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-      <div className="relative rounded-[28px] overflow-hidden bg-white border border-gray-100 shadow-md hover:shadow-2xl transition-all p-6">
-        <div className="flex justify-between">
+      <div className="relative flex h-full min-h-[170px] flex-col overflow-hidden rounded-[24px] border border-gray-100 bg-white p-5 shadow-sm transition-all duration-300 group-hover:border-gray-200 group-hover:shadow-xl sm:min-h-[185px] sm:p-6">
+        <div className="flex items-start justify-between gap-3">
           <div
-            className={`w-14 h-14 rounded-2xl bg-linear-to-br ${color} flex items-center justify-center shadow-xl`}
+            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${color} shadow-lg sm:h-14 sm:w-14`}
           >
-            <Icon size={24} color="white" />
+            <Icon size={22} color="white" strokeWidth={2.2} />
           </div>
 
-          {badge && (
-            <div className="rounded-full bg-red-500 text-white text-xs px-3 py-1 font-bold">
-              {badge}
-            </div>
-          )}
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-50 text-gray-500 transition-all group-hover:bg-black group-hover:text-white">
+            <ChevronRight size={18} />
+          </div>
         </div>
 
-        <h3 className="font-bold text-lg mt-6">{label}</h3>
-
-        <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
-
-        <div className="flex items-center justify-between mt-8">
-          <span className="text-xs text-gray-400">Open</span>
-
-          <motion.div
-            whileHover={{
-              x: 4,
-            }}
-            className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center"
-          >
-            <ArrowRight size={18} />
-          </motion.div>
+        <div className="mt-auto pt-6">
+          <h3 className="text-base font-extrabold text-[#111] sm:text-lg">
+            {label}
+          </h3>
+          <p className="mt-1 text-xs leading-5 text-gray-500 sm:text-sm">
+            {subtitle}
+          </p>
         </div>
       </div>
     </motion.button>
@@ -264,267 +239,234 @@ export default function EnhancedProfile() {
 
   const StatCard = ({ icon: Icon, label, value, subtitle, color }) => (
     <motion.div
-      whileHover={{
-        y: -8,
-        scale: 1.02,
-      }}
-      whileTap={{ scale: 0.98 }}
-      className="group relative"
+      variants={itemVariants}
+      whileHover={{ y: -5 }}
+      className="group relative min-w-0"
     >
-      <div className="absolute inset-0 rounded-[28px] bg-linear-to-r from-yellow-300/20 to-orange-300/20 blur-xl opacity-0 group-hover:opacity-100 transition-all" />
+      <div className="pointer-events-none absolute inset-2 rounded-[26px] bg-yellow-300/15 blur-2xl opacity-0 transition-opacity group-hover:opacity-100" />
 
-      <div className="relative overflow-hidden rounded-[28px] border border-white/60 bg-white/70 backdrop-blur-xl p-6 shadow-lg">
-        <div className="absolute top-0 right-0 w-28 h-28 rounded-full bg-linear-to-br from-white/50 to-transparent" />
+      <div className="relative h-full overflow-hidden rounded-[26px] border border-white/70 bg-white/80 p-5 shadow-lg backdrop-blur-xl sm:p-6">
+        <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-white/60" />
 
-        <div className="flex justify-between">
-          <motion.div
-            whileHover={{
-              rotate: 10,
-              scale: 1.1,
-            }}
-            className={`w-14 h-14 rounded-2xl bg-linear-to-br ${color} flex items-center justify-center shadow-xl`}
+        <div className="relative flex items-start justify-between gap-3">
+          <div
+            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${color} shadow-lg sm:h-14 sm:w-14`}
           >
-            <Icon size={24} color="white" />
-          </motion.div>
-
-          <TrendingUp size={18} className="text-green-500" />
+            <Icon size={22} color="white" />
+          </div>
+          <TrendingUp size={17} className="mt-1 shrink-0 text-green-500" />
         </div>
 
-        <h2 className="text-4xl font-black mt-8 text-[#111]">{value}</h2>
-
-        <p className="font-semibold mt-1">{label}</p>
-
-        <p className="text-sm text-gray-500">{subtitle}</p>
+        <div className="relative mt-6 min-w-0 sm:mt-8">
+          <h2 className="truncate text-3xl font-black tracking-tight text-[#111] sm:text-4xl">
+            {value}
+          </h2>
+          <p className="mt-1 text-sm font-bold text-gray-900 sm:text-base">
+            {label}
+          </p>
+          <p className="mt-0.5 text-xs text-gray-500 sm:text-sm">
+            {subtitle}
+          </p>
+        </div>
       </div>
     </motion.div>
   );
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-gray-100 pt-32 pb-24 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 -z-10 overflow-hidden">
+    <main className="relative min-h-screen overflow-x-hidden bg-gradient-to-br from-gray-50 via-white to-gray-100 pb-16 pt-24 sm:pb-20 sm:pt-28 lg:pb-24 lg:pt-32">
+      {/* Ambient background */}
+      <div className="pointer-events-none absolute inset-0 -z-0 overflow-hidden">
         <motion.div
-          animate={{ y: [0, -30, 0] }}
+          animate={{ y: [0, -25, 0] }}
           transition={{ duration: 10, repeat: Infinity }}
-          className="absolute top-10 right-10 w-96 h-96 bg-linear-to-br from-yellow-200 to-orange-200 rounded-full blur-3xl opacity-20"
+          className="absolute -right-24 top-20 h-64 w-64 rounded-full bg-gradient-to-br from-yellow-200 to-orange-200 opacity-20 blur-3xl sm:right-0 sm:h-96 sm:w-96"
         />
         <motion.div
-          animate={{
-            rotate: [0, 360],
-          }}
-          transition={{
-            duration: 60,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-          className="absolute top-1/3 left-1/2 w-[600px] h-[600px] rounded-full border border-yellow-200/20"
-        />
-        <motion.div
-          animate={{ y: [0, 30, 0] }}
+          animate={{ y: [0, 25, 0] }}
           transition={{ duration: 12, repeat: Infinity, delay: 1 }}
-          className="absolute bottom-10 left-10 w-96 h-96 bg-linear-to-tr from-blue-200 to-cyan-200 rounded-full blur-3xl opacity-20"
+          className="absolute -left-24 bottom-20 h-64 w-64 rounded-full bg-gradient-to-tr from-blue-200 to-cyan-200 opacity-20 blur-3xl sm:left-0 sm:h-96 sm:w-96"
         />
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 lg:px-6 relative z-10">
-        {/* Premium Profile Header */}
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* Profile hero */}
         <motion.section
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="relative mb-10 overflow-hidden rounded-[34px]"
+          transition={{ duration: 0.55 }}
+          className="relative mb-8 overflow-hidden rounded-[26px] shadow-xl sm:mb-10 sm:rounded-[34px]"
         >
-          <div className="absolute inset-0 bg-linear-to-br from-[#FFD700] via-[#FFC107] to-[#F59E0B]" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#FFD700] via-[#FFC107] to-[#F59E0B]" />
 
-          <div className="absolute inset-0">
-            <motion.div
-              animate={{
-                scale: [1, 1.25, 1],
-                rotate: [0, 180, 360],
-              }}
-              transition={{
-                duration: 24,
-                repeat: Infinity,
-                ease: "linear",
-              }}
-              className="absolute -top-32 -right-20 w-96 h-96 rounded-full bg-white/10 blur-3xl"
-            />
+          <motion.div
+            animate={{ scale: [1, 1.18, 1], rotate: [0, 180, 360] }}
+            transition={{ duration: 26, repeat: Infinity, ease: "linear" }}
+            className="absolute -right-32 -top-32 h-72 w-72 rounded-full bg-white/10 blur-3xl sm:-right-20 sm:-top-32 sm:h-96 sm:w-96"
+          />
 
-            <motion.div
-              animate={{
-                scale: [1.1, 1, 1.1],
-                x: [0, 40, 0],
-              }}
-              transition={{
-                duration: 14,
-                repeat: Infinity,
-              }}
-              className="absolute -bottom-24 -left-24 w-80 h-80 rounded-full bg-black/5 blur-3xl"
-            />
-          </div>
-
-          <div className="relative p-8 lg:p-10">
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-10">
-              <div className="flex items-center gap-6">
+          <div className="relative p-5 sm:p-7 md:p-8 lg:p-10">
+            <div className="flex flex-col gap-7 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
+              {/* Identity */}
+              <div className="flex min-w-0 flex-1 items-start gap-4 sm:gap-6">
                 <motion.div
-                  whileHover={{
-                    scale: 1.08,
-                    rotate: 6,
-                  }}
-                  className="relative"
+                  whileHover={{ scale: 1.05, rotate: 4 }}
+                  className="relative shrink-0"
                 >
-                  <div className="absolute inset-0 rounded-full bg-white blur-xl opacity-40" />
-
-                  <div className="relative w-28 h-28 rounded-full bg-white shadow-2xl p-1">
-                    <div className="w-full h-full rounded-full bg-linear-to-br from-[#FFD700] to-orange-400 flex items-center justify-center">
-                      <span className="text-5xl font-black text-white">
-                        {user?.name?.charAt(0)}
+                  <div className="absolute inset-0 rounded-full bg-white opacity-40 blur-xl" />
+                  <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-white p-1 shadow-2xl sm:h-24 sm:w-24 lg:h-28 lg:w-28">
+                    <div className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-[#FFD700] to-orange-400">
+                      <span className="text-3xl font-black text-white sm:text-4xl lg:text-5xl">
+                        {user?.name?.charAt(0)?.toUpperCase() || "U"}
                       </span>
                     </div>
                   </div>
 
-                  <div className="absolute bottom-2 right-2">
-                    <div className="w-7 h-7 rounded-full bg-green-500 border-4 border-white flex items-center justify-center">
-                      <BadgeCheck size={12} color="white" />
-                    </div>
+                  <div className="absolute bottom-0 right-0 flex h-6 w-6 items-center justify-center rounded-full border-[3px] border-white bg-green-500 sm:h-7 sm:w-7">
+                    <BadgeCheck size={11} color="white" />
                   </div>
                 </motion.div>
 
-                <div>
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 text-black/70">
-                    <GreetingIcon size={18} />
-
-                    <p className="font-medium">{greeting},</p>
+                    <GreetingIcon size={17} className="shrink-0" />
+                    <p className="text-sm font-semibold sm:text-base">
+                      {greeting},
+                    </p>
                   </div>
 
-                  <h1 className="text-4xl lg:text-5xl font-black text-[#111] mt-2">
-                    {user?.name}
+                  <h1 className="mt-1 break-words text-3xl font-black leading-tight tracking-tight text-[#111] sm:text-4xl lg:text-5xl">
+                    {user?.name || "User"}
                   </h1>
 
-                  <div className="flex items-center gap-3 mt-3 flex-wrap">
-                    <div className="flex items-center gap-2 bg-white/70 backdrop-blur px-4 py-2 rounded-full">
-                      <Mail size={16} />
-
-                      <span className="text-sm">{user?.email}</span>
-                    </div>
+                  <div className="mt-3 flex max-w-full flex-col gap-2 sm:flex-row sm:flex-wrap">
+                    {user?.email && (
+                      <div className="flex min-w-0 max-w-full items-center gap-2 rounded-full bg-white/70 px-3 py-2 backdrop-blur sm:px-4">
+                        <Mail size={14} className="shrink-0" />
+                        <span className="truncate text-xs sm:text-sm">
+                          {user.email}
+                        </span>
+                      </div>
+                    )}
 
                     {user?.phone && (
-                      <div className="flex items-center gap-2 bg-white/70 backdrop-blur px-4 py-2 rounded-full">
-                        <Phone size={16} />
-
-                        <span className="text-sm">{user?.phone}</span>
+                      <div className="flex min-w-0 max-w-full items-center gap-2 rounded-full bg-white/70 px-3 py-2 backdrop-blur sm:px-4">
+                        <Phone size={14} className="shrink-0" />
+                        <span className="truncate text-xs sm:text-sm">
+                          {user.phone}
+                        </span>
                       </div>
                     )}
                   </div>
 
-                  <div className="flex gap-3 mt-5 flex-wrap">
-                    <div className="bg-white rounded-full px-5 py-2 flex items-center gap-2">
-                      <ShieldCheck size={16} className="text-green-600" />
-                      Verified
+                  <div className="mt-3">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold shadow-sm sm:text-sm">
+                      <ShieldCheck size={15} className="text-green-600" />
+                      Verified Account
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              {/* Hero stats */}
+              <div className="grid w-full grid-cols-2 gap-3 sm:gap-4 lg:w-auto lg:min-w-[310px]">
                 <motion.div
-                  whileHover={{ y: -4 }}
-                  className="bg-white/80 backdrop-blur rounded-2xl p-5 min-w-[150px]"
+                  whileHover={{ y: -3 }}
+                  className="rounded-2xl bg-white/80 p-4 backdrop-blur sm:p-5"
                 >
                   <div className="flex items-center justify-between">
-                    <Package />
-
-                    <ArrowUpRight size={18} />
+                    <Package size={20} />
+                    <ArrowUpRight size={17} />
                   </div>
-
-                  <p className="text-xs text-gray-500 mt-6">Orders</p>
-
-                  <p className="text-3xl font-black mt-1">
+                  <p className="mt-4 text-[11px] text-gray-500 sm:mt-6 sm:text-xs">
+                    Orders
+                  </p>
+                  <p className="mt-1 text-2xl font-black sm:text-3xl">
                     {user?.totalOrders || 0}
                   </p>
                 </motion.div>
 
                 <motion.div
-                  whileHover={{ y: -4 }}
-                  className="bg-white/80 backdrop-blur rounded-2xl p-5 min-w-[150px]"
+                  whileHover={{ y: -3 }}
+                  className="rounded-2xl bg-white/80 p-4 backdrop-blur sm:p-5"
                 >
                   <div className="flex items-center justify-between">
-                    <Coins />
-
-                    <Sparkles size={18} />
+                    <Coins size={20} />
+                    <Sparkles size={17} />
                   </div>
-
-                  <p className="text-xs text-gray-500 mt-6">Reward Points</p>
-
-                  <p className="text-3xl font-black mt-1">
+                  <p className="mt-4 text-[11px] text-gray-500 sm:mt-6 sm:text-xs">
+                    Reward Points
+                  </p>
+                  <p className="mt-1 text-2xl font-black sm:text-3xl">
                     {user?.loyaltyPoints || 0}
                   </p>
                 </motion.div>
               </div>
             </div>
-
           </div>
         </motion.section>
 
-        {/* Stats Grid */}
+        {/* Dashboard */}
         <motion.section
           initial="hidden"
           animate="visible"
           variants={containerVariants}
-          className="mt-10"
         >
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h2 className="text-2xl font-black">Your Dashboard</h2>
-
-              <p className="text-gray-500">
+          <div className="mb-5 flex items-end justify-between gap-4 sm:mb-6">
+            <div className="min-w-0">
+              <h2 className="text-xl font-black tracking-tight sm:text-2xl">
+                Your Dashboard
+              </h2>
+              <p className="mt-1 text-xs text-gray-500 sm:text-sm">
                 Everything about your Zusko account
               </p>
             </div>
 
-            <div className="hidden lg:flex items-center gap-2 bg-yellow-100 px-4 py-2 rounded-full">
-              <Rocket size={18} className="text-yellow-700" />
-
-              <span className="font-semibold text-yellow-700">
-                Growing Fast
+            <div className="hidden shrink-0 items-center gap-2 rounded-full bg-yellow-100 px-4 py-2 lg:flex">
+              <Sparkles size={17} className="text-yellow-700" />
+              <span className="text-sm font-semibold text-yellow-700">
+                Smart Dashboard
               </span>
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
             {statCards.map((card, index) => (
               <StatCard key={index} {...card} />
             ))}
           </div>
         </motion.section>
 
-        <motion.section variants={itemVariants} className="mt-8">
-          <div className="rounded-[30px] bg-linear-to-r from-[#101010] via-[#1E1E1E] to-[#2A2A2A] overflow-hidden relative p-8">
-            <div className="absolute right-0 top-0 w-80 h-80 rounded-full bg-yellow-400/10 blur-3xl" />
+        {/* Rewards banner */}
+        <motion.section
+          initial="hidden"
+          animate="visible"
+          variants={itemVariants}
+          className="mt-6 sm:mt-8"
+        >
+          <div className="relative overflow-hidden rounded-[26px] bg-gradient-to-r from-[#101010] via-[#1E1E1E] to-[#2A2A2A] p-5 shadow-xl sm:rounded-[30px] sm:p-7 md:p-8">
+            <div className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-yellow-400/10 blur-3xl" />
 
-            <div className="relative flex flex-col lg:flex-row items-center justify-between gap-8">
-              <div>
+            <div className="relative flex flex-col gap-6 sm:gap-7 lg:flex-row lg:items-center lg:justify-between">
+              <div className="min-w-0">
                 <div className="flex items-center gap-3">
-                  <Award size={28} className="text-yellow-400" />
-
-                  <h2 className="text-3xl font-black text-white">
+                  <Award size={25} className="shrink-0 text-yellow-400" />
+                  <h2 className="text-2xl font-black text-white sm:text-3xl">
                     Zusko Rewards
                   </h2>
                 </div>
 
-                <p className="text-gray-300 mt-3 max-w-lg">
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-300">
                   Earn reward points with your orders and use them for future
                   benefits and offers.
                 </p>
 
-                <div className="mt-6 flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-yellow-400/10 flex items-center justify-center">
-                    <Coins size={24} className="text-yellow-400" />
+                <div className="mt-5 flex items-center gap-3">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-yellow-400/10">
+                    <Coins size={22} className="text-yellow-400" />
                   </div>
-
                   <div>
-                    <p className="text-gray-400 text-sm">Your Reward Points</p>
-                    <p className="text-white text-2xl font-black">
+                    <p className="text-xs text-gray-400">Your Reward Points</p>
+                    <p className="text-xl font-black text-white">
                       {user?.loyaltyPoints || 0}
                     </p>
                   </div>
@@ -532,10 +474,11 @@ export default function EnhancedProfile() {
               </div>
 
               <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                type="button"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={() => navigate("/rewards")}
-                className="shrink-0 bg-[#FFD700] text-black px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-xl"
+                className="flex w-full shrink-0 items-center justify-center gap-2 rounded-2xl bg-[#FFD700] px-6 py-3.5 text-sm font-extrabold text-black shadow-xl transition-colors hover:bg-yellow-300 sm:w-auto"
               >
                 View Rewards
                 <ArrowRight size={18} />
@@ -544,325 +487,230 @@ export default function EnhancedProfile() {
           </div>
         </motion.section>
 
-        {/* Main Content Grid */}
-        <motion.div
+        {/* Personal information */}
+        <motion.section
           initial="hidden"
           animate="visible"
-          variants={containerVariants}
-          className="space-y-6"
+          variants={itemVariants}
+          className="mt-6 sm:mt-8"
         >
-          {/* Personal Information Card */}
-          <motion.section
-            variants={itemVariants}
-            whileHover={{ y: -4 }}
-            className="relative group mt-8"
-          >
-            <div className="absolute inset-0 rounded-[34px] bg-linear-to-r from-blue-300/20 to-cyan-300/20 blur-2xl opacity-0 group-hover:opacity-100 transition-all duration-500" />
-
-            <div className="relative rounded-[34px] bg-white/70 backdrop-blur-2xl border border-white shadow-xl overflow-hidden">
-              {/* Header */}
-
-              <div className="flex items-center justify-between p-8 border-b border-gray-100">
-                <div>
-                  <div className="flex items-center gap-3">
-                    <ScanFace size={26} className="text-blue-600" />
-
-                    <h2 className="text-2xl font-black">
-                      Personal Information
-                    </h2>
-                  </div>
-
-                  <p className="text-gray-500 mt-2">
-                    Manage your personal account information.
-                  </p>
+          <div className="overflow-hidden rounded-[26px] border border-white bg-white/80 shadow-xl backdrop-blur-2xl sm:rounded-[34px]">
+            <div className="flex flex-col gap-5 border-b border-gray-100 p-5 sm:p-7 md:flex-row md:items-center md:justify-between md:p-8">
+              <div className="min-w-0">
+                <div className="flex items-center gap-3">
+                  <ScanFace size={24} className="shrink-0 text-blue-600" />
+                  <h2 className="text-xl font-black sm:text-2xl">
+                    Personal Information
+                  </h2>
                 </div>
-
-                <motion.button
-                  whileHover={{
-                    rotate: 15,
-                    scale: 1.08,
-                  }}
-                  whileTap={{
-                    scale: 0.95,
-                  }}
-                  onClick={() => navigate("/profile/edit")}
-                  className="w-14 h-14 rounded-2xl bg-linear-to-br from-blue-500 to-cyan-500 shadow-xl flex items-center justify-center"
-                >
-                  <Edit2 color="white" size={20} />
-                </motion.button>
+                <p className="mt-2 text-xs leading-5 text-gray-500 sm:text-sm">
+                  Manage your personal account information.
+                </p>
               </div>
 
-              {/* Body */}
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.05, rotate: 4 }}
+                whileTap={{ scale: 0.96 }}
+                onClick={() => navigate("/profile/edit")}
+                aria-label="Edit profile"
+                className="flex h-12 w-12 shrink-0 items-center justify-center self-start rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg md:self-center"
+              >
+                <Edit2 color="white" size={19} />
+              </motion.button>
+            </div>
 
-              <div className="p-8">
-                <div className="grid lg:grid-cols-2 gap-6">
-                  {[
-                    {
-                      icon: User,
-                      title: "Full Name",
-                      value: user?.name,
-                      verified: true,
-                      color: "blue",
-                    },
+            <div className="p-5 sm:p-7 md:p-8">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
+                {personalInfo.map((item, index) => {
+                  const Icon = item.icon;
 
-                    {
-                      icon: Mail,
-                      title: "Email Address",
-                      value: user?.email,
-                      verified: user?.isEmailVerified,
-                      color: "green",
-                    },
-
-                    {
-                      icon: Phone,
-                      title: "Phone Number",
-                      value: user?.phone || "Not Added",
-                      verified: !!user?.phone,
-                      color: "purple",
-                    },
-
-                    {
-                      icon: Globe,
-                      title: "Country",
-                      value: "India",
-                      verified: true,
-                      color: "orange",
-                    },
-                  ].map((item, index) => {
-                    const Icon = item.icon;
-
-                    return (
-                      <motion.div
-                        key={index}
-                        whileHover={{
-                          scale: 1.02,
-                          y: -3,
-                        }}
-                        className="rounded-3xl bg-linear-to-br from-white to-gray-50 border border-gray-100 p-6 shadow-sm hover:shadow-xl transition-all"
-                      >
-                        <div className="flex justify-between">
-                          <div
-                            className={`w-14 h-14 rounded-2xl flex items-center justify-center
-
-${
-  item.color === "blue"
-    ? "bg-blue-100"
-    : item.color === "green"
-      ? "bg-green-100"
-      : item.color === "purple"
-        ? "bg-purple-100"
-        : "bg-orange-100"
-}
-`}
-                          >
-                            <Icon
-                              size={24}
-                              className={
-                                item.color === "blue"
-                                  ? "text-blue-600"
-                                  : item.color === "green"
-                                    ? "text-green-600"
-                                    : item.color === "purple"
-                                      ? "text-purple-600"
-                                      : "text-orange-600"
-                              }
-                            />
-                          </div>
-
-                          {item.verified ? (
-                            <div className="flex items-center gap-1 bg-green-100 px-3 py-1 rounded-full">
-                              <CircleCheckBig
-                                size={14}
-                                className="text-green-600"
-                              />
-
-                              <span className="text-xs font-bold text-green-700">
-                                Verified
-                              </span>
-                            </div>
-                          ) : (
-                            <div className="bg-yellow-100 px-3 py-1 rounded-full">
-                              <span className="text-xs font-bold text-yellow-700">
-                                Pending
-                              </span>
-                            </div>
-                          )}
+                  return (
+                    <motion.div
+                      key={index}
+                      whileHover={{ scale: 1.01, y: -2 }}
+                      className="min-w-0 rounded-3xl border border-gray-100 bg-gradient-to-br from-white to-gray-50 p-5 shadow-sm transition-shadow hover:shadow-lg sm:p-6"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div
+                          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${item.iconBg}`}
+                        >
+                          <Icon size={22} className={item.iconColor} />
                         </div>
 
-                        <p className="text-xs uppercase tracking-widest text-gray-400 mt-6">
-                          {item.title}
-                        </p>
+                        {item.verified ? (
+                          <div className="flex shrink-0 items-center gap-1 rounded-full bg-green-100 px-2.5 py-1">
+                            <CircleCheckBig
+                              size={13}
+                              className="text-green-600"
+                            />
+                            <span className="text-[10px] font-bold text-green-700 sm:text-xs">
+                              Verified
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="shrink-0 rounded-full bg-yellow-100 px-2.5 py-1">
+                            <span className="text-[10px] font-bold text-yellow-700 sm:text-xs">
+                              Pending
+                            </span>
+                          </div>
+                        )}
+                      </div>
 
-                        <h3 className="font-bold text-lg mt-1 text-[#111]">
-                          {item.value}
-                        </h3>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-
-                {/* Divider */}
-
-                <div className="my-8 h-px bg-gray-100" />
-
-                {/* Account Status */}
-
-                <motion.section variants={itemVariants} className="mt-8">
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <h2 className="text-2xl font-black">Quick Actions</h2>
-
-                      <p className="text-gray-500">
-                        Everything you need in one place
+                      <p className="mt-5 text-[10px] uppercase tracking-[0.18em] text-gray-400 sm:text-xs">
+                        {item.title}
                       </p>
-                    </div>
+                      <h3 className="mt-1 break-words text-base font-bold text-[#111] sm:text-lg">
+                        {item.value}
+                      </h3>
+                    </motion.div>
+                  );
+                })}
+              </div>
 
-                    <div className="hidden lg:flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-100">
-                      <Sparkles size={18} className="text-yellow-600" />
+              {/* Quick actions */}
+              <div className="my-7 h-px bg-gray-100 sm:my-8" />
 
-                      <span className="font-semibold text-yellow-700">
-                        Smart Dashboard
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-5">
-                    {actionItems.map((item, index) => (
-                      <ActionButton key={index} {...item} />
-                    ))}
-                  </div>
-                </motion.section>
-
-                {/* Bottom Banner */}
-
-                <motion.div
-                  whileHover={{
-                    scale: 1.01,
-                  }}
-                  className="mt-8 rounded-3xl bg-linear-to-r from-[#101010] via-[#202020] to-[#101010] p-6 flex flex-col lg:flex-row items-center justify-between gap-6"
-                >
+              <section>
+                <div className="mb-5 flex items-end justify-between gap-4 sm:mb-6">
                   <div>
-                    <h3 className="text-2xl font-black text-white">
-                      Your account is secure 🔒
-                    </h3>
-
-                    <p className="text-gray-400 mt-2">
-                      Keep your profile updated for faster checkout, priority
-                      support and better rewards.
+                    <h2 className="text-xl font-black sm:text-2xl">
+                      Quick Actions
+                    </h2>
+                    <p className="mt-1 text-xs text-gray-500 sm:text-sm">
+                      Everything you need in one place
                     </p>
                   </div>
 
-                  <motion.button
-                    whileHover={{
-                      scale: 1.05,
-                    }}
-                    whileTap={{
-                      scale: 0.95,
-                    }}
-                    onClick={() => navigate("/profile/edit")}
-                    className="bg-[#FFD700] text-black px-6 py-3 rounded-2xl font-bold shadow-xl"
-                  >
-                    Update Profile
-                  </motion.button>
-                </motion.div>
-              </div>
-            </div>
-          </motion.section>
-
-          {/* Security Card */}
-          <motion.section variants={itemVariants} className="mt-8">
-            <div className="rounded-[34px] bg-linear-to-r from-[#101010] to-[#222] p-8">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h2 className="text-3xl font-black text-white">
-                    Security Center
-                  </h2>
-
-                  <p className="text-gray-400 mt-2">
-                    Your account protection status
-                  </p>
+                  <div className="hidden shrink-0 items-center gap-2 rounded-full bg-yellow-100 px-4 py-2 lg:flex">
+                    <Sparkles size={17} className="text-yellow-600" />
+                    <span className="text-sm font-semibold text-yellow-700">
+                      Smart Dashboard
+                    </span>
+                  </div>
                 </div>
 
-                <Shield size={34} className="text-yellow-400" />
-              </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4">
+                  {actionItems.map((item, index) => (
+                    <ActionButton key={index} {...item} />
+                  ))}
+                </div>
+              </section>
 
-              <div className="grid md:grid-cols-4 gap-5 mt-8">
-                {[
-                  ["Email", "Verified", CheckCircle],
-                  ["Phone", "Verified", Phone],
-                  ["Password", "Protected", Lock],
-                  ["2FA", "Coming Soon", Shield],
-                ].map(([title, status, Icon], i) => (
-                  <motion.div
-                    key={i}
-                    whileHover={{
-                      scale: 1.04,
-                    }}
-                    className="rounded-2xl bg-white/5 border border-white/10 p-5"
-                  >
-                    <Icon size={26} className="text-yellow-400" />
-
-                    <p className="text-gray-400 mt-6">{title}</p>
-
-                    <h3 className="text-white font-bold">{status}</h3>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </motion.section>
-
-          {/* Logout Button */}
-          <motion.div variants={itemVariants} className="mt-10">
-            <div className="rounded-[30px] overflow-hidden bg-linear-to-r from-red-500 to-red-600 shadow-xl">
-              <div className="flex flex-col lg:flex-row justify-between items-center p-8 gap-6">
-                <div>
-                  <h2 className="text-3xl font-black text-white">
-                    Ready to leave?
-                  </h2>
-
-                  <p className="text-red-100 mt-2">
-                    You can securely sign out anytime.
+              {/* Security update banner */}
+              <motion.div
+                whileHover={{ scale: 1.005 }}
+                className="mt-6 flex flex-col gap-5 rounded-3xl bg-gradient-to-r from-[#101010] via-[#202020] to-[#101010] p-5 sm:mt-8 sm:p-6 lg:flex-row lg:items-center lg:justify-between"
+              >
+                <div className="min-w-0">
+                  <h3 className="text-xl font-black text-white sm:text-2xl">
+                    Your account is secure 🔒
+                  </h3>
+                  <p className="mt-2 max-w-2xl text-xs leading-5 text-gray-400 sm:text-sm sm:leading-6">
+                    Keep your profile updated for faster checkout, priority
+                    support and better rewards.
                   </p>
                 </div>
 
                 <motion.button
-                  whileHover={{
-                    scale: 1.05,
-                  }}
-                  whileTap={{
-                    scale: 0.95,
-                  }}
-                  onClick={handleLogout}
-                  className="bg-white text-red-600 px-8 py-4 rounded-2xl font-bold flex items-center gap-3"
+                  type="button"
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => navigate("/profile/edit")}
+                  className="w-full shrink-0 rounded-2xl bg-[#FFD700] px-6 py-3.5 text-sm font-extrabold text-black shadow-xl sm:w-auto"
                 >
-                  <LogOut />
-                  Logout
+                  Update Profile
                 </motion.button>
-              </div>
+              </motion.div>
             </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </motion.section>
+
+        {/* Security center */}
+        <motion.section
+          initial="hidden"
+          animate="visible"
+          variants={itemVariants}
+          className="mt-6 sm:mt-8"
+        >
+          <div className="rounded-[26px] bg-gradient-to-r from-[#101010] to-[#222] p-5 shadow-xl sm:rounded-[34px] sm:p-7 md:p-8">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-black text-white sm:text-3xl">
+                  Security Center
+                </h2>
+                <p className="mt-2 text-xs text-gray-400 sm:text-sm">
+                  Your account protection status
+                </p>
+              </div>
+              <Shield size={28} className="shrink-0 text-yellow-400 sm:h-9 sm:w-9" />
+            </div>
+
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+              {securityItems.map(([title, status, Icon], index) => (
+                <motion.div
+                  key={index}
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  className="min-w-0 rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-5"
+                >
+                  <Icon size={22} className="text-yellow-400 sm:h-6 sm:w-6" />
+                  <p className="mt-4 text-xs text-gray-400 sm:mt-6 sm:text-sm">
+                    {title}
+                  </p>
+                  <h3 className="mt-1 break-words text-sm font-bold text-white sm:text-base">
+                    {status}
+                  </h3>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.section>
+
+        {/* Logout */}
+        <motion.section
+          initial="hidden"
+          animate="visible"
+          variants={itemVariants}
+          className="mt-6 sm:mt-8"
+        >
+          <div className="overflow-hidden rounded-[26px] bg-gradient-to-r from-red-500 to-red-600 shadow-xl sm:rounded-[30px]">
+            <div className="flex flex-col gap-5 p-5 sm:p-7 md:flex-row md:items-center md:justify-between md:p-8">
+              <div>
+                <h2 className="text-2xl font-black text-white sm:text-3xl">
+                  Ready to leave?
+                </h2>
+                <p className="mt-2 text-xs text-red-100 sm:text-sm">
+                  You can securely sign out anytime.
+                </p>
+              </div>
+
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={handleLogout}
+                className="flex w-full items-center justify-center gap-3 rounded-2xl bg-white px-7 py-3.5 text-sm font-extrabold text-red-600 shadow-lg sm:w-auto sm:px-8 sm:py-4"
+              >
+                <LogOut size={19} />
+                Logout
+              </motion.button>
+            </div>
+          </div>
+        </motion.section>
       </div>
+
+      {/* Back to top */}
       <motion.button
-        initial={{
-          opacity: 0,
-        }}
-        animate={{
-          opacity: 1,
-        }}
-        whileHover={{
-          scale: 1.1,
-        }}
-        onClick={() =>
-          window.scrollTo({
-            top: 0,
-            behavior: "smooth",
-          })
-        }
-        className="fixed bottom-8 right-8 w-14 h-14 rounded-full bg-black text-white shadow-2xl flex items-center justify-center z-50"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.94 }}
+        onClick={scrollTop}
+        aria-label="Back to top"
+        className="fixed bottom-4 right-4 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-black text-white shadow-2xl sm:bottom-6 sm:right-6 sm:h-12 sm:w-12 lg:bottom-8 lg:right-8 lg:h-14 lg:w-14"
       >
-        <ArrowUpRight />
+        <ArrowUpRight size={19} />
       </motion.button>
-    </div>
+    </main>
   );
 }
