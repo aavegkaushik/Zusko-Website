@@ -5,11 +5,15 @@ const ScrollToTop = () => {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    window.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: "smooth",
-    });
+    // Route change hote hi instantly top par
+    window.scrollTo(0, 0);
+
+    // Browser scroll restoration ko override karne ke liye
+    const timer = setTimeout(() => {
+      window.scrollTo(0, 0);
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [pathname]);
 
   return null;
