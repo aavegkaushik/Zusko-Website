@@ -7,12 +7,15 @@ const API = axios.create({
   },
 });
 
-// Request interceptor
+// ============================================================
+// REQUEST INTERCEPTOR
+// ============================================================
 API.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
 
     if (token) {
+      config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
     }
 
@@ -21,8 +24,9 @@ API.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-let isRedirectingToLogin = false;
-
+// ============================================================
+// RESPONSE INTERCEPTOR
+// ============================================================
 API.interceptors.response.use(
   (response) => response,
 
@@ -35,17 +39,15 @@ API.interceptors.response.use(
       method: error.config?.method,
     });
 
-    if (status === 401 && !isRedirectingToLogin) {
-      isRedirectingToLogin = true;
-
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-
-      if (window.location.pathname !== "/auth/login") {
-        window.location.replace("/auth/login");
-      }
-    }
-
+    // IMPORTANT:
+    // Do NOT globally redirect on every 401.
+    //
+    // Public APIs can legitimately return 401 when the user
+    // is logged out. Example:
+    //
+    // GET /coupons/available
+    //
+    // That should NOT force the entire website to login.
     return Promise.reject(error);
   }
 );
