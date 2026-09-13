@@ -1,25 +1,54 @@
-// ContactSimple.jsx
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
+import {
+  MapPin,
+  Phone,
+  Mail,
+  CheckCircle2,
+  AlertCircle,
+  ArrowUpRight,
+  Clock3,
+  MessageCircle,
+  Sparkles,
+} from "lucide-react";
+
 import points from "../assets/points.png";
-import { MapPin, Phone, Mail, CheckCircle2, AlertCircle } from "lucide-react";
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 50 },
+  hidden: {
+    opacity: 0,
+    y: 35,
+  },
+
   visible: (delay = 0) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.7, delay },
+    transition: {
+      duration: 0.7,
+      delay,
+      ease: [0.22, 1, 0.36, 1],
+    },
   }),
 };
 
 const scaleIn = {
-  hidden: { opacity: 0, scale: 0.95 },
+  hidden: {
+    opacity: 0,
+    scale: 0.96,
+    y: 20,
+  },
+
   visible: (delay = 0) => ({
     opacity: 1,
     scale: 1,
-    transition: { duration: 0.6, delay },
+    y: 0,
+    transition: {
+      duration: 0.65,
+      delay,
+      ease: [0.22, 1, 0.36, 1],
+    },
   }),
 };
 
@@ -28,12 +57,17 @@ export default function ContactSimple() {
     register,
     handleSubmit,
     reset,
-    formState: { errors, isSubmitting, isSubmitSuccessful },
+    formState: {
+      errors,
+      isSubmitting,
+      isSubmitSuccessful,
+    },
   } = useForm();
 
   const [serverMsg, setServerMsg] = useState("");
 
-  const WEB3FORMS_KEY = import.meta.env.VITE_WEB3FORMS_KEY || "";
+  const WEB3FORMS_KEY =
+    import.meta.env.VITE_WEB3FORMS_KEY || "";
 
   const onSubmit = async (data) => {
     setServerMsg("");
@@ -41,7 +75,9 @@ export default function ContactSimple() {
     if (data.botcheck) return;
 
     if (!WEB3FORMS_KEY) {
-      setServerMsg("Server key not configured. Add VITE_WEB3FORMS_KEY to your .env.");
+      setServerMsg(
+        "Server key not configured. Add VITE_WEB3FORMS_KEY to your .env."
+      );
       return;
     }
 
@@ -56,329 +92,1388 @@ export default function ContactSimple() {
     };
 
     try {
-      const res = await fetch("https://api.web3forms.com/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const res = await fetch(
+        "https://api.web3forms.com/submit",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
 
       if (!res.ok) {
         const text = await res.text().catch(() => "");
-        throw new Error(`HTTP ${res.status} ${res.statusText} ${text}`);
+        throw new Error(
+          `HTTP ${res.status} ${res.statusText} ${text}`
+        );
       }
 
       const json = await res.json().catch(() => null);
-      if (!json) throw new Error("Invalid JSON response from server.");
+
+      if (!json) {
+        throw new Error(
+          "Invalid JSON response from server."
+        );
+      }
 
       if (json.success) {
-        setServerMsg("✅ Your message has been sent successfully!");
+        setServerMsg(
+          "Your message has been sent successfully!"
+        );
+
         reset();
       } else {
-        setServerMsg(json.message || "Something went wrong. Please try again.");
+        setServerMsg(
+          json.message ||
+            "Something went wrong. Please try again."
+        );
       }
     } catch (err) {
       console.error("Contact form error:", err);
+
       setServerMsg(
         err?.message?.includes("Failed to fetch")
           ? "Network / CORS error. Check console and API origin settings."
-          : `Error: ${err.message || "Network error. Please try again."}`
+          : `Error: ${
+              err.message ||
+              "Network error. Please try again."
+            }`
       );
     }
   };
 
   return (
-    <div className="relative min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-100/50 overflow-hidden">
-      {/* Decorative Background Elements */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-yellow-400/8 rounded-full blur-3xl -z-10 pointer-events-none"></div>
-      <div className="absolute bottom-20 left-0 w-80 h-80 bg-blue-400/5 rounded-full blur-3xl -z-10 pointer-events-none"></div>
-      <div className="absolute top-1/3 left-1/4 w-64 h-64 bg-yellow-300/5 rounded-full blur-2xl -z-10 pointer-events-none"></div>
+    <main className="relative min-h-screen overflow-hidden bg-white text-gray-900">
 
-      {/* Animated Points */}
+      {/* =========================================================
+          BACKGROUND
+      ========================================================== */}
+
+      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+
+        <div className="absolute -right-40 -top-40 h-[520px] w-[520px] rounded-full bg-yellow-300/20 blur-[120px]" />
+
+        <div className="absolute -left-40 top-[35%] h-[420px] w-[420px] rounded-full bg-yellow-200/15 blur-[120px]" />
+
+        <div className="absolute bottom-[-180px] right-[15%] h-[500px] w-[500px] rounded-full bg-gray-200/40 blur-[120px]" />
+
+        <div className="absolute inset-x-0 top-0 h-[500px] bg-linear-to-b from-yellow-50/70 via-white to-transparent" />
+      </div>
+
+      {/* Decorative points */}
+
       <motion.img
         src={points}
-        alt="decorative points"
-        initial={{ opacity: 0, x: -50, y: -50 }}
-        animate={{ opacity: 0.6, x: 0, y: 0 }}
-        transition={{ duration: 1 }}
-        className="absolute top-10 left-0 w-40 md:w-56 -z-10 opacity-60"
+        alt=""
+        aria-hidden="true"
+        initial={{
+          opacity: 0,
+          x: -60,
+          y: -30,
+        }}
+        animate={{
+          opacity: 0.45,
+          x: 0,
+          y: 0,
+        }}
+        transition={{
+          duration: 1.2,
+          ease: "easeOut",
+        }}
+        className="
+          pointer-events-none
+          absolute
+          left-0
+          top-20
+          -z-10
+          w-32
+          md:w-52
+        "
       />
 
-      {/* Header Section */}
-      <motion.div
-        className="pt-20 md:pt-28 pb-16 px-6 md:px-12 lg:px-20 text-center"
-        variants={fadeUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-      >
-        <motion.h1
-          className="text-5xl md:text-7xl font-black bg-linear-to-r from-gray-900 via-gray-800 to-gray-600 bg-clip-text text-transparent mb-4 leading-tight"
-          variants={fadeUp}
-        >
-          Get in Touch
-        </motion.h1>
+      {/* =========================================================
+          HERO
+      ========================================================== */}
 
-        <motion.p
-          className="text-gray-500 text-lg md:text-xl max-w-2xl mx-auto font-light tracking-wide"
-          variants={fadeUp}
-          transition={{ delay: 0.1 }}
-        >
-          Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
-        </motion.p>
-      </motion.div>
+      <section className="relative px-6 pb-14 pt-28 md:px-12 md:pb-20 md:pt-36 lg:px-20">
 
-      {/* Main Content Container */}
-      <div className="relative px-6 md:px-12 lg:px-20 pb-20">
-        <div className="max-w-6xl mx-auto">
-          {/* Two Column Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-            {/* Form Section */}
+        <div className="mx-auto max-w-7xl">
+
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+            className="mx-auto max-w-4xl text-center"
+          >
+
+            {/* Eyebrow */}
+
             <motion.div
-              className="relative"
+              variants={fadeUp}
+              custom={0.05}
+              className="
+                mb-6
+                inline-flex
+                items-center
+                gap-2
+                rounded-full
+                border
+                border-gray-200
+                bg-white/80
+                px-4
+                py-2
+                shadow-sm
+                backdrop-blur-md
+              "
+            >
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-yellow-400">
+                <MessageCircle
+                  size={13}
+                  className="text-black"
+                  strokeWidth={2.8}
+                />
+              </span>
+
+              <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-gray-600">
+                We're here to help
+              </span>
+            </motion.div>
+
+            {/* Heading */}
+
+            <motion.h1
+              variants={fadeUp}
+              custom={0.12}
+              className="
+                text-5xl
+                font-black
+                leading-[0.95]
+                tracking-[-0.045em]
+                text-gray-950
+                sm:text-6xl
+                md:text-7xl
+                lg:text-[88px]
+              "
+            >
+              Let's talk.
+              <br />
+
+              <span className="relative inline-block">
+
+                <span className="relative z-10">
+                  We're listening.
+                </span>
+
+                <motion.span
+                  initial={{
+                    width: 0,
+                  }}
+                  animate={{
+                    width: "100%",
+                  }}
+                  transition={{
+                    duration: 0.8,
+                    delay: 0.65,
+                    ease: "easeOut",
+                  }}
+                  className="
+                    absolute
+                    bottom-1
+                    left-0
+                    -z-0
+                    h-3
+                    rounded-full
+                    bg-yellow-400
+                    md:h-4
+                  "
+                />
+
+              </span>
+            </motion.h1>
+
+            {/* Description */}
+
+            <motion.p
+              variants={fadeUp}
+              custom={0.22}
+              className="
+                mx-auto
+                mt-7
+                max-w-2xl
+                text-base
+                leading-7
+                text-gray-500
+                md:text-lg
+                md:leading-8
+              "
+            >
+              Have a question about your laundry, an order,
+              or our services? Drop us a message and the
+              Zusko team will get back to you.
+            </motion.p>
+
+            {/* Trust line */}
+
+            <motion.div
+              variants={fadeUp}
+              custom={0.3}
+              className="
+                mt-7
+                flex
+                flex-wrap
+                items-center
+                justify-center
+                gap-x-6
+                gap-y-3
+                text-xs
+                font-semibold
+                text-gray-500
+              "
+            >
+              <span className="flex items-center gap-2">
+                <CheckCircle2
+                  size={15}
+                  className="text-yellow-500"
+                />
+                Quick response
+              </span>
+
+              <span className="hidden h-1 w-1 rounded-full bg-gray-300 sm:block" />
+
+              <span className="flex items-center gap-2">
+                <CheckCircle2
+                  size={15}
+                  className="text-yellow-500"
+                />
+                Customer-first support
+              </span>
+
+              <span className="hidden h-1 w-1 rounded-full bg-gray-300 sm:block" />
+
+              <span className="flex items-center gap-2">
+                <CheckCircle2
+                  size={15}
+                  className="text-yellow-500"
+                />
+                Real human support
+              </span>
+            </motion.div>
+
+          </motion.div>
+        </div>
+      </section>
+
+      {/* =========================================================
+          MAIN CONTENT
+      ========================================================== */}
+
+      <section className="relative px-5 pb-24 md:px-10 lg:px-20">
+
+        <div className="mx-auto max-w-7xl">
+
+          <div className="grid items-start gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12">
+
+            {/* =================================================
+                CONTACT FORM
+            ================================================== */}
+
+            <motion.div
               variants={scaleIn}
               initial="hidden"
               whileInView="visible"
-              viewport={{ once: true }}
-              custom={0.2}
+              viewport={{
+                once: true,
+                amount: 0.15,
+              }}
+              custom={0.05}
+              className="relative"
             >
-              {/* Subtle background card */}
-              <div className="absolute inset-0 bg-white/40 backdrop-blur-xl rounded-3xl border border-white/60 shadow-2xl -z-10"></div>
 
-              <form onSubmit={handleSubmit(onSubmit)} className="p-10 md:p-12 space-y-6">
-                {/* Form Title */}
-                <div className="mb-8">
-                  <h2 className="text-3xl font-bold text-gray-900 mb-2">Send us a message</h2>
-                  <div className="w-12 h-1 bg-linear-to-r from-yellow-400 to-yellow-300 rounded-full"></div>
+              {/* Glow */}
+
+              <div className="
+                absolute
+                -inset-3
+                -z-10
+                rounded-[32px]
+                bg-yellow-300/20
+                blur-2xl
+              " />
+
+              <div className="
+                overflow-hidden
+                rounded-[28px]
+                border
+                border-gray-200/80
+                bg-white
+                shadow-[0_25px_80px_rgba(0,0,0,0.08)]
+              ">
+
+                {/* Form header */}
+
+                <div className="
+                  border-b
+                  border-gray-100
+                  bg-linear-to-br
+                  from-gray-950
+                  to-gray-800
+                  px-7
+                  py-7
+                  md:px-10
+                  md:py-8
+                ">
+
+                  <div className="flex items-start justify-between gap-5">
+
+                    <div>
+
+                      <div className="
+                        mb-4
+                        inline-flex
+                        h-10
+                        w-10
+                        items-center
+                        justify-center
+                        rounded-xl
+                        bg-yellow-400
+                        text-black
+                      ">
+                        <Sparkles size={19} />
+                      </div>
+
+                      <h2 className="
+                        text-2xl
+                        font-black
+                        tracking-tight
+                        text-white
+                        md:text-3xl
+                      ">
+                        Send us a message
+                      </h2>
+
+                      <p className="
+                        mt-2
+                        max-w-md
+                        text-sm
+                        leading-6
+                        text-gray-400
+                      ">
+                        Tell us what's on your mind.
+                        We'll take it from here.
+                      </p>
+
+                    </div>
+
+                    <div className="
+                      hidden
+                      h-12
+                      w-12
+                      shrink-0
+                      items-center
+                      justify-center
+                      rounded-full
+                      border
+                      border-white/10
+                      bg-white/5
+                      md:flex
+                    ">
+                      <ArrowUpRight
+                        size={20}
+                        className="text-yellow-400"
+                      />
+                    </div>
+
+                  </div>
                 </div>
 
-                {/* Honeypot */}
-                <input type="checkbox" tabIndex={-1} className="hidden" autoComplete="off" {...register("botcheck")} />
+                {/* Form */}
 
-                {/* Name */}
-                <motion.div variants={fadeUp} custom={0.3}>
-                  <label className="block text-gray-700 font-semibold mb-3 text-sm uppercase tracking-wide">Full Name</label>
-                  <input
-                    type="text"
-                    placeholder="John Doe"
-                    {...register("name", { required: "Name is required" })}
-                    className="w-full px-5 py-4 rounded-xl border border-gray-200 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 outline-none transition-all duration-300 bg-white/80 backdrop-blur-sm placeholder-gray-400 text-gray-800 font-medium"
-                  />
-                  {errors.name && (
-                    <motion.p className="text-red-500 text-sm mt-2 flex items-center gap-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                      <AlertCircle size={16} /> {errors.name.message}
-                    </motion.p>
-                  )}
-                </motion.div>
-
-                {/* Email */}
-                <motion.div variants={fadeUp} custom={0.4}>
-                  <label className="block text-gray-700 font-semibold mb-3 text-sm uppercase tracking-wide">Email Address</label>
-                  <input
-                    type="email"
-                    placeholder="john@example.com"
-                    {...register("email", {
-                      required: "Email is required",
-                      pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "Enter a valid email address" },
-                    })}
-                    className="w-full px-5 py-4 rounded-xl border border-gray-200 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 outline-none transition-all duration-300 bg-white/80 backdrop-blur-sm placeholder-gray-400 text-gray-800 font-medium"
-                  />
-                  {errors.email && (
-                    <motion.p className="text-red-500 text-sm mt-2 flex items-center gap-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                      <AlertCircle size={16} /> {errors.email.message}
-                    </motion.p>
-                  )}
-                </motion.div>
-
-                {/* Mobile */}
-                <motion.div variants={fadeUp} custom={0.5}>
-                  <label className="block text-gray-700 font-semibold mb-3 text-sm uppercase tracking-wide">Phone Number</label>
-                  <input
-                    type="tel"
-                    placeholder="+91 80044 11976"
-                    {...register("mobile", {
-                      required: "Mobile number is required",
-                      pattern: { value: /^[0-9]{10}$/, message: "Enter a valid 10-digit mobile number" },
-                    })}
-                    className="w-full px-5 py-4 rounded-xl border border-gray-200 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 outline-none transition-all duration-300 bg-white/80 backdrop-blur-sm placeholder-gray-400 text-gray-800 font-medium"
-                  />
-                  {errors.mobile && (
-                    <motion.p className="text-red-500 text-sm mt-2 flex items-center gap-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                      <AlertCircle size={16} /> {errors.mobile.message}
-                    </motion.p>
-                  )}
-                </motion.div>
-
-                {/* Message */}
-                <motion.div variants={fadeUp} custom={0.6}>
-                  <label className="block text-gray-700 font-semibold mb-3 text-sm uppercase tracking-wide">Message</label>
-                  <textarea
-                    rows="5"
-                    placeholder="Tell us how we can help..."
-                    {...register("message", { required: "Message is required" })}
-                    className="w-full px-5 py-4 rounded-xl border border-gray-200 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 outline-none transition-all duration-300 bg-white/80 backdrop-blur-sm placeholder-gray-400 text-gray-800 font-medium resize-none"
-                  />
-                  {errors.message && (
-                    <motion.p className="text-red-500 text-sm mt-2 flex items-center gap-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                      <AlertCircle size={16} /> {errors.message.message}
-                    </motion.p>
-                  )}
-                </motion.div>
-
-                {/* Submit Button */}
-                <motion.button
-                  whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
-                  whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
-                  type="submit"
-                  disabled={isSubmitting}
-                  className={`w-full py-4 px-6 rounded-xl font-bold text-base uppercase tracking-wide transition-all duration-300 ${
-                    isSubmitting
-                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-linear-to-r from-yellow-400 to-yellow-300 hover:from-yellow-300 hover:to-yellow-200 text-gray-900 shadow-lg hover:shadow-xl"
-                  }`}
-                  variants={fadeUp}
-                  custom={0.7}
+                <form
+                  onSubmit={handleSubmit(onSubmit)}
+                  className="space-y-6 p-7 md:p-10"
                 >
-                  {isSubmitting ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
-                      Sending...
-                    </span>
-                  ) : (
-                    "Send Message"
-                  )}
-                </motion.button>
 
-                {/* Success/Error Message */}
-                {(isSubmitSuccessful || serverMsg) && (
+                  {/* Honeypot */}
+
+                  <input
+                    type="checkbox"
+                    tabIndex={-1}
+                    className="hidden"
+                    autoComplete="off"
+                    {...register("botcheck")}
+                  />
+
+                  {/* Name + Email */}
+
+                  <div className="grid gap-6 md:grid-cols-2">
+
+                    {/* Name */}
+
+                    <motion.div
+                      variants={fadeUp}
+                      custom={0.15}
+                    >
+                      <label className="
+                        mb-2.5
+                        block
+                        text-[11px]
+                        font-bold
+                        uppercase
+                        tracking-[0.16em]
+                        text-gray-500
+                      ">
+                        Full Name
+                      </label>
+
+                      <input
+                        type="text"
+                        placeholder="John Doe"
+                        {...register("name", {
+                          required: "Name is required",
+                        })}
+                        className="
+                          w-full
+                          rounded-xl
+                          border
+                          border-gray-200
+                          bg-gray-50/70
+                          px-4
+                          py-3.5
+                          text-sm
+                          font-medium
+                          text-gray-900
+                          outline-none
+                          transition-all
+                          duration-300
+                          placeholder:text-gray-400
+                          hover:border-gray-300
+                          focus:border-yellow-400
+                          focus:bg-white
+                          focus:ring-4
+                          focus:ring-yellow-400/10
+                        "
+                      />
+
+                      {errors.name && (
+                        <motion.p
+                          initial={{
+                            opacity: 0,
+                            y: -5,
+                          }}
+                          animate={{
+                            opacity: 1,
+                            y: 0,
+                          }}
+                          className="
+                            mt-2
+                            flex
+                            items-center
+                            gap-1.5
+                            text-xs
+                            font-medium
+                            text-red-500
+                          "
+                        >
+                          <AlertCircle size={14} />
+                          {errors.name.message}
+                        </motion.p>
+                      )}
+                    </motion.div>
+
+                    {/* Email */}
+
+                    <motion.div
+                      variants={fadeUp}
+                      custom={0.2}
+                    >
+                      <label className="
+                        mb-2.5
+                        block
+                        text-[11px]
+                        font-bold
+                        uppercase
+                        tracking-[0.16em]
+                        text-gray-500
+                      ">
+                        Email Address
+                      </label>
+
+                      <input
+                        type="email"
+                        placeholder="john@example.com"
+                        {...register("email", {
+                          required: "Email is required",
+                          pattern: {
+                            value:
+                              /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                            message:
+                              "Enter a valid email address",
+                          },
+                        })}
+                        className="
+                          w-full
+                          rounded-xl
+                          border
+                          border-gray-200
+                          bg-gray-50/70
+                          px-4
+                          py-3.5
+                          text-sm
+                          font-medium
+                          text-gray-900
+                          outline-none
+                          transition-all
+                          duration-300
+                          placeholder:text-gray-400
+                          hover:border-gray-300
+                          focus:border-yellow-400
+                          focus:bg-white
+                          focus:ring-4
+                          focus:ring-yellow-400/10
+                        "
+                      />
+
+                      {errors.email && (
+                        <motion.p
+                          initial={{
+                            opacity: 0,
+                            y: -5,
+                          }}
+                          animate={{
+                            opacity: 1,
+                            y: 0,
+                          }}
+                          className="
+                            mt-2
+                            flex
+                            items-center
+                            gap-1.5
+                            text-xs
+                            font-medium
+                            text-red-500
+                          "
+                        >
+                          <AlertCircle size={14} />
+                          {errors.email.message}
+                        </motion.p>
+                      )}
+                    </motion.div>
+
+                  </div>
+
+                  {/* Mobile */}
+
                   <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={`flex items-center gap-3 p-4 rounded-xl ${
-                      serverMsg?.startsWith("✅")
-                        ? "bg-green-50 border border-green-200 text-green-700"
-                        : "bg-red-50 border border-red-200 text-red-700"
-                    }`}
+                    variants={fadeUp}
+                    custom={0.25}
                   >
-                    {serverMsg?.startsWith("✅") ? (
-                      <CheckCircle2 size={20} />
-                    ) : (
-                      <AlertCircle size={20} />
+                    <label className="
+                      mb-2.5
+                      block
+                      text-[11px]
+                      font-bold
+                      uppercase
+                      tracking-[0.16em]
+                      text-gray-500
+                    ">
+                      Phone Number
+                    </label>
+
+                    <div className="relative">
+
+                      <Phone
+                        size={17}
+                        className="
+                          absolute
+                          left-4
+                          top-1/2
+                          -translate-y-1/2
+                          text-gray-400
+                        "
+                      />
+
+                      <input
+                        type="tel"
+                        placeholder="8004411976"
+                        {...register("mobile", {
+                          required:
+                            "Mobile number is required",
+                          pattern: {
+                            value: /^[0-9]{10}$/,
+                            message:
+                              "Enter a valid 10-digit mobile number",
+                          },
+                        })}
+                        className="
+                          w-full
+                          rounded-xl
+                          border
+                          border-gray-200
+                          bg-gray-50/70
+                          py-3.5
+                          pl-11
+                          pr-4
+                          text-sm
+                          font-medium
+                          text-gray-900
+                          outline-none
+                          transition-all
+                          duration-300
+                          placeholder:text-gray-400
+                          hover:border-gray-300
+                          focus:border-yellow-400
+                          focus:bg-white
+                          focus:ring-4
+                          focus:ring-yellow-400/10
+                        "
+                      />
+
+                    </div>
+
+                    {errors.mobile && (
+                      <motion.p
+                        initial={{
+                          opacity: 0,
+                          y: -5,
+                        }}
+                        animate={{
+                          opacity: 1,
+                          y: 0,
+                        }}
+                        className="
+                          mt-2
+                          flex
+                          items-center
+                          gap-1.5
+                          text-xs
+                          font-medium
+                          text-red-500
+                        "
+                      >
+                        <AlertCircle size={14} />
+                        {errors.mobile.message}
+                      </motion.p>
                     )}
-                    <span className="font-medium text-sm">
-                      {serverMsg || "✅ Your message has been sent successfully!"}
-                    </span>
                   </motion.div>
-                )}
-              </form>
+
+                  {/* Message */}
+
+                  <motion.div
+                    variants={fadeUp}
+                    custom={0.3}
+                  >
+                    <div className="mb-2.5 flex items-center justify-between">
+
+                      <label className="
+                        text-[11px]
+                        font-bold
+                        uppercase
+                        tracking-[0.16em]
+                        text-gray-500
+                      ">
+                        Message
+                      </label>
+
+                      <span className="text-[10px] font-medium text-gray-400">
+                        We'd love to hear from you
+                      </span>
+
+                    </div>
+
+                    <textarea
+                      rows="5"
+                      placeholder="Tell us how we can help..."
+                      {...register("message", {
+                        required: "Message is required",
+                      })}
+                      className="
+                        w-full
+                        resize-none
+                        rounded-xl
+                        border
+                        border-gray-200
+                        bg-gray-50/70
+                        px-4
+                        py-3.5
+                        text-sm
+                        font-medium
+                        leading-6
+                        text-gray-900
+                        outline-none
+                        transition-all
+                        duration-300
+                        placeholder:text-gray-400
+                        hover:border-gray-300
+                        focus:border-yellow-400
+                        focus:bg-white
+                        focus:ring-4
+                        focus:ring-yellow-400/10
+                      "
+                    />
+
+                    {errors.message && (
+                      <motion.p
+                        initial={{
+                          opacity: 0,
+                          y: -5,
+                        }}
+                        animate={{
+                          opacity: 1,
+                          y: 0,
+                        }}
+                        className="
+                          mt-2
+                          flex
+                          items-center
+                          gap-1.5
+                          text-xs
+                          font-medium
+                          text-red-500
+                        "
+                      >
+                        <AlertCircle size={14} />
+                        {errors.message.message}
+                      </motion.p>
+                    )}
+                  </motion.div>
+
+                  {/* Submit */}
+
+                  <motion.button
+                    variants={fadeUp}
+                    custom={0.35}
+                    whileHover={{
+                      scale: isSubmitting ? 1 : 1.015,
+                    }}
+                    whileTap={{
+                      scale: isSubmitting ? 1 : 0.98,
+                    }}
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="
+                      group
+                      flex
+                      w-full
+                      items-center
+                      justify-center
+                      gap-3
+                      rounded-xl
+                      bg-yellow-400
+                      px-6
+                      py-4
+                      text-sm
+                      font-black
+                      tracking-wide
+                      text-gray-950
+                      shadow-[0_12px_30px_rgba(250,204,21,0.25)]
+                      transition-all
+                      duration-300
+                      hover:bg-yellow-300
+                      hover:shadow-[0_16px_35px_rgba(250,204,21,0.32)]
+                      disabled:cursor-not-allowed
+                      disabled:bg-gray-200
+                      disabled:text-gray-400
+                      disabled:shadow-none
+                    "
+                  >
+
+                    {isSubmitting ? (
+                      <>
+                        <span className="
+                          h-4
+                          w-4
+                          animate-spin
+                          rounded-full
+                          border-2
+                          border-current
+                          border-t-transparent"
+                        />
+
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        Send Message
+
+                        <span className="
+                          flex
+                          h-8
+                          w-8
+                          items-center
+                          justify-center
+                          rounded-full
+                          bg-black
+                          text-white
+                          transition-transform
+                          duration-300
+                          group-hover:translate-x-1
+                        ">
+                          <ArrowUpRight size={15} />
+                        </span>
+                        </>
+                    )}
+
+                  </motion.button>
+
+                  {/* Status */}
+
+                  {(isSubmitSuccessful || serverMsg) && (
+                    <motion.div
+                      initial={{
+                        opacity: 0,
+                        y: -10,
+                      }}
+                      animate={{
+                        opacity: 1,
+                        y: 0,
+                      }}
+                      className={`
+                        flex
+                        items-start
+                        gap-3
+                        rounded-xl
+                        border
+                        p-4
+                        ${
+                          serverMsg?.startsWith("Your message")
+                            ? "border-green-200 bg-green-50 text-green-700"
+                            : "border-red-200 bg-red-50 text-red-700"
+                        }
+                      `}
+                    >
+
+                      {serverMsg?.startsWith(
+                        "Your message"
+                      ) ? (
+                        <CheckCircle2
+                          size={19}
+                          className="mt-0.5 shrink-0"
+                        />
+                      ) : (
+                        <AlertCircle
+                          size={19}
+                          className="mt-0.5 shrink-0"
+                        />
+                      )}
+
+                      <span className="text-sm font-medium leading-6">
+                        {serverMsg ||
+                          "Your message has been sent successfully!"}
+                      </span>
+
+                    </motion.div>
+                  )}
+
+                </form>
+
+              </div>
             </motion.div>
 
-            {/* Contact Information Section */}
-            <motion.div
-                className="space-y-5"
-                variants={fadeUp}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                custom={0.3}
-              >
-                {/* Heading */}
-                <div className="mb-2">
-                  <h3 className="text-sm font-bold text-gray-900 uppercase tracking-widest">Contact Information</h3>
-                  <div className="h-px w-12 bg-linear-to-r from-yellow-400 to-transparent mt-2"></div>
-                </div>
+            {/* =================================================
+                CONTACT INFORMATION
+            ================================================== */}
 
-                {/* Location Card */}
+            <motion.div
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{
+                once: true,
+                amount: 0.15,
+              }}
+              custom={0.15}
+              className="lg:pt-4"
+            >
+
+              {/* Section heading */}
+
+              <div className="mb-7">
+
+                <p className="
+                  mb-3
+                  text-[11px]
+                  font-black
+                  uppercase
+                  tracking-[0.2em]
+                  text-yellow-600
+                ">
+                  Contact Details
+                </p>
+
+                <h2 className="
+                  text-3xl
+                  font-black
+                  tracking-[-0.035em]
+                  text-gray-950
+                  md:text-4xl
+                ">
+                  Reach out.
+                  <br />
+                  <span className="text-gray-400">
+                    We're close by.
+                  </span>
+                </h2>
+
+                <p className="
+                  mt-4
+                  max-w-lg
+                  text-sm
+                  leading-7
+                  text-gray-500
+                  md:text-base
+                ">
+                  Whether you're a customer looking for
+                  support or a business interested in working
+                  with Zusko, we'd be happy to hear from you.
+                </p>
+
+              </div>
+
+              {/* Contact cards */}
+
+              <div className="space-y-4">
+
+                {/* Location */}
+
                 <motion.div
-                  whileHover={{ boxShadow: "0 12px 32px rgba(0,0,0,0.06)" }}
-                  className="bg-white border border-gray-200/60 rounded-xl p-7 transition-all duration-300"
                   variants={scaleIn}
-                  custom={0.3}
+                  custom={0.2}
+                  whileHover={{
+                    y: -4,
+                  }}
+                  className="
+                    group
+                    rounded-2xl
+                    border
+                    border-gray-200
+                    bg-white
+                    p-6
+                    shadow-[0_12px_35px_rgba(0,0,0,0.04)]
+                    transition-shadow
+                    duration-300
+                    hover:shadow-[0_20px_45px_rgba(0,0,0,0.08)]
+                  "
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="w-11 h-11 bg-gray-100 rounded-lg flex items-center justify-center shrink-0 border border-gray-200/80">
-                      <MapPin className="w-5 h-5 text-gray-700" strokeWidth={2.5} />
+
+                  <div className="flex gap-5">
+
+                    <div className="
+                      flex
+                      h-12
+                      w-12
+                      shrink-0
+                      items-center
+                      justify-center
+                      rounded-2xl
+                      bg-yellow-100
+                      text-yellow-700
+                      transition-all
+                      duration-300
+                      group-hover:bg-yellow-400
+                      group-hover:text-black
+                    ">
+                      <MapPin size={21} />
                     </div>
-                    <div className="flex-1">
-                      <h4 className="text-gray-900 font-semibold text-base mb-2">Registered Office</h4>
-                      <p className="text-gray-600 text-sm leading-7">
-                        <span className="font-medium text-gray-800">Zusko Laundry Services Pvt. Ltd.</span>
+
+                    <div>
+
+                      <p className="
+                        mb-1
+                        text-[10px]
+                        font-black
+                        uppercase
+                        tracking-[0.18em]
+                        text-gray-400
+                      ">
+                        Visit us
+                      </p>
+
+                      <h3 className="
+                        text-lg
+                        font-bold
+                        text-gray-900
+                      ">
+                        Registered Office
+                      </h3>
+
+                      <p className="
+                        mt-2
+                        text-sm
+                        leading-6
+                        text-gray-500
+                      ">
+                        <span className="font-semibold text-gray-800">
+                          Zusko Laundry Services Pvt. Ltd.
+                        </span>
                         <br />
-                        Bundelkhand Innovation & Incubation Center Foundation
+                        Bundelkhand Innovation & Incubation
+                        Center Foundation
                         <br />
                         BIET Jhansi, Uttar Pradesh
                         <br />
                         India – 284128
                       </p>
+
                     </div>
+
                   </div>
+
                 </motion.div>
 
-                {/* Phone Card */}
-                <motion.div
-                  whileHover={{ boxShadow: "0 12px 32px rgba(0,0,0,0.06)" }}
-                  className="bg-white border border-gray-200/60 rounded-xl p-7 transition-all duration-300"
+                {/* Phone */}
+
+                <motion.a
+                  href="tel:+918004411976"
                   variants={scaleIn}
-                  custom={0.4}
+                  custom={0.28}
+                  whileHover={{
+                    y: -4,
+                  }}
+                  className="
+                    group
+                    block
+                    rounded-2xl
+                    border
+                    border-gray-200
+                    bg-white
+                    p-6
+                    shadow-[0_12px_35px_rgba(0,0,0,0.04)]
+                    transition-shadow
+                    duration-300
+                    hover:shadow-[0_20px_45px_rgba(0,0,0,0.08)]
+                  "
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="w-11 h-11 bg-gray-100 rounded-lg flex items-center justify-center shrink-0 border border-gray-200/80">
-                      <Phone className="w-5 h-5 text-gray-700" strokeWidth={2.5} />
+
+                  <div className="flex items-center gap-5">
+
+                    <div className="
+                      flex
+                      h-12
+                      w-12
+                      shrink-0
+                      items-center
+                      justify-center
+                      rounded-2xl
+                      bg-gray-100
+                      text-gray-700
+                      transition-all
+                      duration-300
+                      group-hover:bg-yellow-400
+                      group-hover:text-black
+                    ">
+                      <Phone size={20} />
                     </div>
-                    <div className="flex-1">
-                      <h4 className="text-gray-900 font-semibold text-base mb-2">Telephone</h4>
-                      <a
-                        href="tel:+918004411976"
-                        className="text-gray-900 font-medium text-sm hover:text-yellow-600 transition-colors duration-300 block mb-1"
-                      >
+
+                    <div className="min-w-0 flex-1">
+
+                      <p className="
+                        mb-1
+                        text-[10px]
+                        font-black
+                        uppercase
+                        tracking-[0.18em]
+                        text-gray-400
+                      ">
+                        Call us
+                      </p>
+
+                      <h3 className="
+                        text-lg
+                        font-bold
+                        text-gray-900
+                      ">
                         +91 80044 11976
-                      </a>
-                      <p className="text-gray-500 text-xs uppercase tracking-wide">
-                        Monday – Friday: 9:00 AM – 6:00 PM IST
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
+                      </h3>
 
-                {/* Email Card */}
-                <motion.div
-                  whileHover={{ boxShadow: "0 12px 32px rgba(0,0,0,0.06)" }}
-                  className="bg-white border border-gray-200/60 rounded-xl p-7 transition-all duration-300"
+                      <p className="
+                        mt-1
+                        flex
+                        items-center
+                        gap-1.5
+                        text-xs
+                        text-gray-500
+                      ">
+                        <Clock3 size={13} />
+                        Mon – Fri · 9:00 AM – 6:00 PM IST
+                      </p>
+
+                    </div>
+
+                    <ArrowUpRight
+                      size={19}
+                      className="
+                        shrink-0
+                        text-gray-300
+                        transition-all
+                        duration-300
+                        group-hover:-translate-y-1
+                        group-hover:translate-x-1
+                        group-hover:text-yellow-500
+                      "
+                    />
+
+                  </div>
+
+                </motion.a>
+
+                {/* Email */}
+
+                <motion.a
+                  href="mailto:info@zusko.in"
                   variants={scaleIn}
-                  custom={0.5}
+                  custom={0.36}
+                  whileHover={{
+                    y: -4,
+                  }}
+                  className="
+                    group
+                    block
+                    rounded-2xl
+                    border
+                    border-gray-200
+                    bg-white
+                    p-6
+                    shadow-[0_12px_35px_rgba(0,0,0,0.04)]
+                    transition-shadow
+                    duration-300
+                    hover:shadow-[0_20px_45px_rgba(0,0,0,0.08)]
+                  "
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="w-11 h-11 bg-gray-100 rounded-lg flex items-center justify-center shrink-0 border border-gray-200/80">
-                      <Mail className="w-5 h-5 text-gray-700" strokeWidth={2.5} />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="text-gray-900 font-semibold text-base mb-2">Email Address</h4>
-                      <a
-                        href="mailto:info@zusko.in"
-                        className="text-gray-900 font-medium text-sm hover:text-yellow-600 transition-colors duration-300 block mb-1"
-                      >
-                        info@zusko.in
-                      </a>
-                      <p className="text-gray-500 text-xs uppercase tracking-wide">
-                        Expected Response: Within 24 Business Hours
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
 
-                {/* Formal Note */}
-                <motion.div
-                  className="bg-gray-50 border border-gray-200 rounded-xl p-6 mt-2"
-                  variants={fadeUp}
-                  custom={0.6}
-                >
-                  <p className="text-gray-700 text-sm leading-6">
-                    <span className="text-gray-900 font-semibold">Notice:</span> For time-sensitive inquiries, we recommend contacting us by phone. Our customer support team is available during business hours.
-                  </p>
-                </motion.div>
+                  <div className="flex items-center gap-5">
+
+                    <div className="
+                      flex
+                      h-12
+                      w-12
+                      shrink-0
+                      items-center
+                      justify-center
+                      rounded-2xl
+                      bg-gray-100
+                      text-gray-700
+                      transition-all
+                      duration-300
+                      group-hover:bg-yellow-400
+                      group-hover:text-black
+                    ">
+                      <Mail size={20} />
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+
+                      <p className="
+                        mb-1
+                        text-[10px]
+                        font-black
+                        uppercase
+                        tracking-[0.18em]
+                        text-gray-400
+                      ">
+                        Email us
+                      </p>
+
+                      <h3 className="
+                        break-all
+                        text-lg
+                        font-bold
+                        text-gray-900
+                      ">
+                        info@zusko.in
+                      </h3>
+
+                      <p className="
+                        mt-1
+                        text-xs
+                        text-gray-500
+                      ">
+                        Expected response within 24 business hours
+                      </p>
+
+                    </div>
+
+                    <ArrowUpRight
+                      size={19}
+                      className="
+                        shrink-0
+                        text-gray-300
+                        transition-all
+                        duration-300
+                        group-hover:-translate-y-1
+                        group-hover:translate-x-1
+                        group-hover:text-yellow-500
+                      "
+                    />
+
+                  </div>
+
+                </motion.a>
+
+              </div>
+
+              {/* Bottom note */}
+
+              <motion.div
+                variants={fadeUp}
+                custom={0.45}
+                className="
+                  mt-5
+                  rounded-2xl
+                  bg-gray-950
+                  p-6
+                  text-white
+                "
+              >
+
+                <div className="flex items-start gap-4">
+
+                  <div className="
+                    flex
+                    h-10
+                    w-10
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-xl
+                    bg-yellow-400
+                    text-black
+                  ">
+                    <Clock3 size={18} />
+                  </div>
+
+                  <div>
+
+                    <h3 className="
+                      text-sm
+                      font-bold
+                    ">
+                      Need help urgently?
+                    </h3>
+
+                    <p className="
+                      mt-1.5
+                      text-xs
+                      leading-5
+                      text-gray-400
+                    ">
+                      For time-sensitive inquiries, please
+                      contact us by phone during business hours.
+                    </p>
+
+                  </div>
+
+                </div>
+
               </motion.div>
+
+            </motion.div>
+
           </div>
         </div>
-      </div>
-    </div>
+      </section>
+
+      {/* =========================================================
+          BOTTOM CTA
+      ========================================================== */}
+
+      <section className="px-5 pb-16 md:px-10 lg:px-20">
+
+        <motion.div
+          initial={{
+            opacity: 0,
+            y: 30,
+          }}
+          whileInView={{
+            opacity: 1,
+            y: 0,
+          }}
+          viewport={{
+            once: true,
+          }}
+          transition={{
+            duration: 0.7,
+          }}
+          className="
+            relative
+            mx-auto
+            max-w-7xl
+            overflow-hidden
+            rounded-[28px]
+            bg-yellow-400
+            px-7
+            py-12
+            md:px-12
+            md:py-14
+          "
+        >
+
+          {/* Decorative circle */}
+
+          <div className="
+            pointer-events-none
+            absolute
+            -right-20
+            -top-24
+            h-64
+            w-64
+            rounded-full
+            border-[40px]
+            border-black/5
+          " />
+
+          <div className="relative flex flex-col justify-between gap-8 md:flex-row md:items-center">
+
+            <div>
+
+              <p className="
+                text-[10px]
+                font-black
+                uppercase
+                tracking-[0.2em]
+                text-black/50
+              ">
+                Zusko Support
+              </p>
+
+              <h2 className="
+                mt-2
+                max-w-xl
+                text-3xl
+                font-black
+                tracking-[-0.035em]
+                text-black
+                md:text-4xl
+              ">
+                Good laundry starts with
+                <br className="hidden sm:block" />
+                good support.
+              </h2>
+
+            </div>
+
+            <div className="
+              flex
+              h-14
+              w-14
+              shrink-0
+              items-center
+              justify-center
+              rounded-full
+              bg-black
+              text-white
+            ">
+              <ArrowUpRight size={23} />
+            </div>
+
+          </div>
+
+        </motion.div>
+
+      </section>
+      </main>
   );
 }
+
