@@ -6,6 +6,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { CartProvider } from './context/CartContext.jsx'
 import { Analytics } from "@vercel/analytics/react";
+import "leaflet/dist/leaflet.css";
 createRoot(document.getElementById('root')).render(
     <AuthProvider>
     <CartProvider>

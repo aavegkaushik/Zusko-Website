@@ -143,7 +143,7 @@ export default function Addresses() {
 
                       <h2 className="font-bold text-lg">
                         {
-                          address.title
+                          address.label || "Home"
                         }
                       </h2>
 

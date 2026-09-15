@@ -39,6 +39,7 @@ import RateOrder from "./Pages/RateOrder.jsx";
 import Profile from "./Pages/Profile.jsx";
 import EditProfile from "./Pages/EditProfile.jsx";
 import Addresses from "./Pages/Addresses.jsx";
+import OutOfArea from "./Pages/OutOfArea.jsx";
 const App = () => {
   const [showPopup, setShowPopup] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
@@ -199,6 +200,8 @@ const App = () => {
                 </ProtectedRoute>
               }
             />
+
+            <Route path="/out-of-area" element={<OutOfArea />} />
 
             <Route
               path="/payment"
