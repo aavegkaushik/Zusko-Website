@@ -247,12 +247,13 @@ const {
     pincode,
   },
 
-  items: cart.map((item) => ({
-    name: item.name,
-    qty: item.qty,
-    price: item.price,
-    service: item.service,
-  })),
+items: cart.map((item) => ({
+  name: item.name,
+  qty: item.qty,
+  price: item.price,
+  service: item.service,
+  careLevel: item.careLevel || "regular",
+})),
 
   originalTotal: total,
 
@@ -623,28 +624,83 @@ const {
               {/* Cart items */}
               <div className="px-5 py-3 space-y-2.5 max-h-64 overflow-y-auto" style={{ scrollbarWidth: "thin" }}>
                 {cart.map((item) => {
-                  const svcColor = serviceColors[item.service] || { bg: "#F3F4F6", color: "#6B7280" };
-                  return (
-                    <div key={item.name + item.service} className="flex items-start gap-2.5 py-1.5 border-b border-gray-50 last:border-0">
-                      <span className="text-base shrink-0">{itemEmoji[item.name] || "🧺"}</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-bold text-gray-800 wrap-break-word leading-snug">{item.name}</p>
-                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                          <span
-                            className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
-                            style={{ background: svcColor.bg, color: svcColor.color }}
-                          >
-                            {item.service}
-                          </span>
-                          <span className="text-[10px] text-gray-400">× {item.qty}</span>
-                        </div>
-                      </div>
-                      <span className="text-[13px] font-black text-gray-900 shrink-0">
-                        ₹{item.qty * item.price}
-                      </span>
-                    </div>
-                  );
-                })}
+  const svcColor = serviceColors[item.service] || {
+    bg: "#F3F4F6",
+    color: "#6B7280",
+  };
+
+  const isPremium =
+    item.service === "Dry Clean" &&
+    item.careLevel === "premium";
+
+  return (
+    <div
+      key={`${item.name}-${item.service}-${item.careLevel || "regular"}`}
+      className="flex items-start gap-2.5 py-2.5 border-b border-gray-50 last:border-0"
+    >
+      {/* ITEM ICON */}
+      <span className="text-base shrink-0 mt-0.5">
+        {itemEmoji[item.name] || "🧺"}
+      </span>
+
+      {/* ITEM DETAILS */}
+      <div className="flex-1 min-w-0">
+        <p className="text-[13px] font-bold text-gray-800 wrap-break-word leading-snug">
+          {item.name}
+        </p>
+
+        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+          {/* SERVICE */}
+          <span
+            className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
+            style={{
+              background: svcColor.bg,
+              color: svcColor.color,
+            }}
+          >
+            {item.service}
+          </span>
+
+          {/* CARE LEVEL */}
+          {isPremium ? (
+            <span
+              className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+              style={{
+                background: "#FFF8E1",
+                color: "#B7791F",
+                border: "1px solid #F6D365",
+              }}
+            >
+              <Sparkles size={9} strokeWidth={2.5} />
+              Premium Care
+            </span>
+          ) : (
+            <span
+              className="text-[10px] font-medium px-1.5 py-0.5 rounded-full"
+              style={{
+                background: "#F3F4F6",
+                color: "#6B7280",
+                border: "1px solid #E5E7EB",
+              }}
+            >
+              Regular Care
+            </span>
+          )}
+
+          {/* QTY */}
+          <span className="text-[10px] text-gray-400">
+            × {item.qty}
+          </span>
+        </div>
+      </div>
+
+      {/* ITEM TOTAL */}
+      <span className="text-[13px] font-black text-gray-900 shrink-0">
+        ₹{item.qty * item.price}
+      </span>
+    </div>
+  );
+})}
               </div>
 
               {/* Bill breakdown */}

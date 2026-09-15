@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, X, Shirt, Baby, Home, Sparkles,
   ChevronRight, Clock, Zap, Wind, Droplets, Layers,
+  Check,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import API from "../config/api";
@@ -172,6 +173,7 @@ export default function BookLaundry() {
   const [selectedCategory, setSelectedCategory] = useState("Men");
   const [selectedService, setSelectedService] = useState("Wash & Iron");
   const [search, setSearch] = useState("");
+  const [selectedCareLevel, setSelectedCareLevel] = useState("regular");
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [placeholderText, setPlaceholderText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
@@ -190,13 +192,43 @@ export default function BookLaundry() {
 
   const { cart, addItem, increaseQty, decreaseQty } = useContext(CartContext);
 
-  const getItemQty = (item) =>
-    cart.find((i) => i.name === item.name && i.service === selectedService)?.qty ?? 0;
+const getItemQty = (item) => {
+  const careLevel =
+    selectedService === "Dry Clean"
+      ? selectedCareLevel
+      : "regular";
 
-  const getPrice = (item) => {
-    const service = services.find((s) => s.name === selectedService);
-    return Math.round(item.basePrice * service.multiplier);
-  };
+  return (
+    cart.find(
+      (i) =>
+        i.name === item.name &&
+        i.service === selectedService &&
+        (i.careLevel || "regular") === careLevel
+    )?.qty ?? 0
+  );
+};
+
+const getPrice = (item) => {
+  const service = services.find(
+    (s) => s.name === selectedService
+  );
+
+  if (!service) return 0;
+
+  const basePrice = Math.round(
+    item.basePrice * service.multiplier
+  );
+
+  // Premium Dry Clean = 25% extra
+  if (
+    selectedService === "Dry Clean" &&
+    selectedCareLevel === "premium"
+  ) {
+    return Math.round(basePrice * 1.25);
+  }
+
+  return basePrice;
+};
 
   const currentItems =
     search.length > 0
@@ -524,7 +556,13 @@ useEffect(() => {
                     <motion.button
                       key={service.name}
                       whileTap={{ scale: 0.97 }}
-                      onClick={() => setSelectedService(service.name)}
+                      onClick={() => {
+  setSelectedService(service.name);
+
+  if (service.name !== "Dry Clean") {
+    setSelectedCareLevel("regular");
+  }
+}}
                       className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-150 relative"
                       style={{
                         background: isSelected ? "#101010" : "white",
@@ -551,6 +589,96 @@ useEffect(() => {
                 })}
               </div>
             </div>
+            {selectedService === "Dry Clean" && (
+  <motion.div
+    initial={{ opacity: 0, y: 8 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="mt-4 rounded-2xl border border-yellow-200 bg-gradient-to-br from-yellow-50 to-white p-3"
+  >
+    <div className="flex items-center gap-2 mb-3 px-1">
+      <div className="w-7 h-7 rounded-lg bg-yellow-400 flex items-center justify-center">
+        <Sparkles size={14} className="text-black" />
+      </div>
+
+      <div>
+        <p className="text-xs font-extrabold text-gray-900">
+          Choose Care Level
+        </p>
+        <p className="text-[10px] text-gray-500">
+          Select how we handle your clothes
+        </p>
+      </div>
+    </div>
+
+    <div className="grid grid-cols-2 gap-2">
+      {/* REGULAR */}
+      <button
+        type="button"
+        onClick={() => setSelectedCareLevel("regular")}
+        className={`rounded-xl border p-3 text-left transition-all ${
+          selectedCareLevel === "regular"
+            ? "border-gray-900 bg-gray-900 text-white shadow-md"
+            : "border-gray-200 bg-white text-gray-800 hover:border-gray-400"
+        }`}
+      >
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-xs font-extrabold">
+            Regular
+          </span>
+
+          {selectedCareLevel === "regular" && (
+            <Check size={13} />
+          )}
+        </div>
+
+        <p
+          className={`text-[10px] ${
+            selectedCareLevel === "regular"
+              ? "text-gray-400"
+              : "text-gray-400"
+          }`}
+        >
+          Standard dry clean
+        </p>
+      </button>
+
+      {/* PREMIUM */}
+      <button
+        type="button"
+        onClick={() => setSelectedCareLevel("premium")}
+        className={`relative rounded-xl border p-3 text-left transition-all ${
+          selectedCareLevel === "premium"
+            ? "border-yellow-400 bg-yellow-400 text-black shadow-md"
+            : "border-yellow-200 bg-white text-gray-800 hover:border-yellow-400"
+        }`}
+      >
+        <span className="absolute -top-2 right-2 rounded-full bg-black px-2 py-0.5 text-[8px] font-black tracking-wide text-yellow-400">
+          PREMIUM
+        </span>
+
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-xs font-extrabold">
+            Premium
+          </span>
+
+          {selectedCareLevel === "premium" && (
+            <Check size={13} />
+          )}
+        </div>
+
+        <p
+          className={`text-[10px] ${
+            selectedCareLevel === "premium"
+              ? "text-gray-800"
+              : "text-gray-400"
+          }`}
+        >
+          Extra care & finishing
+        </p>
+      </button>
+    </div>
+  </motion.div>
+)}
           </aside>
 
           {/* ── MAIN CONTENT COLUMN ───────────────────────── */}
@@ -643,7 +771,13 @@ useEffect(() => {
                       initial={{ opacity: 0, x: 16 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.07 }}
-                      onClick={() => setSelectedService(service.name)}
+                      onClick={() => {
+  setSelectedService(service.name);
+
+  if (service.name !== "Dry Clean") {
+    setSelectedCareLevel("regular");
+  }
+}}
                       className="relative flex-shrink-0 p-4 rounded-2xl text-left"
                       style={{
                         width: "150px",
@@ -673,6 +807,85 @@ useEffect(() => {
                 })}
               </div>
             </div>
+
+            {selectedService === "Dry Clean" && (
+  <motion.div
+    initial={{ opacity: 0, y: 8 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="mb-5 rounded-2xl border border-yellow-200 bg-gradient-to-br from-yellow-50 to-white p-3"
+  >
+    <div className="flex items-center gap-2 mb-3">
+      <div className="w-8 h-8 rounded-xl bg-yellow-400 flex items-center justify-center">
+        <Sparkles size={15} className="text-black" />
+      </div>
+
+      <div>
+        <p className="text-xs font-extrabold text-gray-900">
+          Choose Care Level
+        </p>
+        <p className="text-[10px] text-gray-500">
+          Premium care gives your clothes extra attention
+        </p>
+      </div>
+    </div>
+
+    <div className="grid grid-cols-2 gap-2">
+      <button
+        type="button"
+        onClick={() => setSelectedCareLevel("regular")}
+        className={`rounded-xl border p-3 text-left ${
+          selectedCareLevel === "regular"
+            ? "border-gray-900 bg-gray-900 text-white"
+            : "border-gray-200 bg-white"
+        }`}
+      >
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-extrabold">
+            Regular
+          </span>
+
+          {selectedCareLevel === "regular" && (
+            <Check size={13} />
+          )}
+        </div>
+
+        <p className="text-[10px] mt-1 text-gray-400">
+          Standard care
+        </p>
+      </button>
+
+      <button
+        type="button"
+        onClick={() => setSelectedCareLevel("premium")}
+        className={`rounded-xl border p-3 text-left ${
+          selectedCareLevel === "premium"
+            ? "border-yellow-400 bg-yellow-400 text-black"
+            : "border-yellow-200 bg-white"
+        }`}
+      >
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-extrabold">
+            ✨ Premium
+          </span>
+
+          {selectedCareLevel === "premium" && (
+            <Check size={13} />
+          )}
+        </div>
+
+        <p
+          className={`text-[10px] mt-1 ${
+            selectedCareLevel === "premium"
+              ? "text-gray-800"
+              : "text-gray-400"
+          }`}
+        >
+          Extra care & finishing
+        </p>
+      </button>
+    </div>
+  </motion.div>
+)}
 
             {/* ── ITEM GRID / LIST ─────────────────────────── */}
             <div>
@@ -716,17 +929,18 @@ useEffect(() => {
                         const price = getPrice(item);
                         return (
                           <ItemCard
-                            key={`${selectedCategory}-${item.name}`}
-                            item={item}
-                            qty={qty}
-                            price={price}
-                            index={i}
-                            selectedService={selectedService}
-                            selectedCategory={selectedCategory}
-                            addItem={addItem}
-                            increaseQty={increaseQty}
-                            decreaseQty={decreaseQty}
-                          />
+  key={`${selectedCategory}-${item.name}-${selectedService}-${selectedCareLevel}`}
+  item={item}
+  qty={qty}
+  price={price}
+  index={i}
+  selectedService={selectedService}
+  selectedCareLevel={selectedCareLevel}
+  selectedCategory={selectedCategory}
+  addItem={addItem}
+  increaseQty={increaseQty}
+  decreaseQty={decreaseQty}
+/>
                         );
                       })}
                 </AnimatePresence>
@@ -820,7 +1034,7 @@ function CartSummaryPanel({ cart, cartCount, cartTotal, navigate }) {
         <AnimatePresence>
           {cart.map((item) => (
             <motion.div
-              key={`${item.name}-${item.service}`}
+              key={`${item.name}-${item.service}-${item.careLevel || "regular"}`}
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
@@ -836,6 +1050,19 @@ function CartSummaryPanel({ cart, cartCount, cartTotal, navigate }) {
                     {item.name}
                   </p>
                   <p className="text-[11px] text-gray-400 mt-0.5">{item.service}</p>
+                  {item.careLevel === "premium" && (
+  <span
+    className="inline-flex items-center gap-1 mt-1 text-[9px] font-extrabold px-2 py-0.5 rounded-full"
+    style={{
+      background: "#FFF4BF",
+      color: "#92400E",
+      border: "1px solid #FDE68A",
+    }}
+  >
+    <Sparkles size={9} />
+    Premium Care
+  </span>
+)}
                 </div>
               </div>
               {/* Qty × price row */}
@@ -880,7 +1107,18 @@ function CartSummaryPanel({ cart, cartCount, cartTotal, navigate }) {
 
 // ─── ITEM CARD ────────────────────────────────────────────────────────────────
 
-function ItemCard({ item, qty, price, index, selectedService, selectedCategory, addItem, increaseQty, decreaseQty }) {
+function ItemCard({
+  item,
+  qty,
+  price,
+  index,
+  selectedService,
+  selectedCareLevel,
+  selectedCategory,
+  addItem,
+  increaseQty,
+  decreaseQty
+}) {
   const emoji = itemEmoji[item.name] || "🧺";
 
   return (
@@ -911,12 +1149,32 @@ function ItemCard({ item, qty, price, index, selectedService, selectedCategory, 
           <p className="font-bold text-gray-900 text-[16px] leading-snug break-words">
             {item.name}
           </p>
-          <span
-            className="inline-block mt-1.5 text-[11px] font-semibold px-2.5 py-0.5 rounded-full"
-            style={{ background: "#F3F4F6", color: "#6B7280" }}
-          >
-            {selectedService}
-          </span>
+          <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+  <span
+    className="inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full"
+    style={{
+      background: "#F3F4F6",
+      color: "#6B7280",
+    }}
+  >
+    {selectedService}
+  </span>
+
+  {selectedService === "Dry Clean" &&
+    selectedCareLevel === "premium" && (
+      <span
+        className="inline-flex items-center gap-1 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full"
+        style={{
+          background: "#FFF4BF",
+          color: "#92400E",
+          border: "1px solid #FDE68A",
+        }}
+      >
+        <Sparkles size={10} />
+        Premium Care
+      </span>
+    )}
+</div>
         </div>
       </div>
 
@@ -939,7 +1197,18 @@ function ItemCard({ item, qty, price, index, selectedService, selectedCategory, 
               exit={{ scale: 0.8, opacity: 0 }}
               transition={{ type: "spring", stiffness: 320, damping: 22 }}
               whileTap={{ scale: 0.88 }}
-              onClick={() => addItem({ ...item, price, service: selectedService, category: selectedCategory })}
+              onClick={() =>
+  addItem({
+    ...item,
+    price,
+    service: selectedService,
+    careLevel:
+      selectedService === "Dry Clean"
+        ? selectedCareLevel
+        : "regular",
+    category: selectedCategory,
+  })
+}
               className="h-10 px-7 rounded-full font-bold text-sm"
               style={{ background: "#FFD700", color: "#101010" }}
             >
@@ -957,7 +1226,16 @@ function ItemCard({ item, qty, price, index, selectedService, selectedCategory, 
             >
               <motion.button
                 whileTap={{ scale: 0.82 }}
-                onClick={() => decreaseQty({ ...item, service: selectedService })}
+                onClick={() =>
+  decreaseQty({
+    ...item,
+    service: selectedService,
+    careLevel:
+      selectedService === "Dry Clean"
+        ? selectedCareLevel
+        : "regular",
+  })
+}
                 className="w-10 h-10 flex items-center justify-center text-xl font-bold text-white"
               >
                 −
@@ -965,7 +1243,16 @@ function ItemCard({ item, qty, price, index, selectedService, selectedCategory, 
               <span className="text-white font-bold text-sm w-7 text-center">{qty}</span>
               <motion.button
                 whileTap={{ scale: 0.82 }}
-                onClick={() => increaseQty({ ...item, service: selectedService })}
+                onClick={() =>
+  increaseQty({
+    ...item,
+    service: selectedService,
+    careLevel:
+      selectedService === "Dry Clean"
+        ? selectedCareLevel
+        : "regular",
+  })
+}
                 className="w-10 h-10 flex items-center justify-center text-xl font-bold"
                 style={{ color: "#FFD700" }}
               >

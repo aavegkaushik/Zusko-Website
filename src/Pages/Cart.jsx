@@ -297,7 +297,7 @@ export default function Cart() {
                   };
                   return (
                     <motion.div
-                      key={item.name + item.service}
+                      key={`${item.name}-${item.service}-${item.careLevel || "regular"}`}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, x: -20, height: 0, marginBottom: 0 }}
@@ -330,19 +330,38 @@ export default function Cart() {
                             {item.name}
                           </p>
                           <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                            <span
-                              className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
-                              style={{
-                                background: svcColor.bg,
-                                color: svcColor.color,
-                              }}
-                            >
-                              {item.service}
-                            </span>
-                            <span className="text-[11px] text-gray-400 font-medium">
-                              ₹{item.price} each
-                            </span>
-                          </div>
+  {/* Service Badge */}
+  <span
+    className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+    style={{
+      background: svcColor.bg,
+      color: svcColor.color,
+    }}
+  >
+    {item.service}
+  </span>
+
+  {/* Premium Care Badge */}
+  {item.careLevel === "premium" && (
+    <span
+      className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full"
+      style={{
+        background: "linear-gradient(135deg, #FFF8D6, #FFF1A8)",
+        color: "#9A6700",
+        border: "1px solid #F5D76E",
+        boxShadow: "0 1px 4px rgba(245, 180, 0, 0.12)",
+      }}
+    >
+      <Sparkles size={10} strokeWidth={2.5} />
+      Premium Care
+    </span>
+  )}
+
+  {/* Price */}
+  <span className="text-[11px] text-gray-400 font-medium">
+    ₹{item.price} each
+  </span>
+</div>
                         </div>
                       </div>
 

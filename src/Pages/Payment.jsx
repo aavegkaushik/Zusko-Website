@@ -670,43 +670,81 @@ export default function Payment() {
                 style={{ scrollbarWidth: "thin" }}
               >
                 {(orderData.items || []).map((item, i) => {
-                  const svcColor = serviceColors[item.service] || {
-                    bg: "#F3F4F6",
-                    color: "#6B7280",
-                  };
-                  return (
-                    <div
-                      key={item.name + item.service + i}
-                      className="flex items-start gap-2.5 px-5 py-2.5 border-b border-gray-50 last:border-0"
-                    >
-                      <span className="text-base flex-shrink-0">
-                        {itemEmoji[item.name] || "🧺"}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-bold text-gray-800 break-words leading-snug">
-                          {item.name}
-                        </p>
-                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                          <span
-                            className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
-                            style={{
-                              background: svcColor.bg,
-                              color: svcColor.color,
-                            }}
-                          >
-                            {item.service}
-                          </span>
-                          <span className="text-[10px] text-gray-400">
-                            × {item.qty}
-                          </span>
-                        </div>
-                      </div>
-                      <span className="text-[13px] font-black text-gray-900 flex-shrink-0">
-                        ₹{item.qty * item.price}
-                      </span>
-                    </div>
-                  );
-                })}
+  const svcColor = serviceColors[item.service] || {
+    bg: "#F3F4F6",
+    color: "#6B7280",
+  };
+
+  const isPremium =
+    item.service === "Dry Clean" &&
+    item.careLevel === "premium";
+
+  return (
+    <div
+      key={`${item.name}-${item.service}-${item.careLevel || "regular"}-${i}`}
+      className="flex items-start gap-2.5 px-5 py-2.5 border-b border-gray-50 last:border-0"
+    >
+      <span className="text-base flex-shrink-0">
+        {itemEmoji[item.name] || "🧺"}
+      </span>
+
+      <div className="flex-1 min-w-0">
+        <p className="text-[13px] font-bold text-gray-800 break-words leading-snug">
+          {item.name}
+        </p>
+
+        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+          {/* Service */}
+          <span
+            className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
+            style={{
+              background: svcColor.bg,
+              color: svcColor.color,
+            }}
+          >
+            {item.service}
+          </span>
+
+          {/* Care Level */}
+          {isPremium ? (
+            <span
+              className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+              style={{
+                background: "#FFF8E1",
+                color: "#B7791F",
+                border: "1px solid #F6D365",
+              }}
+            >
+              <Sparkles size={9} strokeWidth={2.5} />
+              Premium Care
+            </span>
+          ) : (
+            <span
+              className="text-[10px] font-medium px-1.5 py-0.5 rounded-full"
+              style={{
+                background: "#F3F4F6",
+                color: "#6B7280",
+                border: "1px solid #E5E7EB",
+              }}
+            >
+              Regular Care
+            </span>
+          )}
+
+          {/* Quantity */}
+          <span className="text-[10px] text-gray-400">
+            × {item.qty}
+          </span>
+        </div>
+      </div>
+
+      {/* Item total */}
+      <span className="text-[13px] font-black text-gray-900 flex-shrink-0">
+        ₹{item.qty * item.price}
+      </span>
+    </div>
+  );
+})}
               </div>
 
               {/* Address + pickup */}

@@ -47,15 +47,9 @@ export const CartProvider = ({ children }) => {
     try {
       const saved = localStorage.getItem("cart");
 
-      return saved
-        ? JSON.parse(saved)
-        : [];
+      return saved ? JSON.parse(saved) : [];
     } catch (error) {
-      console.error(
-        "CART LOAD ERROR:",
-        error
-      );
-
+      console.error("CART LOAD ERROR:", error);
       return [];
     }
   });
@@ -65,42 +59,29 @@ export const CartProvider = ({ children }) => {
   // =========================================================
 
   const [coupon, setCoupon] = useState(() => {
-    return (
-      localStorage.getItem("coupon") ||
-      null
-    );
+    return localStorage.getItem("coupon") || null;
   });
 
   const [discount, setDiscount] = useState(() => {
-    return (
-      Number(
-        localStorage.getItem("discount")
-      ) || 0
-    );
+    return Number(localStorage.getItem("discount")) || 0;
   });
 
   // =========================================================
   // AVAILABLE COUPONS
   // =========================================================
 
-  const [availableCoupons, setAvailableCoupons] =
-    useState([]);
+  const [availableCoupons, setAvailableCoupons] = useState([]);
 
-  const [couponLoading, setCouponLoading] =
-    useState(false);
+  const [couponLoading, setCouponLoading] = useState(false);
 
-  const [couponMessage, setCouponMessage] =
-    useState("");
+  const [couponMessage, setCouponMessage] = useState("");
 
   // =========================================================
   // CART STORAGE
   // =========================================================
 
   useEffect(() => {
-    localStorage.setItem(
-      "cart",
-      JSON.stringify(cart)
-    );
+    localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
   // =========================================================
@@ -109,41 +90,65 @@ export const CartProvider = ({ children }) => {
 
   useEffect(() => {
     if (coupon) {
-      localStorage.setItem(
-        "coupon",
-        coupon
-      );
+      localStorage.setItem("coupon", coupon);
     } else {
-      localStorage.removeItem(
-        "coupon"
-      );
+      localStorage.removeItem("coupon");
     }
 
-    localStorage.setItem(
-      "discount",
-      String(discount)
-    );
+    localStorage.setItem("discount", String(discount));
   }, [coupon, discount]);
+
+  // =========================================================
+  // ITEM IDENTITY
+  // =========================================================
+  //
+  // IMPORTANT:
+  // Premium and Regular must be treated as different
+  // cart items.
+  //
+  // Example:
+  // Blazer + Dry Clean + Regular
+  // Blazer + Dry Clean + Premium
+  //
+  // Both can exist separately in cart.
+  // =========================================================
+
+  const isSameItem = (a, b) => {
+    return (
+      a.name === b.name &&
+      a.service === b.service &&
+      (a.careLevel || "regular") ===
+        (b.careLevel || "regular")
+    );
+  };
 
   // =========================================================
   // ADD ITEM
   // =========================================================
 
   const addItem = (item) => {
+    const normalizedItem = {
+      ...item,
+
+      careLevel:
+        item.service === "Dry Clean"
+          ? item.careLevel === "premium"
+            ? "premium"
+            : "regular"
+          : "regular",
+    };
+
     setCart((prev) => {
-      const exists = prev.find(
-        (i) =>
-          i.name === item.name &&
-          i.service === item.service
+      const exists = prev.find((i) =>
+        isSameItem(i, normalizedItem)
       );
 
       if (exists) {
         return prev.map((i) =>
-          i.name === item.name &&
-          i.service === item.service
+          isSameItem(i, normalizedItem)
             ? {
                 ...i,
-                qty: i.qty + 1,
+                qty: Number(i.qty || 0) + 1,
               }
             : i
         );
@@ -152,7 +157,7 @@ export const CartProvider = ({ children }) => {
       return [
         ...prev,
         {
-          ...item,
+          ...normalizedItem,
           qty: 1,
         },
       ];
@@ -164,13 +169,23 @@ export const CartProvider = ({ children }) => {
   // =========================================================
 
   const increaseQty = (item) => {
+    const normalizedItem = {
+      ...item,
+
+      careLevel:
+        item.service === "Dry Clean"
+          ? item.careLevel === "premium"
+            ? "premium"
+            : "regular"
+          : "regular",
+    };
+
     setCart((prev) =>
       prev.map((i) =>
-        i.name === item.name &&
-        i.service === item.service
+        isSameItem(i, normalizedItem)
           ? {
               ...i,
-              qty: i.qty + 1,
+              qty: Number(i.qty || 0) + 1,
             }
           : i
       )
@@ -182,31 +197,77 @@ export const CartProvider = ({ children }) => {
   // =========================================================
 
   const decreaseQty = (item) => {
+    const normalizedItem = {
+      ...item,
+
+      careLevel:
+        item.service === "Dry Clean"
+          ? item.careLevel === "premium"
+            ? "premium"
+            : "regular"
+          : "regular",
+    };
+
     setCart((prev) =>
       prev
         .map((i) =>
-          i.name === item.name &&
-          i.service === item.service
+          isSameItem(i, normalizedItem)
             ? {
                 ...i,
-                qty: i.qty - 1,
+                qty: Number(i.qty || 0) - 1,
               }
             : i
         )
-        .filter(
-          (i) => i.qty > 0
-        )
+        .filter((i) => Number(i.qty || 0) > 0)
     );
   };
 
   // =========================================================
   // REMOVE ITEM
   // =========================================================
+  //
+  // Backward compatible:
+  //
+  // removeItem("Blazer")
+  //
+  // removes all Blazer variants.
+  //
+  // New usage:
+  //
+  // removeItem({
+  //   name: "Blazer",
+  //   service: "Dry Clean",
+  //   careLevel: "premium"
+  // })
+  //
+  // removes only Premium Blazer.
+  // =========================================================
 
-  const removeItem = (name) => {
+  const removeItem = (itemOrName) => {
+    // Old usage: removeItem("Blazer")
+    if (typeof itemOrName === "string") {
+      setCart((prev) =>
+        prev.filter((i) => i.name !== itemOrName)
+      );
+
+      return;
+    }
+
+    // New variant-aware usage
+    const normalizedItem = {
+      ...itemOrName,
+
+      careLevel:
+        itemOrName.service === "Dry Clean"
+          ? itemOrName.careLevel === "premium"
+            ? "premium"
+            : "regular"
+          : "regular",
+    };
+
     setCart((prev) =>
       prev.filter(
-        (i) => i.name !== name
+        (i) => !isSameItem(i, normalizedItem)
       )
     );
   };
@@ -227,63 +288,47 @@ export const CartProvider = ({ children }) => {
   // HANDLING CHARGE
   // =========================================================
 
-  const handlingCharge =
-    total > 0 ? 15 : 0;
+  const handlingCharge = total > 0 ? 15 : 0;
 
   // =========================================================
   // FETCH AVAILABLE COUPONS
   // =========================================================
 
-  const fetchAvailableCoupons =
-    useCallback(async () => {
+  const fetchAvailableCoupons = useCallback(
+    async () => {
       try {
         setCouponLoading(true);
 
-        console.log(
-          "🎟️ FETCHING COUPONS"
-        );
+        console.log("🎟️ FETCHING COUPONS");
 
-        console.log(
-          "Cart Total:",
-          total
-        );
+        console.log("Cart Total:", total);
 
-        const response =
-          await API.get(
-            "/coupons/available",
-            {
-              params: {
-                total: Number(
-                  total || 0
-                ),
-              },
-            }
-          );
+        const response = await API.get(
+          "/coupons/available",
+          {
+            params: {
+              total: Number(total || 0),
+            },
+          }
+        );
 
         console.log(
           "🎟️ COUPON API RESPONSE:",
           response.data
         );
 
-        if (
-          response.data?.success
-        ) {
+        if (response.data?.success) {
           const coupons =
-            response.data
-              .coupons || [];
+            response.data.coupons || [];
 
           console.log(
             "🎟️ AVAILABLE COUPONS:",
             coupons
           );
 
-          setAvailableCoupons(
-            coupons
-          );
+          setAvailableCoupons(coupons);
         } else {
-          setAvailableCoupons(
-            []
-          );
+          setAvailableCoupons([]);
         }
       } catch (error) {
         console.error(
@@ -293,13 +338,13 @@ export const CartProvider = ({ children }) => {
             error
         );
 
-        setAvailableCoupons(
-          []
-        );
+        setAvailableCoupons([]);
       } finally {
         setCouponLoading(false);
       }
-    }, [total]);
+    },
+    [total]
+  );
 
   // =========================================================
   // FETCH COUPONS WHEN CART TOTAL CHANGES
@@ -313,199 +358,119 @@ export const CartProvider = ({ children }) => {
   // APPLY COUPON
   // =========================================================
 
-  const applyCoupon = async (
-    code
-  ) => {
-    const formattedCode =
-      code
-        ?.trim()
-        .toUpperCase();
+const applyCoupon = async (code) => {
+  const formattedCode = code?.trim().toUpperCase();
 
-    // -------------------------------------------------------
-    // EMPTY CODE
-    // -------------------------------------------------------
+  if (!formattedCode) {
+    return {
+      success: false,
+      message: "Please enter a coupon code",
+    };
+  }
 
-    if (!formattedCode) {
-      return {
-        success: false,
-        message:
-          "Please enter a coupon code",
-      };
-    }
+  if (coupon) {
+    return {
+      success: false,
+      message: "Coupon already applied!",
+    };
+  }
 
-    // -------------------------------------------------------
-    // EXISTING COUPON
-    // -------------------------------------------------------
+  try {
+    setCouponLoading(true);
+    setCouponMessage("");
 
-    if (coupon) {
-      return {
-        success: false,
-        message:
-          "Coupon already applied!",
-      };
-    }
+    const response = await API.post(
+      "/coupons/validate",
+      {
+        code: formattedCode,
+        total: Number(total || 0),
 
-    try {
-      setCouponLoading(true);
-
-      setCouponMessage("");
-
-      console.log(
-        "🎟️ APPLYING COUPON:",
-        formattedCode
-      );
-
-      console.log(
-        "Order Total:",
-        total
-      );
-
-      // -----------------------------------------------------
-      // BACKEND VALIDATION
-      // -----------------------------------------------------
-
-      const response =
-        await API.post(
-          "/coupons/validate",
-          {
-            code: formattedCode,
-
-            total: Number(
-              total || 0
-            ),
-
-            items: cart.map(
-              (item) => ({
-                name: item.name,
-
-                qty: Number(
-                  item.qty || 0
-                ),
-
-                price: Number(
-                  item.price || 0
-                ),
-
-                service:
-                  item.service ||
-                  "Wash & Fold",
-              })
-            ),
-          }
-        );
-
-      console.log(
-        "🎟️ VALIDATE RESPONSE:",
-        response.data
-      );
-
-      // -----------------------------------------------------
-      // FAILED
-      // -----------------------------------------------------
-
-      if (
-        !response.data?.success
-      ) {
-        return {
-          success: false,
-
-          message:
-            response.data
-              ?.message ||
-            "Coupon is not valid",
-        };
+        items: cart.map((item) => ({
+          name: item.name,
+          qty: Number(item.qty || 0),
+          price: Number(item.price || 0),
+          service: item.service || "Wash & Fold",
+          careLevel: item.careLevel || "regular",
+        })),
       }
+    );
 
-      // -----------------------------------------------------
-      // SUCCESS
-      // -----------------------------------------------------
+    console.log("🎟️ VALIDATE RESPONSE:", response.data);
 
-      const validatedCoupon =
-        response.data.coupon;
-
-      const discountAmount =
-        Number(
-          validatedCoupon
-            ?.discount || 0
-        );
-
-      // -----------------------------------------------------
-      // SAVE COUPON
-      // -----------------------------------------------------
-
-      setCoupon(
-        validatedCoupon.code
-      );
-
-      setDiscount(
-        discountAmount
-      );
-
-      setCouponMessage(
-        `₹${discountAmount} discount applied`
-      );
-
-      // -----------------------------------------------------
-      // REFRESH COUPONS
-      // -----------------------------------------------------
-
-      await fetchAvailableCoupons();
-
-      return {
-        success: true,
-
-        message:
-          response.data
-            ?.message ||
-          "Coupon applied successfully!",
-
-        discount:
-          discountAmount,
-
-        coupon:
-          validatedCoupon,
-      };
-    } catch (error) {
-      console.error(
-        "❌ APPLY COUPON ERROR:",
-        error.response?.data ||
-          error.message ||
-          error
-      );
-
+    if (!response.data?.success) {
       const message =
-        error.response?.data
-          ?.message ||
-        "Unable to apply coupon";
+        response.data?.message || "Coupon is not valid";
 
-      setCouponMessage(
-        message
-      );
+      setCouponMessage(message);
 
       return {
         success: false,
         message,
       };
-    } finally {
-      setCouponLoading(false);
     }
-  };
+
+    const validatedCoupon = response.data.coupon;
+
+    const discountAmount = Number(
+      validatedCoupon?.discount || 0
+    );
+
+    setCoupon(validatedCoupon.code || formattedCode);
+    setDiscount(discountAmount);
+
+    setCouponMessage(
+      response.data.message ||
+        `₹${discountAmount} discount applied`
+    );
+
+    await fetchAvailableCoupons();
+
+    return {
+      success: true,
+      discount: discountAmount,
+      message:
+        response.data.message ||
+        "Coupon applied successfully!",
+      coupon: validatedCoupon,
+    };
+  } catch (error) {
+    console.error(
+      "❌ APPLY COUPON ERROR:",
+      error.response?.data ||
+        error.message ||
+        error
+    );
+
+    const message =
+      error.response?.data?.message ||
+      "Unable to apply coupon";
+
+    setCouponMessage(message);
+
+    return {
+      success: false,
+      message,
+    };
+  } finally {
+    setCouponLoading(false);
+  }
+};
 
   // =========================================================
   // REMOVE COUPON
   // =========================================================
 
-const removeCoupon = () => {
-  setCoupon(null);
-  setDiscount(0);
-  setCouponMessage("");
+  const removeCoupon = () => {
+    setCoupon(null);
+    setDiscount(0);
+    setCouponMessage("");
 
-  localStorage.removeItem("coupon");
-  localStorage.removeItem("discount");
+    localStorage.removeItem("coupon");
+    localStorage.removeItem("discount");
 
-  // Coupons ko immediately refresh karo
-  fetchAvailableCoupons();
-};
+    // Coupons ko immediately refresh karo
+    fetchAvailableCoupons();
+  };
 
   // =========================================================
   // CLEAR CART
@@ -515,69 +480,59 @@ const removeCoupon = () => {
     setCart([]);
 
     setCoupon(null);
-
     setDiscount(0);
-
     setCouponMessage("");
 
     setAvailableCoupons([]);
 
-    localStorage.removeItem(
-      "cart"
-    );
-
-    localStorage.removeItem(
-      "coupon"
-    );
-
-    localStorage.removeItem(
-      "discount"
-    );
+    localStorage.removeItem("cart");
+    localStorage.removeItem("coupon");
+    localStorage.removeItem("discount");
   };
 
   // =========================================================
   // REORDER
   // =========================================================
 
-  const reorderItems = (
-    items = []
-  ) => {
-    const reorderedItems =
-      items
-        .map((item) => ({
-          name:
-            item.name ||
-            item.itemName ||
-            item.title ||
-            "Laundry Item",
+  const reorderItems = (items = []) => {
+    const reorderedItems = items
+      .map((item) => ({
+        name:
+          item.name ||
+          item.itemName ||
+          item.title ||
+          "Laundry Item",
 
-          service:
-            item.service ||
-            item.serviceType ||
-            item.serviceName ||
-            "Wash & Fold",
+        service:
+          item.service ||
+          item.serviceType ||
+          item.serviceName ||
+          "Wash & Fold",
 
-          price: Number(
-            item.price || 0
-          ),
+        price: Number(item.price || 0),
 
-          qty: Number(
-            item.qty ||
-              item.quantity ||
-              1
-          ),
-        }))
-        .filter(
-          (item) =>
-            item.name &&
-            item.service &&
-            item.price > 0 &&
-            item.qty > 0
-        );
+        qty: Number(
+          item.qty ||
+            item.quantity ||
+            1
+        ),
 
-    setCart(
-      reorderedItems
-    );
+        // IMPORTANT:
+        // Preserve Premium from previous order
+        careLevel:
+          item.careLevel === "premium"
+            ? "premium"
+            : "regular",
+      }))
+      .filter(
+        (item) =>
+          item.name &&
+          item.service &&
+          item.price > 0 &&
+          item.qty > 0
+      );
+
+    setCart(reorderedItems);
 
     // Never carry old coupon
     setCoupon(null);
@@ -586,17 +541,10 @@ const removeCoupon = () => {
 
     setCouponMessage("");
 
-    setAvailableCoupons(
-      []
-    );
+    setAvailableCoupons([]);
 
-    localStorage.removeItem(
-      "coupon"
-    );
-
-    localStorage.removeItem(
-      "discount"
-    );
+    localStorage.removeItem("coupon");
+    localStorage.removeItem("discount");
 
     return reorderedItems;
   };
@@ -605,13 +553,12 @@ const removeCoupon = () => {
   // FINAL TOTAL
   // =========================================================
 
-  const finalTotal =
-    Math.max(
-      total +
-        handlingCharge -
-        discount,
-      0
-    );
+  const finalTotal = Math.max(
+    total +
+      handlingCharge -
+      discount,
+    0
+  );
 
   // =========================================================
   // PROVIDER
@@ -677,3 +624,4 @@ const removeCoupon = () => {
     </CartContext.Provider>
   );
 };
+

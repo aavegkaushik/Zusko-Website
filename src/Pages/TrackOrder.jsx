@@ -508,12 +508,31 @@ export default function EnhancedTrackOrder() {
                       {item.qty}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-bold text-gray-900">{item.name}</p>
-                      <p className="mt-0.5 text-xs text-gray-500">{item.service}</p>
-                      <p className="mt-1 text-[11px] text-gray-400">
-                        ₹{item.price} × {item.qty}
-                      </p>
-                    </div>
+  <p className="truncate font-bold text-gray-900">
+    {item.name}
+  </p>
+
+  <div className="mt-1 flex flex-wrap items-center gap-2">
+    <span className="text-xs font-medium text-gray-500">
+      {item.service || "Laundry Service"}
+    </span>
+
+    {item.careLevel === "premium" ? (
+      <span className="inline-flex items-center gap-1 rounded-full border border-yellow-200 bg-yellow-50 px-2.5 py-1 text-[10px] font-black text-yellow-700">
+        <Sparkles size={11} />
+        Premium Care
+      </span>
+    ) : (
+      <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-[10px] font-bold text-gray-600">
+        Regular Care
+      </span>
+    )}
+  </div>
+
+  <p className="mt-1 text-[11px] text-gray-400">
+    ₹{item.price} × {item.qty}
+  </p>
+</div>
                     <p className="shrink-0 text-base font-black text-gray-900 sm:text-lg">
                       ₹{item.price * item.qty}
                     </p>
