@@ -12,115 +12,18 @@ import { useAuth } from "../context/AuthContext";
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
 
-const categories = {
-  Men: {
-    emoji: "👔",
-    subtitle: "13 items",
-    items: [
-      { name: "Shirt", basePrice: 20 },
-      { name: "T-Shirt", basePrice: 15 },
-      { name: "Jeans", basePrice: 40 },
-      { name: "Trousers", basePrice: 35 },
-      { name: "Shorts", basePrice: 25 },
-      { name: "Kurta", basePrice: 30 },
-      { name: "Blazer", basePrice: 80 },
-      { name: "Suit (2 Piece)", basePrice: 120 },
-      { name: "Suit (3 Piece)", basePrice: 150 },
-      { name: "Jacket", basePrice: 70 },
-      { name: "Sweater", basePrice: 50 },
-      { name: "Hoodie", basePrice: 45 },
-      { name: "Innerwear", basePrice: 10 },
-    ],
-  },
-  Women: {
-    emoji: "👗",
-    subtitle: "12 items",
-    items: [
-      { name: "Kurti", basePrice: 30 },
-      { name: "Leggings", basePrice: 20 },
-      { name: "Saree (Normal)", basePrice: 80 },
-      { name: "Saree (Heavy)", basePrice: 120 },
-      { name: "Blouse", basePrice: 25 },
-      { name: "Top", basePrice: 25 },
-      { name: "Dress", basePrice: 60 },
-      { name: "Gown", basePrice: 100 },
-      { name: "Dupatta", basePrice: 20 },
-      { name: "Skirt", basePrice: 35 },
-      { name: "Jacket", basePrice: 70 },
-      { name: "Sweater", basePrice: 50 },
-    ],
-  },
-  Kids: {
-    emoji: "🧒",
-    subtitle: "8 items",
-    items: [
-      { name: "Kids Shirt", basePrice: 10 },
-      { name: "Kids T-Shirt", basePrice: 8 },
-      { name: "Kids Jeans", basePrice: 20 },
-      { name: "Kids Shorts", basePrice: 15 },
-      { name: "School Uniform", basePrice: 25 },
-      { name: "Kids Jacket", basePrice: 30 },
-      { name: "Kids Sweater", basePrice: 25 },
-      { name: "Frock", basePrice: 20 },
-    ],
-  },
-  Household: {
-    emoji: "🏠",
-    subtitle: "11 items",
-    items: [
-      { name: "Bedsheet (Single)", basePrice: 40 },
-      { name: "Bedsheet (Double)", basePrice: 50 },
-      { name: "Blanket", basePrice: 80 },
-      { name: "Quilt/Rajai", basePrice: 120 },
-      { name: "Pillow Cover", basePrice: 10 },
-      { name: "Curtains (Light)", basePrice: 60 },
-      { name: "Curtains (Heavy)", basePrice: 100 },
-      { name: "Sofa Cover", basePrice: 90 },
-      { name: "Towel", basePrice: 15 },
-      { name: "Carpet (Small)", basePrice: 100 },
-      { name: "Carpet (Large)", basePrice: 200 },
-    ],
-  },
+const categoryMeta = {
+  Men: { emoji: "👔" },
+  Women: { emoji: "👗" },
+  Kids: { emoji: "🧒" },
+  Household: { emoji: "🏠" },
 };
 
 const services = [
-  {
-    name: "Wash & Fold",
-    multiplier: 0.8,
-    icon: <Droplets size={18} />,
-    desc: "Clean & neatly folded",
-    time: "24 hrs",
-    color: "#3B82F6",
-    bg: "#EFF6FF",
-  },
-  {
-    name: "Wash & Iron",
-    multiplier: 1,
-    icon: <Wind size={18} />,
-    desc: "Washed & pressed crisp",
-    time: "36 hrs",
-    color: "#8B5CF6",
-    bg: "#F5F3FF",
-    popular: true,
-  },
-  {
-    name: "Dry Clean",
-    multiplier: 3,
-    icon: <Layers size={18} />,
-    desc: "Premium solvent care",
-    time: "48 hrs",
-    color: "#F59E0B",
-    bg: "#FFFBEB",
-  },
-  {
-    name: "Steam Iron",
-    multiplier: 0.7,
-    icon: <Zap size={18} />,
-    desc: "Quick steam press only",
-    time: "12 hrs",
-    color: "#10B981",
-    bg: "#ECFDF5",
-  },
+  { name:"Wash & Fold", icon:<Droplets size={18} />, desc:"Clean & neatly folded", time:"24 hrs", color:"#3B82F6", bg:"#EFF6FF" },
+  { name:"Wash & Iron", icon:<Wind size={18} />, desc:"Washed & pressed crisp", time:"36 hrs", color:"#8B5CF6", bg:"#F5F3FF", popular:true },
+  { name:"Dry Clean", icon:<Layers size={18} />, desc:"Premium solvent care", time:"48 hrs", color:"#F59E0B", bg:"#FFFBEB" },
+  { name:"Steam Iron", icon:<Zap size={18} />, desc:"Quick steam press only", time:"12 hrs", color:"#10B981", bg:"#ECFDF5" },
 ];
 
 const itemEmoji = {
@@ -180,7 +83,22 @@ export default function BookLaundry() {
   const [showCursor, setShowCursor] = useState(true);
   const [activeOrder, setActiveOrder] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [pricing, setPricing] = useState([]);
+  const [pricingLoading, setPricingLoading] = useState(true);
+  const [pricingError, setPricingError] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
+
+  // Mobile service carousel
+  const serviceScrollRef = useRef(null);
+
+  const scrollServices = () => {
+    if (!serviceScrollRef.current) return;
+
+    serviceScrollRef.current.scrollBy({
+      left: 170,
+      behavior: "smooth",
+    });
+  };
 
   const getSmartPlaceholders = () => {
     const hour = new Date().getHours();
@@ -193,53 +111,102 @@ export default function BookLaundry() {
   const { cart, addItem, increaseQty, decreaseQty } = useContext(CartContext);
 
 const getItemQty = (item) => {
-  const careLevel =
-    selectedService === "Dry Clean"
-      ? selectedCareLevel
-      : "regular";
+    const careLevel =
+      selectedService === "Dry Clean" ? selectedCareLevel : "regular";
 
-  return (
-    cart.find(
-      (i) =>
-        i.name === item.name &&
-        i.service === selectedService &&
-        (i.careLevel || "regular") === careLevel
-    )?.qty ?? 0
-  );
-};
+    return (
+      cart.find(
+        (i) =>
+          (i.pricingId
+            ? String(i.pricingId) === String(item._id)
+            : i.name === item.name &&
+              i.variant === (item.variant || "") &&
+              i.service === selectedService) &&
+          (i.careLevel || "regular") === careLevel
+      )?.qty ?? 0
+    );
+  };
 
-const getPrice = (item) => {
-  const service = services.find(
-    (s) => s.name === selectedService
-  );
+  const categoryCounts = Object.keys(categoryMeta).reduce((acc, category) => {
+    const uniqueItems = new Set(
+      pricing
+        .filter((item) => item.category === category)
+        .map((item) => `${item.name}::${item.variant || ""}`)
+    );
+    acc[category] = uniqueItems.size;
+    return acc;
+  }, {});
 
-  if (!service) return 0;
-
-  const basePrice = Math.round(
-    item.basePrice * service.multiplier
-  );
-
-  // Premium Dry Clean = 25% extra
-  if (
-    selectedService === "Dry Clean" &&
-    selectedCareLevel === "premium"
-  ) {
-    return Math.round(basePrice * 1.25);
-  }
-
-  return basePrice;
-};
-
-  const currentItems =
-    search.length > 0
-      ? Object.values(categories)
-          .flatMap((c) => c.items)
-          .filter((item, idx, arr) => arr.findIndex((i) => i.name === item.name) === idx)
-          .filter((item) => item.name.toLowerCase().includes(search.toLowerCase()))
-      : categories[selectedCategory].items;
+  const currentItems = pricing
+    .filter((item) => item.service === selectedService)
+    .filter((item) => item.category === selectedCategory)
+    .filter((item) =>
+      selectedService === "Dry Clean"
+        ? (item.careLevel || "regular") === selectedCareLevel
+        : (item.careLevel || "regular") === "regular"
+    )
+    .filter((item) => {
+      if (!search.trim()) return true;
+      const searchText = [item.name, item.variant, item.description]
+        .filter(Boolean).join(" ").toLowerCase();
+      return searchText.includes(search.toLowerCase());
+    })
+    .sort(
+      (a, b) =>
+        Number(a.sortOrder || 0) - Number(b.sortOrder || 0) ||
+        String(a.name).localeCompare(String(b.name)) ||
+        String(a.variant || "").localeCompare(String(b.variant || ""))
+    );
 
   const cartTotal = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
   const cartCount = cart.reduce((sum, i) => sum + i.qty, 0);
+
+  // Dynamic pricing
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchPricing = async () => {
+      try {
+        setPricingLoading(true);
+        setPricingError("");
+
+        const res = await API.get("/pricing");
+
+        if (cancelled) return;
+
+        const rows = Array.isArray(res.data?.data) ? res.data.data : [];
+
+        setPricing(
+          rows.filter(
+            (item) =>
+              item &&
+              item.active !== false &&
+              item._id &&
+              item.service &&
+              item.category &&
+              item.name &&
+              Number.isFinite(Number(item.price))
+          )
+        );
+      } catch (err) {
+        if (!cancelled) {
+          console.error("PRICING FETCH ERROR:", err);
+          setPricing([]);
+          setPricingError(
+            err.response?.data?.message || "Unable to load pricing right now."
+          );
+        }
+      } finally {
+        if (!cancelled) setPricingLoading(false);
+      }
+    };
+
+    fetchPricing();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Active order
 useEffect(() => {
@@ -311,8 +278,9 @@ useEffect(() => {
       <div
         className="relative overflow-hidden w-full"
         style={{
-          background: "linear-gradient(135deg, #0c0c0c 0%, #161616 55%, #221a00 100%)",
-          paddingTop: "80px",
+          background:
+            "radial-gradient(circle at 78% 18%, rgba(255,215,0,0.18), transparent 28%), linear-gradient(135deg, #080808 0%, #111111 52%, #1b1605 100%)",
+          paddingTop: "72px",
         }}
       >
         {/* Decorative blobs — large on desktop */}
@@ -324,7 +292,7 @@ useEffect(() => {
           style={{ background: "radial-gradient(circle, #FFD700, transparent 65%)" }} />
 
         {/* Hero inner — wider on desktop */}
-        <div className="relative z-10 w-full max-w-[1400px] mx-auto px-6 lg:px-16 xl:px-24 pt-10 pb-14">
+        <div className="relative z-10 w-full max-w-[1480px] mx-auto px-5 sm:px-7 lg:px-12 xl:px-20 pt-10 pb-16">
           <div className="lg:flex lg:items-end lg:justify-between lg:gap-12">
 
             {/* Left: headline copy */}
@@ -355,14 +323,14 @@ useEffect(() => {
                 className="mt-4 text-sm lg:text-base"
                 style={{ color: "rgba(255,255,255,0.5)" }}
               >
-                Free Pickup · Premium Fabric Care · Same Day Service
+                Doorstep pickup · Expert fabric care · Effortless reordering
               </motion.p>
 
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.35 }}
-                className="flex flex-wrap gap-2 mt-6"
+                className="flex flex-wrap gap-2.5 mt-7"
               >
                 {[
                   { icon: "🚚", label: "Slot Based Pickup" },
@@ -371,7 +339,7 @@ useEffect(() => {
                 ].map((chip) => (
                   <span key={chip.label}
                     className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full"
-                    style={{ background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.75)", border: "1px solid rgba(255,255,255,0.10)", backdropFilter: "blur(8px)" }}>
+                    style={{ background: "rgba(255,255,255,0.055)", color: "rgba(255,255,255,0.78)", border: "1px solid rgba(255,255,255,0.10)", backdropFilter: "blur(14px)" }}>
                     {chip.icon} {chip.label}
                   </span>
                 ))}
@@ -383,16 +351,23 @@ useEffect(() => {
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4 }}
-              className="hidden lg:flex gap-8 pb-1"
+              className="hidden lg:flex items-stretch gap-3 pb-1"
             >
               {[
                 { val: "1K+", label: "Happy Customers" },
                 { val: "4.9★", label: "Average Rating" },
                 { val: "24hr", label: "Turnaround" },
               ].map((stat) => (
-                <div key={stat.label} className="text-center">
-                  <p className="font-black text-3xl text-white">{stat.val}</p>
-                  <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.4)" }}>{stat.label}</p>
+                <div key={stat.label}
+                  className="min-w-[118px] rounded-2xl border px-4 py-4 text-center"
+                  style={{
+                    background: "rgba(255,255,255,0.045)",
+                    borderColor: "rgba(255,255,255,0.09)",
+                    backdropFilter: "blur(16px)",
+                  }}
+                >
+                  <p className="font-black text-2xl text-white tracking-tight">{stat.val}</p>
+                  <p className="text-[10px] mt-1.5 uppercase tracking-[0.12em]" style={{ color: "rgba(255,255,255,0.38)" }}>{stat.label}</p>
                 </div>
               ))}
             </motion.div>
@@ -408,10 +383,10 @@ useEffect(() => {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.45, type: "spring", stiffness: 200 }}
-          className="relative"
+          className="relative overflow-hidden"
           style={{
-            background: "white",
-            borderRadius: "18px",
+            background: "rgba(255,255,255,0.96)",
+            borderRadius: "20px",
             boxShadow: searchFocused
               ? "0 0 0 3px rgba(255,215,0,0.3), 0 8px 40px rgba(0,0,0,0.13)"
               : "0 4px 30px rgba(0,0,0,0.11)",
@@ -429,7 +404,7 @@ useEffect(() => {
             onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
             placeholder=""
-            className="w-full h-14 bg-transparent outline-none text-sm font-medium text-gray-800"
+            className="w-full h-[62px] bg-transparent outline-none text-sm font-semibold text-gray-800"
             style={{ paddingLeft: "48px", paddingRight: "44px", borderRadius: "18px" }}
           />
           {!search && (
@@ -459,7 +434,7 @@ useEffect(() => {
           Mobile:  single column stack
           Desktop: left sidebar (fixed 280px) + scrollable content area
       ══════════════════════════════════════════ */}
-      <div className="w-full max-w-[1400px] mx-auto px-6 lg:px-16 xl:px-24 mt-6">
+      <div className="w-full max-w-[1480px] mx-auto px-5 sm:px-7 lg:px-12 xl:px-20 mt-8">
         <div className="lg:flex lg:gap-8 xl:gap-10 lg:items-start">
 
           {/* ── LEFT SIDEBAR (desktop only) ───────────────── */}
@@ -514,7 +489,7 @@ useEffect(() => {
             <div className="mb-5">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 px-1">Category</p>
               <div className="space-y-1.5">
-                {Object.entries(categories).map(([cat, data]) => {
+                {Object.entries(categoryMeta).map(([cat, data]) => {
                   const isSelected = selectedCategory === cat;
                   return (
                     <motion.button
@@ -531,7 +506,7 @@ useEffect(() => {
                       <span className="text-xl leading-none">{data.emoji}</span>
                       <div className="flex-1 min-w-0">
                         <p className={`font-bold text-sm leading-none ${isSelected ? "text-gray-900" : "text-gray-800"}`}>{cat}</p>
-                        <p className={`text-[11px] mt-0.5 ${isSelected ? "text-gray-700" : "text-gray-400"}`}>{data.subtitle}</p>
+                        <p className={`text-[11px] mt-0.5 ${isSelected ? "text-gray-700" : "text-gray-400"}`}>{categoryCounts[cat] || 0} items</p>
                       </div>
                       {isSelected && (
                         <div className="w-5 h-5 rounded-full bg-gray-900 flex items-center justify-center flex-shrink-0">
@@ -724,7 +699,7 @@ useEffect(() => {
             <div className="lg:hidden mb-5">
               <h2 className="text-[13px] font-bold text-gray-400 uppercase tracking-widest mb-3">Category</h2>
               <div className="grid grid-cols-2 gap-3">
-                {Object.entries(categories).map(([cat, data], i) => {
+                {Object.entries(categoryMeta).map(([cat, data], i) => {
                   const isSelected = selectedCategory === cat;
                   return (
                     <motion.button
@@ -744,7 +719,7 @@ useEffect(() => {
                     >
                       <span className="text-2xl block mb-2">{data.emoji}</span>
                       <p className={`font-bold text-[14px] ${isSelected ? "text-gray-900" : "text-gray-800"}`}>{cat}</p>
-                      <p className={`text-[11px] mt-0.5 ${isSelected ? "text-gray-700" : "text-gray-400"}`}>{data.subtitle}</p>
+                      <p className={`text-[11px] mt-0.5 ${isSelected ? "text-gray-700" : "text-gray-400"}`}>{categoryCounts[cat] || 0} items</p>
                       {isSelected && (
                         <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-gray-900 flex items-center justify-center">
                           <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
@@ -760,8 +735,41 @@ useEffect(() => {
 
             {/* Mobile: services horizontal scroll */}
             <div className="lg:hidden mb-5">
-              <h2 className="text-[13px] font-bold text-gray-400 uppercase tracking-widest mb-3">Service Type</h2>
-              <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-[13px] font-bold text-gray-400 uppercase tracking-widest">Service Type</h2>
+
+                {/* Mobile scroll hint */}
+                <motion.div
+                  initial={{ opacity: 0, x: 6 }}
+                  animate={{ opacity: 1, x: [6, 0, 6] }}
+                  transition={{
+                    opacity: { duration: 0.4 },
+                    x: { duration: 1.4, repeat: Infinity, ease: "easeInOut" },
+                  }}
+                  className="flex items-center gap-1.5 rounded-full px-2.5 py-1"
+                  style={{
+                    background: "#FFF9E6",
+                    border: "1px solid #FDE68A",
+                    color: "#A16207",
+                  }}
+                >
+                  <span className="text-[9px] font-extrabold uppercase tracking-wide whitespace-nowrap">
+                    Swipe
+                  </span>
+                  <ChevronRight size={12} strokeWidth={2.5} />
+                </motion.div>
+              </div>
+
+              <div className="relative">
+                <div
+                  ref={serviceScrollRef}
+                  className="flex gap-3 overflow-x-auto pb-2 pr-8"
+                  style={{
+                    scrollbarWidth: "none",
+                    WebkitOverflowScrolling: "touch",
+                    scrollBehavior: "smooth",
+                  }}
+                >
                 {services.map((service, i) => {
                   const isSelected = selectedService === service.name;
                   return (
@@ -805,6 +813,37 @@ useEffect(() => {
                     </motion.button>
                   );
                 })}
+                </div>
+
+                {/* Right fade makes the horizontal scroll affordance obvious */}
+                <div
+                  className="pointer-events-none absolute right-0 top-0 bottom-2 w-14"
+                  style={{
+                    background: "linear-gradient(90deg, rgba(248,249,251,0), #F8F9FB 88%)",
+                  }}
+                />
+
+                {/* Clickable floating arrow — scrolls services */}
+                <motion.button
+                  type="button"
+                  aria-label="Show more services"
+                  onClick={scrollServices}
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.9 }}
+                  animate={{ x: [0, 3, 0] }}
+                  transition={{
+                    x: { duration: 1.2, repeat: Infinity, ease: "easeInOut" },
+                  }}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center z-10 cursor-pointer"
+                  style={{
+                    background: "rgba(255,255,255,0.98)",
+                    boxShadow: "0 5px 18px rgba(0,0,0,0.16)",
+                    border: "1px solid rgba(0,0,0,0.08)",
+                    color: "#111827",
+                  }}
+                >
+                  <ChevronRight size={17} strokeWidth={2.7} />
+                </motion.button>
               </div>
             </div>
 
@@ -889,11 +928,18 @@ useEffect(() => {
 
             {/* ── ITEM GRID / LIST ─────────────────────────── */}
             <div>
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-[15px] font-bold text-gray-900">
-                  {search ? `Results for "${search}"` : selectedCategory}
-                </h2>
-                <span className="text-xs text-gray-400 font-medium">{currentItems.length} items</span>
+              <div className="flex items-end justify-between mb-4 px-1">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-gray-400 mb-1">
+                    {selectedService}
+                  </p>
+                  <h2 className="text-xl sm:text-2xl font-black tracking-tight text-gray-950">
+                    {search ? `Results for "${search}"` : selectedCategory}
+                  </h2>
+                </div>
+                <span className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[11px] font-bold text-gray-500 shadow-sm">
+                  {currentItems.length} {currentItems.length === 1 ? "item" : "items"}
+                </span>
               </div>
 
               {/*
@@ -926,10 +972,10 @@ useEffect(() => {
                     )
                     : currentItems.map((item, i) => {
                         const qty = getItemQty(item);
-                        const price = getPrice(item);
+                        const price = Number(item.price);
                         return (
                           <ItemCard
-  key={`${selectedCategory}-${item.name}-${selectedService}-${selectedCareLevel}`}
+  key={item._id}
   item={item}
   qty={qty}
   price={price}
@@ -1034,7 +1080,7 @@ function CartSummaryPanel({ cart, cartCount, cartTotal, navigate }) {
         <AnimatePresence>
           {cart.map((item) => (
             <motion.div
-              key={`${item.name}-${item.service}-${item.careLevel || "regular"}`}
+              key={`${item.pricingId || item._id || item.name}-${item.service}-${item.careLevel || "regular"}`}
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
@@ -1047,7 +1093,7 @@ function CartSummaryPanel({ cart, cartCount, cartTotal, navigate }) {
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-[13px] font-bold text-gray-800 leading-snug break-words">
-                    {item.name}
+                    {item.variant ? `${item.name} (${item.variant})` : item.name}
                   </p>
                   <p className="text-[11px] text-gray-400 mt-0.5">{item.service}</p>
                   {item.careLevel === "premium" && (
@@ -1119,7 +1165,12 @@ function ItemCard({
   increaseQty,
   decreaseQty
 }) {
-  const emoji = itemEmoji[item.name] || "🧺";
+  const emoji =
+    itemEmoji[item.name] ||
+    itemEmoji[item.variant ? `${item.name} (${item.variant})` : item.name] ||
+    "🧺";
+
+  const displayName = item.variant ? `${item.name} (${item.variant})` : item.name;
 
   return (
     <motion.div
@@ -1147,7 +1198,7 @@ function ItemCard({
         {/* Name + service */}
         <div className="flex-1 min-w-0 pt-0.5">
           <p className="font-bold text-gray-900 text-[16px] leading-snug break-words">
-            {item.name}
+            {displayName}
           </p>
           <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
   <span
@@ -1200,6 +1251,7 @@ function ItemCard({
               onClick={() =>
   addItem({
     ...item,
+    pricingId: item._id,
     price,
     service: selectedService,
     careLevel:
@@ -1229,6 +1281,7 @@ function ItemCard({
                 onClick={() =>
   decreaseQty({
     ...item,
+    pricingId: item._id,
     service: selectedService,
     careLevel:
       selectedService === "Dry Clean"
@@ -1246,6 +1299,7 @@ function ItemCard({
                 onClick={() =>
   increaseQty({
     ...item,
+    pricingId: item._id,
     service: selectedService,
     careLevel:
       selectedService === "Dry Clean"
