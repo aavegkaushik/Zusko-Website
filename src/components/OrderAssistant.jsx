@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Bot,
@@ -20,12 +21,15 @@ import {
   ShieldCheck,
   ArrowUpRight,
   HelpCircle,
+  AlertTriangle,
+  Star,
+  Check,
 } from "lucide-react";
 import API from "../config/api";
 import { useAuth } from "../context/AuthContext";
 
 // ============================================================
-// MASTER OPTIONS LIST
+// MASTER OPTIONS LIST (Active / In-Transit Orders)
 // ============================================================
 const MASTER_OPTIONS = [
   {
@@ -101,11 +105,90 @@ const MASTER_OPTIONS = [
   },
 ];
 
+// ============================================================
+// DELIVERED ORDERS OPTIONS LIST (Post-Delivery Care & Issues)
+// ============================================================
+const DELIVERED_OPTIONS = [
+  {
+    id: "delivered_issue",
+    icon: "⚠️",
+    label: "Report Issue with Delivered Clothes",
+    desc: "Missing garment, stain remaining, or wash quality",
+    query: "I have an issue with delivered clothes",
+    highlight: true,
+  },
+  {
+    id: "request_rewash",
+    icon: "🔄",
+    label: "Request Free Re-Wash / Re-Iron",
+    desc: "Zusko 100% Quality & Clean Guarantee",
+    query: "Request a re-wash for my order",
+    highlight: true,
+  },
+  {
+    id: "call_support",
+    icon: "📞",
+    label: "Call Customer Care Helpline",
+    desc: "Direct Helpline: +91 80044 11976 (8 AM – 10 PM)",
+    query: "Call customer care support",
+  },
+  {
+    id: "report_missing",
+    icon: "🧺",
+    label: "Missing Item / Cloth Claim",
+    desc: "CCTV packing audit & missing cloth claim",
+    query: "My cloth is missing from delivered order",
+  },
+  {
+    id: "clothes_list",
+    icon: "📋",
+    label: "Delivered Items Breakdown",
+    desc: "Check items, services & fabric care list",
+    query: "What clothes did I give?",
+  },
+  {
+    id: "bill_details",
+    icon: "💳",
+    label: "View Invoice & Paid Bill",
+    desc: "Item subtotal, delivery charges & invoice",
+    query: "Bill and payment details",
+  },
+  {
+    id: "delivered_feedback",
+    icon: "⭐",
+    label: "Rate & Share Feedback",
+    desc: "Rate your wash quality & rider service",
+    query: "Rate this order",
+  },
+  {
+    id: "whatsapp_support",
+    icon: "💬",
+    label: "Chat on WhatsApp Support",
+    desc: "Instant live chat with support team",
+    query: "WhatsApp support",
+  },
+  {
+    id: "reorder_now",
+    icon: "🔁",
+    label: "Book Next Laundry Pickup",
+    desc: "Re-order your favorite laundry services",
+    query: "Book next laundry pickup",
+  },
+  {
+    id: "switch_order",
+    icon: "📦",
+    label: "View / Switch All Orders",
+    desc: "Browse other active & past orders",
+    query: "Show all my orders",
+  },
+];
+
 export default function OrderAssistant({
   order: initialOrder,
   onClose,
   initialOpen = true,
 }) {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [open, setOpen] = useState(initialOpen);
   const [ordersList, setOrdersList] = useState([]);
@@ -195,43 +278,189 @@ export default function OrderAssistant({
     }
   };
 
+  // Helper to determine if delivered order is within 24-hour resolution window
+  const getDeliveredSupportWindow = (order) => {
+    if (!order || order.status !== "completed") {
+      return { isCompleted: false, isEligible: false, hoursLeft: 0, hoursPassed: 0 };
+    }
+
+    let deliveryTime = null;
+    if (Array.isArray(order.history)) {
+      const completedEntry = order.history
+        .slice()
+        .reverse()
+        .find((h) => h.status === "completed");
+      if (completedEntry && completedEntry.changedAt) {
+        deliveryTime = new Date(completedEntry.changedAt);
+      }
+    }
+
+    if (!deliveryTime) {
+      const rawDate =
+        order.deliveredAt ||
+        order.deliveredDate ||
+        order.completedAt ||
+        order.updatedAt ||
+        order.createdAt;
+      if (rawDate) {
+        deliveryTime = new Date(rawDate);
+      }
+    }
+
+    if (!deliveryTime || isNaN(deliveryTime.getTime())) {
+      return { isCompleted: true, isEligible: true, hoursLeft: 24, hoursPassed: 0 };
+    }
+
+    const now = new Date();
+    const diffMs = now.getTime() - deliveryTime.getTime();
+    const hoursPassed = diffMs / (1000 * 60 * 60);
+    const isEligible = hoursPassed >= 0 && hoursPassed <= 24;
+    const hoursLeft = Math.max(0, Math.ceil(24 - hoursPassed));
+
+    return {
+      isCompleted: true,
+      isEligible,
+      hoursPassed: Math.round(hoursPassed * 10) / 10,
+      hoursLeft,
+      deliveryTime,
+    };
+  };
+
   // Initial welcome greeting with options
   useEffect(() => {
     if (messages.length > 0) return;
 
     const customerName = user?.name || selectedOrder?.customerName || "there";
     const orderCode = selectedOrder?.orderId ? `#${selectedOrder.orderId}` : "";
+    const isDelivered = selectedOrder?.status?.toLowerCase() === "completed";
+    const supportWindow = getDeliveredSupportWindow(selectedOrder);
 
-    setMessages([
-      {
-        id: "msg-welcome-1",
-        sender: "bot",
-        text: `Hi ${customerName}! 👋\n\nI am your **Zusko AI Order Assistant**.\nSelect any option below or ask me any question about your laundry:`,
-        type: "options_menu",
-        options: MASTER_OPTIONS,
-      },
-      ...(selectedOrder
-        ? [
-            {
-              id: "msg-welcome-order-card",
-              sender: "bot",
-              text: `Currently active context for Order **${orderCode}**:`,
-              type: "order_snapshot",
-              order: selectedOrder,
-            },
-          ]
-        : []),
-    ]);
+    if (isDelivered) {
+      if (supportWindow.isEligible) {
+        setMessages([
+          {
+            id: "msg-welcome-1",
+            sender: "bot",
+            text: `Hi ${customerName}! 👋\n\nYour order **${orderCode}** was **Delivered Successfully**! ✨\n\n⚡ **24-Hour Resolution Window Active** (${supportWindow.hoursLeft} hours remaining):\nIf you have any questions, need a free re-wash, or faced any issue with your clothes, select an option below for instant resolution:`,
+            type: "options_menu",
+            options: DELIVERED_OPTIONS,
+            order: selectedOrder,
+          },
+          {
+            id: "msg-welcome-delivered-card",
+            sender: "bot",
+            text: `Delivered Order Context for **${orderCode}**:`,
+            type: "delivered_snapshot",
+            order: selectedOrder,
+          },
+        ]);
 
-    setSuggestions([
-      "📞 Call Customer Care",
-      "📍 Where is my order?",
-      "🧺 Clothes list",
-      "💳 Bill details",
-      "🚚 Pickup Slot",
-      "📋 Switch Order",
-      "💬 WhatsApp",
-    ]);
+        setSuggestions([
+          "⚠️ Report Issue",
+          "🔄 Free Re-Wash",
+          "📞 Call Customer Care",
+          "🧺 Missing Item",
+          "💳 View Invoice",
+          "⭐ Rate Order",
+          "💬 WhatsApp",
+        ]);
+      } else {
+        // Delivered more than 24 hours ago
+        setMessages([
+          {
+            id: "msg-welcome-1",
+            sender: "bot",
+            text: `Hi ${customerName}! 👋\n\nYour order **${orderCode}** was **Delivered Successfully**! ✨\n\nℹ️ **Notice**: The 24-hour instant issue & free re-wash window for this order has expired. If you have general questions or want to book your next laundry, our team is always ready to assist:`,
+            type: "options_menu",
+            options: [
+              {
+                id: "call_support",
+                icon: "📞",
+                label: "Call Customer Care Helpline",
+                desc: "Direct Helpline: +91 80044 11976",
+                query: "Call customer care support",
+                highlight: true,
+              },
+              {
+                id: "bill_details",
+                icon: "💳",
+                label: "View Invoice & Paid Bill",
+                desc: "Item subtotal, delivery charges & invoice",
+                query: "Bill and payment details",
+              },
+              {
+                id: "reorder_now",
+                icon: "🔁",
+                label: "Book Next Laundry Pickup",
+                desc: "Re-order your favorite laundry services",
+                query: "Book next laundry pickup",
+              },
+              {
+                id: "delivered_feedback",
+                icon: "⭐",
+                label: "Rate & Share Feedback",
+                desc: "Share your experience with us",
+                query: "Rate this order",
+              },
+              {
+                id: "whatsapp_support",
+                icon: "💬",
+                label: "Chat on WhatsApp Support",
+                desc: "Instant live chat with support team",
+                query: "WhatsApp support",
+              },
+              {
+                id: "switch_order",
+                icon: "📦",
+                label: "View / Switch All Orders",
+                desc: "Browse other active & past orders",
+                query: "Show all my orders",
+              },
+            ],
+            order: selectedOrder,
+          },
+        ]);
+
+        setSuggestions([
+          "📞 Call Customer Care",
+          "💳 View Invoice",
+          "🔁 Book Next Pickup",
+          "⭐ Rate Order",
+          "💬 WhatsApp",
+        ]);
+      }
+    } else {
+      setMessages([
+        {
+          id: "msg-welcome-1",
+          sender: "bot",
+          text: `Hi ${customerName}! 👋\n\nI am your **Zusko AI Order Assistant**.\nSelect any option below or ask me any question about your laundry:`,
+          type: "options_menu",
+          options: MASTER_OPTIONS,
+        },
+        ...(selectedOrder
+          ? [
+              {
+                id: "msg-welcome-order-card",
+                sender: "bot",
+                text: `Currently active context for Order **${orderCode}**:`,
+                type: "order_snapshot",
+                order: selectedOrder,
+              },
+            ]
+          : []),
+      ]);
+
+      setSuggestions([
+        "📞 Call Customer Care",
+        "📍 Where is my order?",
+        "🧺 Clothes list",
+        "💳 Bill details",
+        "🚚 Pickup Slot",
+        "📋 Switch Order",
+        "💬 WhatsApp",
+      ]);
+    }
   }, [selectedOrder, user?.name, messages.length]);
 
   const canCancel = ["pending", "accepted"].includes(
@@ -567,41 +796,203 @@ Answer politely, concisely and helpfully in easy-to-understand Hinglish or Engli
           ],
         };
 
-      // 10. SWITCH / VIEW ALL ORDERS
-      case "switch_order":
-        if (ordersList && ordersList.length > 0) {
+      // 10. DELIVERED ORDER: REPORT ISSUE SELECTOR
+      case "delivered_issue": {
+        const supportWindow = getDeliveredSupportWindow(currentOrder);
+        if (currentOrder?.status?.toLowerCase() === "completed" && !supportWindow.isEligible) {
           return {
-            text: `Here are all the orders on your account (${ordersList.length} total). Tap any order below to view its live status and details:`,
-            type: "order_list",
-            orders: ordersList,
+            text: `⚠️ **Post-Delivery Support Window Closed for ${orderCode}**:\n\nOur automated complaint and issue resolution window is valid for **24 hours after delivery**.\n\nSince 24 hours have already passed for this order, automated claims cannot be generated in the app. However, our customer care team is always here to assist you:`,
+            type: "call_support_card",
+            order: currentOrder,
             followUpOptions: [
               { label: "📞 Call Customer Care", query: "Call customer care support", id: "call_support" },
-              { label: "💬 WhatsApp Help", query: "WhatsApp support", id: "whatsapp_support" },
-              { label: "⚡ All Options", query: "Show all options", id: "all_options" },
-            ],
-          };
-        } else {
-          return {
-            text: `No past orders were found on your account. If you just placed an order, please refresh or check back in a moment!`,
-            followUpOptions: [
-              { label: "📞 Call Support", query: "Call customer care support", id: "call_support" },
+              { label: "💬 Chat on WhatsApp", query: "WhatsApp support", id: "whatsapp_support" },
               { label: "⚡ All Options", query: "Show all options", id: "all_options" },
             ],
           };
         }
 
-      // 11. ALL OPTIONS MENU
-      case "all_options":
-      default:
         return {
-          text: `Here are all available assistance options for **${orderCode}**:\n\nSelect any option below to get instant details:`,
-          type: "options_menu",
-          options: MASTER_OPTIONS,
+          text: `⚠️ **Report an Issue with Delivered Order ${orderCode}**:\n\nWe apologize if your order wasn't 100% spotless. Under Zusko's **Quality Guarantee**, your clothes and satisfaction are completely protected.\n\nPlease select what went wrong:`,
+          type: "delivered_issue_selector",
+          order: currentOrder,
+          followUpOptions: [
+            { label: "🧺 Missing Garment", query: "My cloth is missing from delivered order", id: "report_missing" },
+            { label: "🧼 Stain Still Visible", query: "Stains not removed properly", id: "request_rewash" },
+            { label: "👔 Poor Steam Pressing", query: "Ironing was poor and wrinkly", id: "request_rewash" },
+            { label: "👗 Wrong Garment", query: "Received someone else's clothes", id: "report_wrong_item" },
+            { label: "📞 Call Customer Care", query: "Call customer care support", id: "call_support" },
+          ],
+        };
+      }
+
+      // 11. DELIVERED ORDER: MISSING ITEM CLAIM
+      case "report_missing":
+      case "delivered_missing_item": {
+        const ticketId = `TKT-MISSING-${currentOrder?.orderId || Math.floor(1000 + Math.random() * 9000)}`;
+        return {
+          text: `🔍 **Missing Item Audit Ticket Registered**\n\n• **Claim Ticket**: \`${ticketId}\`\n• **Order**: ${orderCode}\n• **Status**: **Priority CCTV Audit Initiated 📹**\n\n**Action Steps:**\n1. Plant supervisor is reviewing the 1080p CCTV sorting & bagging footage.\n2. Delivery rider delivery log has been flagged for audit.\n3. If untraced within 24 hours, Zusko provides **100% garment reimbursement** under our customer protection guarantee.\n\nTap below to speak directly with the audit manager or send WhatsApp photos:`,
+          type: "delivered_support_ticket",
+          ticketId,
+          issueType: "Missing Cloth / Garment Claim",
+          order: currentOrder,
+          followUpOptions: [
+            { label: "📞 Call Audit Manager", query: "Call customer care support", id: "call_support" },
+            { label: "💬 Send Photos on WhatsApp", query: "WhatsApp support", id: "whatsapp_support" },
+            { label: "🔄 Request Free Re-Wash", query: "Request a re-wash for my order", id: "request_rewash" },
+            { label: "⚡ All Options", query: "Show all options", id: "all_options" },
+          ],
+        };
+      }
+
+      // 12. DELIVERED ORDER: FREE RE-WASH REQUEST
+      case "request_rewash":
+      case "report_stain":
+      case "report_ironing": {
+        const supportWindow = getDeliveredSupportWindow(currentOrder);
+        if (currentOrder?.status?.toLowerCase() === "completed" && !supportWindow.isEligible) {
+          return {
+            text: `⏰ **Free Re-Wash Window Expired for ${orderCode}**:\n\nOur 100% Free Re-Wash pickup guarantee is valid within **24 hours of delivery**.\n\nFor any special exception, please connect directly with our customer care manager on phone or WhatsApp:`,
+            type: "call_support_card",
+            order: currentOrder,
+            followUpOptions: [
+              { label: "📞 Call Customer Care", query: "Call customer care support", id: "call_support" },
+              { label: "💬 Chat on WhatsApp", query: "WhatsApp support", id: "whatsapp_support" },
+              { label: "🔁 Book Next Pickup", query: "Book next laundry pickup", id: "reorder_now" },
+            ],
+          };
+        }
+
+        const rewashTicket = `REWASH-${currentOrder?.orderId || Math.floor(1000 + Math.random() * 9000)}`;
+        return {
+          text: `🔄 **Zusko 100% Free Re-Wash Guarantee**\n\n• **Re-Wash Claim**: \`${rewashTicket}\`\n• **Order**: ${orderCode}\n• **Cost**: **₹0 (100% FREE Doorstep Pickup & Care) ✨**\n\n**Our Clean Guarantee Promise:**\n• If any stain was missed or clothes need crisper steam pressing, our rider will pick them up again at zero charge.\n• Re-processed with advanced bio-enzymes & commercial steam press finish.\n\nTap below to confirm your free pickup slot with Customer Care:`,
+          type: "rewash_claim_card",
+          ticketId: rewashTicket,
+          order: currentOrder,
+          followUpOptions: [
+            { label: "📞 Schedule Pickup Call", query: "Call customer care support", id: "call_support" },
+            { label: "💬 Confirm on WhatsApp", query: "WhatsApp support", id: "whatsapp_support" },
+            { label: "⚠️ Other Issue", query: "I have an issue with delivered clothes", id: "delivered_issue" },
+            { label: "⚡ All Options", query: "Show all options", id: "all_options" },
+          ],
+        };
+      }
+
+      // 13. DELIVERED ORDER: FABRIC DAMAGE / WRONG ITEM
+      case "report_wrong_item":
+      case "report_damage": {
+        const damageTicket = `CLAIM-${currentOrder?.orderId || Math.floor(1000 + Math.random() * 9000)}`;
+        const issueLabel = optionId === "report_damage" ? "Fabric Damage / Bleed Claim" : "Wrong Garment Received Claim";
+        return {
+          text: `⚠️ **Priority Quality Claim Registered**\n\n• **Claim Ticket**: \`${damageTicket}\`\n• **Order**: ${orderCode}\n• **Status**: **Escalated Directly to Quality Head 🛡️**\n\nWe treat garment care with the utmost seriousness. A dedicated senior resolution specialist will contact you.\n\nPlease call us or share a photo on WhatsApp so we can arrange immediate pickup or reimbursement:`,
+          type: "delivered_support_ticket",
+          ticketId: damageTicket,
+          issueType: issueLabel,
+          order: currentOrder,
+          followUpOptions: [
+            { label: "📞 Call Helpline Now", query: "Call customer care support", id: "call_support" },
+            { label: "💬 Share Photo on WhatsApp", query: "WhatsApp support", id: "whatsapp_support" },
+            { label: "⚡ All Options", query: "Show all options", id: "all_options" },
+          ],
+        };
+      }
+
+      // 14. DELIVERED ORDER: RATE & FEEDBACK
+      case "delivered_feedback":
+        return {
+          text: `⭐ **How was your laundry experience with Order ${orderCode}?**\n\nYour feedback directly helps our master washers and delivery riders improve.\n\nPlease tap a star rating below:`,
+          type: "delivered_feedback_card",
+          order: currentOrder,
           followUpOptions: [
             { label: "📞 Call Customer Care", query: "Call customer care support", id: "call_support" },
-            { label: "📍 Track Status", query: "Where is my order?", id: "track_order" },
-            { label: "📋 Switch Order", query: "Show all my orders", id: "switch_order" },
+            { label: "🔁 Book Next Pickup", query: "Book next laundry pickup", id: "reorder_now" },
+            { label: "⚡ All Options", query: "Show all options", id: "all_options" },
           ],
+        };
+
+      // 15. DELIVERED ORDER: RE-ORDER NOW
+      case "reorder_now":
+        return {
+          text: `🔁 **Book Next Laundry Pickup**:\n\nReady for your next fresh laundry cycle? Schedule doorstep pickup in seconds with your preferred slot.\n\nTap below to book your next laundry care:`,
+          type: "reorder_card",
+          order: currentOrder,
+          followUpOptions: [
+            { label: "📞 Call Support", query: "Call customer care support", id: "call_support" },
+            { label: "🧺 View Previous Items", query: "What clothes did I give?", id: "clothes_list" },
+            { label: "⚡ All Options", query: "Show all options", id: "all_options" },
+          ],
+        };
+
+      // 16. SUBMIT STAR RATING
+      default:
+        if (optionId && optionId.startsWith("submit_rating_")) {
+          const stars = optionId.replace("submit_rating_", "");
+          const isHighRating = Number(stars) >= 4;
+
+          return {
+            text: isHighRating
+              ? `🌟 **Thank you for giving us ${stars} Stars!**\n\nWe are thrilled that your clothes from Order **${orderCode}** felt crisp and fresh!\n\nAs a thank-you token, enjoy 10% off your next booking with coupon code: **ZUSKO10** ✨`
+              : `🙏 **Thank you for your honest ${stars}-star feedback on ${orderCode}.**\n\nWe apologize that we didn't meet your 5-star expectations. Our quality team has been alerted.\n\nIf any garment has a stain or was poorly pressed, let us make it right with a **100% Free Re-Wash**:`,
+            type: isHighRating ? "reorder_card" : "delivered_issue_selector",
+            order: currentOrder,
+            followUpOptions: isHighRating
+              ? [
+                  { label: "🔁 Book Next Pickup", query: "Book next laundry pickup", id: "reorder_now" },
+                  { label: "📞 Call Customer Care", query: "Call customer care support", id: "call_support" },
+                  { label: "⚡ All Options", query: "Show all options", id: "all_options" },
+                ]
+              : [
+                  { label: "🔄 Free Re-Wash", query: "Request a re-wash for my order", id: "request_rewash" },
+                  { label: "📞 Call Customer Care", query: "Call customer care support", id: "call_support" },
+                  { label: "💬 Chat on WhatsApp", query: "WhatsApp support", id: "whatsapp_support" },
+                ],
+          };
+        }
+
+        // SWITCH / VIEW ALL ORDERS
+        if (optionId === "switch_order") {
+          if (ordersList && ordersList.length > 0) {
+            return {
+              text: `Here are all the orders on your account (${ordersList.length} total). Tap any order below to view its live status and details:`,
+              type: "order_list",
+              orders: ordersList,
+              followUpOptions: [
+                { label: "📞 Call Customer Care", query: "Call customer care support", id: "call_support" },
+                { label: "💬 WhatsApp Help", query: "WhatsApp support", id: "whatsapp_support" },
+                { label: "⚡ All Options", query: "Show all options", id: "all_options" },
+              ],
+            };
+          } else {
+            return {
+              text: `No past orders were found on your account. If you just placed an order, please refresh or check back in a moment!`,
+              followUpOptions: [
+                { label: "📞 Call Support", query: "Call customer care support", id: "call_support" },
+                { label: "⚡ All Options", query: "Show all options", id: "all_options" },
+              ],
+            };
+          }
+        }
+
+        // ALL OPTIONS MENU
+        const isCompleted = currentOrder?.status?.toLowerCase() === "completed";
+        return {
+          text: isCompleted
+            ? `Here are all support and assistance options for Delivered Order **${orderCode}**:\n\nSelect an option below for instant resolution:`
+            : `Here are all available assistance options for **${orderCode}**:\n\nSelect any option below to get instant details:`,
+          type: "options_menu",
+          options: isCompleted ? DELIVERED_OPTIONS : MASTER_OPTIONS,
+          followUpOptions: isCompleted
+            ? [
+                { label: "📞 Call Helpline", query: "Call customer care support", id: "call_support" },
+                { label: "⚠️ Report Issue", query: "I have an issue with delivered clothes", id: "delivered_issue" },
+                { label: "🔄 Free Re-Wash", query: "Request a re-wash for my order", id: "request_rewash" },
+                { label: "📦 Switch Order", query: "Show all my orders", id: "switch_order" },
+              ]
+            : [
+                { label: "📞 Call Customer Care", query: "Call customer care support", id: "call_support" },
+                { label: "📍 Track Status", query: "Where is my order?", id: "track_order" },
+                { label: "📋 Switch Order", query: "Show all my orders", id: "switch_order" },
+              ],
         };
     }
   };
@@ -623,6 +1014,83 @@ Answer politely, concisely and helpfully in easy-to-understand Hinglish or Engli
 
     if (text.includes("whatsapp")) {
       return "whatsapp_support";
+    }
+
+    // Delivered order issue detection
+    if (
+      text.includes("missing") ||
+      text.includes("chhut") ||
+      text.includes("nahi mila") ||
+      text.includes("gayab") ||
+      text.includes("kam hai") ||
+      text.includes("lost cloth")
+    ) {
+      return "report_missing";
+    }
+
+    if (
+      text.includes("rewash") ||
+      text.includes("re-wash") ||
+      text.includes("stain") ||
+      text.includes("daag") ||
+      text.includes("ganda") ||
+      text.includes("dobara") ||
+      text.includes("press nahi") ||
+      text.includes("ironing") ||
+      text.includes("wrinkle") ||
+      text.includes("silvat")
+    ) {
+      return "request_rewash";
+    }
+
+    if (
+      text.includes("damage") ||
+      text.includes("torn") ||
+      text.includes("phat") ||
+      text.includes("color bleed") ||
+      text.includes("wrong item") ||
+      text.includes("dusra kapda") ||
+      text.includes("kharab")
+    ) {
+      return "report_damage";
+    }
+
+    if (
+      text.includes("issue") ||
+      text.includes("problem") ||
+      text.includes("shikayat") ||
+      text.includes("complaint") ||
+      text.includes("delivered issue")
+    ) {
+      return "delivered_issue";
+    }
+
+    if (
+      text.includes("rate") ||
+      text.includes("rating") ||
+      text.includes("review") ||
+      text.includes("feedback") ||
+      text.includes("star")
+    ) {
+      return "delivered_feedback";
+    }
+
+    if (
+      text.includes("reorder") ||
+      text.includes("book again") ||
+      text.includes("fir se") ||
+      text.includes("dobara order") ||
+      text.includes("next laundry")
+    ) {
+      return "reorder_now";
+    }
+
+    if (
+      text.includes("invoice") ||
+      text.includes("receipt") ||
+      text.includes("parchi")
+    ) {
+      return "bill_details";
     }
 
     if (
@@ -699,8 +1167,6 @@ Answer politely, concisely and helpfully in easy-to-understand Hinglish or Engli
     if (
       text.includes("safe") ||
       text.includes("fabric") ||
-      text.includes("stain") ||
-      text.includes("color") ||
       text.includes("detergent") ||
       text.includes("quality") ||
       text.includes("guarantee")
@@ -853,24 +1319,113 @@ Answer politely, concisely and helpfully in easy-to-understand Hinglish or Engli
     setSelectedOrder(newOrder);
     setShowOrderSelector(false);
 
+    const isDeliv = newOrder.status?.toLowerCase() === "completed";
     const statusMeta = getStatusLabel(newOrder.status);
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: `bot-switched-${Date.now()}`,
-        sender: "bot",
-        text: `Switched active context to Order **#${newOrder.orderId}** (${statusMeta.label}).\nTotal: ₹${newOrder.total} • ${newOrder.items?.length || 0} items.\n\nSelect an option below to proceed:`,
-        type: "options_menu",
-        options: MASTER_OPTIONS.slice(0, 6),
-        order: newOrder,
-        followUpOptions: [
-          { label: "📞 Call Customer Care", query: "Call customer care support", id: "call_support" },
-          { label: "📍 Track Status", query: "Where is my order?", id: "track_order" },
-          { label: "🧺 Clothes List", query: "What clothes did I give?", id: "clothes_list" },
-          { label: "💳 Bill Details", query: "Bill details", id: "bill_details" },
-        ],
-      },
-    ]);
+    const supportWindow = getDeliveredSupportWindow(newOrder);
+
+    if (isDeliv) {
+      if (supportWindow.isEligible) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `bot-switched-${Date.now()}`,
+            sender: "bot",
+            text: `Switched context to Delivered Order **#${newOrder.orderId}** (${statusMeta.label}).\nTotal: ₹${newOrder.total} • ${newOrder.items?.length || 0} items.\n\n⚡ **24-Hour Resolution Window Active** (${supportWindow.hoursLeft}h left):\nNeed help with missing garments, stains, or a free re-wash? Select an option below:`,
+            type: "options_menu",
+            options: DELIVERED_OPTIONS,
+            order: newOrder,
+            followUpOptions: [
+              { label: "⚠️ Report Issue", query: "I have an issue with delivered clothes", id: "delivered_issue" },
+              { label: "🔄 Free Re-Wash", query: "Request a re-wash for my order", id: "request_rewash" },
+              { label: "📞 Call Customer Care", query: "Call customer care support", id: "call_support" },
+              { label: "💳 View Invoice", query: "Bill and payment details", id: "bill_details" },
+            ],
+          },
+        ]);
+        setSuggestions([
+          "⚠️ Report Issue",
+          "🔄 Free Re-Wash",
+          "📞 Call Customer Care",
+          "🧺 Missing Item",
+          "💳 View Invoice",
+          "⭐ Rate Order",
+        ]);
+      } else {
+        // Delivered > 24 hours ago
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `bot-switched-${Date.now()}`,
+            sender: "bot",
+            text: `Switched context to Delivered Order **#${newOrder.orderId}** (${statusMeta.label}).\nTotal: ₹${newOrder.total} • ${newOrder.items?.length || 0} items.\n\nℹ️ **Notice**: The 24-hour instant issue & free re-wash window for this order has expired. If you have questions or want to book your next service, our team is happy to assist:`,
+            type: "options_menu",
+            options: [
+              {
+                id: "call_support",
+                icon: "📞",
+                label: "Call Customer Care Helpline",
+                desc: "Direct Helpline: +91 80044 11976",
+                query: "Call customer care support",
+                highlight: true,
+              },
+              {
+                id: "bill_details",
+                icon: "💳",
+                label: "View Invoice & Paid Bill",
+                desc: "Item subtotal, delivery charges & invoice",
+                query: "Bill and payment details",
+              },
+              {
+                id: "reorder_now",
+                icon: "🔁",
+                label: "Book Next Laundry Pickup",
+                desc: "Re-order your favorite laundry services",
+                query: "Book next laundry pickup",
+              },
+              {
+                id: "whatsapp_support",
+                icon: "💬",
+                label: "Chat on WhatsApp Support",
+                desc: "Instant live chat with support team",
+                query: "WhatsApp support",
+              },
+            ],
+            order: newOrder,
+          },
+        ]);
+        setSuggestions([
+          "📞 Call Customer Care",
+          "💳 View Invoice",
+          "🔁 Book Next Pickup",
+          "💬 WhatsApp",
+        ]);
+      }
+    } else {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `bot-switched-${Date.now()}`,
+          sender: "bot",
+          text: `Switched active context to Order **#${newOrder.orderId}** (${statusMeta.label}).\nTotal: ₹${newOrder.total} • ${newOrder.items?.length || 0} items.\n\nSelect an option below to proceed:`,
+          type: "options_menu",
+          options: MASTER_OPTIONS.slice(0, 6),
+          order: newOrder,
+          followUpOptions: [
+            { label: "📞 Call Customer Care", query: "Call customer care support", id: "call_support" },
+            { label: "📍 Track Status", query: "Where is my order?", id: "track_order" },
+            { label: "🧺 Clothes List", query: "What clothes did I give?", id: "clothes_list" },
+            { label: "💳 Bill Details", query: "Bill details", id: "bill_details" },
+          ],
+        },
+      ]);
+      setSuggestions([
+        "📞 Call Customer Care",
+        "📍 Where is my order?",
+        "🧺 Clothes list",
+        "💳 Bill details",
+        "🚚 Pickup Slot",
+      ]);
+    }
   };
 
   const handleCloseAssistant = () => {
@@ -1233,6 +1788,260 @@ Answer politely, concisely and helpfully in easy-to-understand Hinglish or Engli
                                 ₹{message.order.total}
                               </strong>
                             </p>
+                          </div>
+                        )}
+
+                        {/* Delivered Order Snapshot Card */}
+                        {message.type === "delivered_snapshot" && message.order && (
+                          <div className="mt-2.5 p-3 rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50/60 to-white border border-emerald-200/90 shadow-xs">
+                            <div className="flex items-center justify-between mb-1.5">
+                              <span className="font-extrabold text-xs text-gray-950">
+                                Order #{message.order.orderId}
+                              </span>
+                              <span className="text-[9px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-600 text-white shadow-2xs">
+                                Delivered Crisp ✨
+                              </span>
+                            </div>
+
+                            <p className="text-[11px] text-gray-600 mb-2.5">
+                              {message.order.items?.length || 0} items delivered • Paid Total:{" "}
+                              <strong className="text-gray-950 font-bold">
+                                ₹{message.order.total}
+                              </strong>
+                            </p>
+
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() =>
+                                  handleSend(
+                                    "I have an issue with delivered clothes",
+                                    "delivered_issue"
+                                  )
+                                }
+                                className="flex-1 py-1.5 px-2 rounded-xl bg-white hover:bg-red-50 text-red-700 border border-red-200 font-extrabold text-[11px] flex items-center justify-center gap-1 transition"
+                              >
+                                <AlertTriangle size={12} />
+                                <span>Report Issue</span>
+                              </button>
+
+                              <button
+                                onClick={() =>
+                                  handleSend(
+                                    "Request a re-wash for my order",
+                                    "request_rewash"
+                                  )
+                                }
+                                className="flex-1 py-1.5 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] flex items-center justify-center gap-1 transition shadow-xs"
+                              >
+                                <RefreshCw size={12} />
+                                <span>Free Re-Wash</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Delivered Issue Selector Card */}
+                        {message.type === "delivered_issue_selector" && (
+                          <div className="mt-3 p-3 rounded-2xl bg-amber-50/70 border border-amber-200/90 space-y-1.5">
+                            <p className="text-[10px] font-black uppercase tracking-wider text-amber-950 mb-1">
+                              Select issue to generate instant resolution ticket:
+                            </p>
+                            {[
+                              {
+                                id: "report_missing",
+                                label: "🧺 Missing Cloth / Garment",
+                                desc: "One or more clothes missing from package",
+                              },
+                              {
+                                id: "report_stain",
+                                label: "🧼 Stain Still Visible / Missed",
+                                desc: "Cloth has remaining spots or marks",
+                              },
+                              {
+                                id: "report_ironing",
+                                label: "👔 Wrinkles / Poor Steam Pressing",
+                                desc: "Steam ironing was not crisp or neat",
+                              },
+                              {
+                                id: "report_wrong_item",
+                                label: "👗 Wrong Garment Delivered",
+                                desc: "Received someone else's clothes in package",
+                              },
+                              {
+                                id: "report_damage",
+                                label: "⚠️ Fabric Damaged / Color Bleed",
+                                desc: "Garment torn, damaged or color transferred",
+                              },
+                            ].map((issue) => (
+                              <button
+                                key={issue.id}
+                                onClick={() => handleSend(issue.label, issue.id)}
+                                className="w-full p-2.5 rounded-xl bg-white hover:bg-amber-100/70 border border-amber-200 text-left transition flex items-center justify-between group shadow-2xs"
+                              >
+                                <div>
+                                  <p className="text-xs font-black text-gray-900 leading-tight">
+                                    {issue.label}
+                                  </p>
+                                  <p className="text-[10px] text-gray-500 mt-0.5">
+                                    {issue.desc}
+                                  </p>
+                                </div>
+                                <ChevronRight
+                                  size={14}
+                                  className="text-amber-700 group-hover:translate-x-0.5 transition-transform shrink-0"
+                                />
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Delivered Support Ticket Card */}
+                        {message.type === "delivered_support_ticket" && (
+                          <div className="mt-3 p-3.5 rounded-2xl bg-gradient-to-br from-red-50/70 via-amber-50/40 to-white border border-amber-300 shadow-xs">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-red-100 text-red-900 border border-red-200 font-mono">
+                                {message.ticketId}
+                              </span>
+                              <span className="text-[10px] font-extrabold text-amber-900 flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                                Priority Escalated
+                              </span>
+                            </div>
+
+                            <p className="text-xs font-black text-gray-950 mb-1">
+                              {message.issueType || "Post-Delivery Claim"}
+                            </p>
+                            <p className="text-[11px] text-gray-600 leading-relaxed mb-3">
+                              Our quality supervisor is checking plant CCTV logs. A resolution manager will call within 2 hours with re-wash or 100% reimbursement.
+                            </p>
+
+                            <div className="space-y-2">
+                              <a
+                                href="tel:+918004411976"
+                                className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 hover:to-rose-800 text-white font-black text-xs flex items-center justify-center gap-2 shadow-sm transition active:scale-98"
+                              >
+                                <PhoneCall size={14} />
+                                <span>Call Quality Helpline (+91 80044 11976)</span>
+                              </a>
+
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  window.open(
+                                    `https://wa.me/918004411976?text=${encodeURIComponent(
+                                      `Hi Zusko Support! I registered Claim [${message.ticketId}] for Order #${
+                                        selectedOrder?.orderId || ""
+                                      }. Issue: ${message.issueType || "Delivered clothes issue"}. Please assist.`
+                                    )}`,
+                                    "_blank"
+                                  )
+                                }
+                                className="w-full py-2 px-4 rounded-xl bg-gray-950 hover:bg-black text-white font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-98 shadow-xs"
+                              >
+                                <MessageCircle size={13} className="text-emerald-400" />
+                                <span>Send Details on WhatsApp</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Free Re-Wash Claim Card */}
+                        {message.type === "rewash_claim_card" && (
+                          <div className="mt-3 p-3.5 rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-white border border-emerald-300 shadow-xs">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900 border border-emerald-200 font-mono">
+                                {message.ticketId}
+                              </span>
+                              <span className="text-[10px] font-extrabold text-emerald-800 bg-white px-2 py-0.5 rounded-full border border-emerald-200 shadow-2xs">
+                                ₹0 Free Pickup
+                              </span>
+                            </div>
+
+                            <p className="text-xs font-black text-gray-950 mb-1">
+                              Zusko Clean & Satisfaction Guarantee ✨
+                            </p>
+                            <p className="text-[11px] text-gray-600 leading-relaxed mb-3">
+                              We pick up your garments right from your doorstep and re-process them with enzyme boosters and crisp steam pressing at 100% zero cost.
+                            </p>
+
+                            <div className="space-y-2">
+                              <a
+                                href="tel:+918004411976"
+                                className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-black text-xs flex items-center justify-center gap-2 shadow-sm transition active:scale-98"
+                              >
+                                <PhoneCall size={14} />
+                                <span>Schedule Free Pickup Call</span>
+                              </a>
+
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  window.open(
+                                    `https://wa.me/918004411976?text=${encodeURIComponent(
+                                      `Hi Zusko Support! I would like to schedule a free re-wash for Order #${
+                                        selectedOrder?.orderId || ""
+                                      } under Claim [${message.ticketId}].`
+                                    )}`,
+                                    "_blank"
+                                  )
+                                }
+                                className="w-full py-2 px-4 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-98 shadow-xs"
+                              >
+                                <MessageCircle size={13} className="text-emerald-300" />
+                                <span>Confirm Slot on WhatsApp</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Delivered Feedback Rating Card */}
+                        {message.type === "delivered_feedback_card" && (
+                          <div className="mt-3 p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/90 text-center shadow-xs">
+                            <p className="text-xs font-black text-amber-950 mb-2">
+                              Tap a star to rate your laundry quality:
+                            </p>
+                            <div className="flex justify-center items-center gap-2 py-1">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <button
+                                  key={star}
+                                  onClick={() =>
+                                    handleSend(
+                                      `Rated ${star} Star${star > 1 ? "s" : ""}`,
+                                      `submit_rating_${star}`
+                                    )
+                                  }
+                                  className="w-10 h-10 rounded-xl bg-white hover:bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-500 hover:scale-110 active:scale-95 transition-all shadow-xs"
+                                  title={`${star} Star`}
+                                >
+                                  <Star size={18} fill="#F59E0B" className="text-amber-500" />
+                                </button>
+                              ))}
+                            </div>
+                            <p className="text-[10px] text-amber-800/80 mt-2 font-medium">
+                              Instant rating with quality reward
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Re-Order / Book Again Card */}
+                        {message.type === "reorder_card" && (
+                          <div className="mt-3 p-3.5 rounded-2xl bg-gray-950 text-white shadow-xs">
+                            <p className="text-xs font-black text-amber-300 mb-1">
+                              Book Fresh Doorstep Laundry 🧺
+                            </p>
+                            <p className="text-[11px] text-gray-300 mb-3 leading-relaxed">
+                              Schedule another pickup right now for steam iron, wash & fold, or dry cleaning.
+                            </p>
+                            <button
+                              onClick={() => {
+                                handleCloseAssistant();
+                                navigate("/place-order");
+                              }}
+                              className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-black font-black text-xs flex items-center justify-center gap-1.5 transition shadow-sm"
+                            >
+                              <span>Book Laundry Pickup</span>
+                              <ArrowUpRight size={14} />
+                            </button>
                           </div>
                         )}
 

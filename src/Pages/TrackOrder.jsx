@@ -744,19 +744,21 @@ export default function EnhancedTrackOrder() {
               </motion.button>
             )}
 
-            <motion.button
-              whileHover={{ y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setShowHelp(true)}
-              className={`flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-500 to-cyan-500 px-6 py-4 text-sm font-black text-white shadow-lg transition hover:shadow-xl ${
-                !["pending", "accepted", "picked-up", "in-progress"].includes(normalizedStatus)
-                  ? "sm:col-span-2"
-                  : ""
-              }`}
-            >
-              <MessageCircle size={19} />
-              Need Help?
-            </motion.button>
+            {normalizedStatus !== "cancelled" && (
+              <motion.button
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setShowHelp(true)}
+                className={`flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-500 to-cyan-500 px-6 py-4 text-sm font-black text-white shadow-lg transition hover:shadow-xl ${
+                  !["pending", "accepted", "picked-up", "in-progress"].includes(normalizedStatus)
+                    ? "sm:col-span-2"
+                    : ""
+                }`}
+              >
+                <MessageCircle size={19} />
+                Need Help?
+              </motion.button>
+            )}
           </motion.div>
         </motion.div>
       </div>

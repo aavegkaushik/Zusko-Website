@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { CartContext } from "../context/CartContext";
 import {
   Package,
@@ -15,9 +15,13 @@ import {
   RotateCcw,
   ChevronDown,
   ChevronUp,
+  MessageCircle,
+  Sparkles,
+  Phone,
 } from "lucide-react";
 
 import API from "../config/api";
+import OrderAssistant from "../components/OrderAssistant";
 
 export default function MyOrders() {
   const navigate = useNavigate();
@@ -28,6 +32,7 @@ export default function MyOrders() {
   const [expandedOrder, setExpandedOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [reorderingId, setReorderingId] = useState(null);
+  const [assistantOrder, setAssistantOrder] = useState(null);
 
   const [activeTab, setActiveTab] = useState("active");
 
@@ -132,6 +137,68 @@ export default function MyOrders() {
     ]
       .filter(Boolean)
       .join(", ");
+  };
+
+  // Check if delivered order is within 24-hour support resolution window
+  const getDeliveredSupportWindow = (order) => {
+    if (!order || order.status !== "completed") {
+      return {
+        isCompleted: false,
+        isEligible: false,
+        hoursPassed: 0,
+        hoursLeft: 0,
+      };
+    }
+
+    let deliveryTime = null;
+
+    // Check order.history for completed entry
+    if (Array.isArray(order.history)) {
+      const completedEntry = order.history
+        .slice()
+        .reverse()
+        .find((h) => h.status === "completed");
+      if (completedEntry && completedEntry.changedAt) {
+        deliveryTime = new Date(completedEntry.changedAt);
+      }
+    }
+
+    // Direct timestamps
+    if (!deliveryTime) {
+      const rawDate =
+        order.deliveredAt ||
+        order.deliveredDate ||
+        order.completedAt ||
+        order.updatedAt ||
+        order.createdAt;
+
+      if (rawDate) {
+        deliveryTime = new Date(rawDate);
+      }
+    }
+
+    if (!deliveryTime || isNaN(deliveryTime.getTime())) {
+      return {
+        isCompleted: true,
+        isEligible: true,
+        hoursPassed: 0,
+        hoursLeft: 24,
+      };
+    }
+
+    const now = new Date();
+    const diffMs = now.getTime() - deliveryTime.getTime();
+    const hoursPassed = diffMs / (1000 * 60 * 60);
+    const isEligible = hoursPassed >= 0 && hoursPassed <= 24;
+    const hoursLeft = Math.max(0, Math.ceil(24 - hoursPassed));
+
+    return {
+      isCompleted: true,
+      isEligible,
+      hoursPassed: Math.round(hoursPassed * 10) / 10,
+      hoursLeft,
+      deliveryTime,
+    };
   };
 
   const orders = activeTab === "active" ? activeOrders : historyOrders;
@@ -267,6 +334,8 @@ export default function MyOrders() {
 
             const isExpanded = expandedOrder === order._id;
 
+            const supportWindow = getDeliveredSupportWindow(order);
+
             const subtotal =
               order.subtotal ??
               order.items?.reduce(
@@ -390,6 +459,47 @@ export default function MyOrders() {
                           >
                             <CheckCircle size={18} />
                             Rate Order
+                          </button>
+                        )}
+
+                        {/* COMPLETED ORDERS: 24-HOUR SUPPORT LOGIC */}
+                        {isCompleted && (
+                          supportWindow.isEligible ? (
+                            <button
+                              onClick={() => setAssistantOrder(order)}
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition shadow-sm active:scale-98 text-sm"
+                              title={`Support active: ${supportWindow.hoursLeft} hours left to report issue or claim free re-wash.`}
+                            >
+                              <MessageCircle size={17} />
+                              <span>Order Support</span>
+                              <span className="text-[10px] font-black bg-emerald-800/80 px-2 py-0.5 rounded-full text-emerald-100">
+                                {supportWindow.hoursLeft}h left
+                              </span>
+                            </button>
+                          ) : (
+                            <button
+                              disabled
+                              className="bg-gray-100 text-gray-400 border border-gray-200 px-4 py-2.5 rounded-xl flex items-center gap-2 font-semibold text-sm cursor-not-allowed opacity-75"
+                              title="Post-delivery support window expired (Valid for 24 hours after delivery). Call +91 80044 11976 for general helpline."
+                            >
+                              <Clock size={16} className="text-gray-400" />
+                              <span>Support Closed</span>
+                              <span className="text-[9px] font-bold bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded">
+                                24h Expired
+                              </span>
+                            </button>
+                          )
+                        )}
+
+                        {/* ACTIVE ORDERS ONLY (EXCLUDE COMPLETED & CANCELLED) */}
+                        {!isCompleted && !isCancelled && (
+                          <button
+                            onClick={() => setAssistantOrder(order)}
+                            className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 px-4 py-2.5 rounded-xl flex items-center gap-2 transition font-bold text-sm shadow-xs"
+                            title="Need help with this order?"
+                          >
+                            <MessageCircle size={17} className="text-emerald-600" />
+                            <span>Need Help?</span>
                           </button>
                         )}
                       </div>
@@ -730,21 +840,82 @@ export default function MyOrders() {
                           </div>
                         </div>
                       ) : (
-                        <div className="bg-green-50 border border-green-100 rounded-2xl p-4">
-                          <div className="flex items-center gap-3">
-                            <CheckCircle className="text-green-600" size={22} />
+                        <div className="space-y-3">
+                          <div className="bg-green-50 border border-green-100 rounded-2xl p-4">
+                            <div className="flex items-center gap-3">
+                              <CheckCircle className="text-green-600" size={22} />
 
-                            <div>
-                              <p className="font-semibold text-green-800">
-                                Order Completed
-                              </p>
+                              <div>
+                                <p className="font-semibold text-green-800">
+                                  Order Completed
+                                </p>
 
-                              <p className="text-sm text-green-700">
-                                Your laundry order has been successfully
-                                completed.
-                              </p>
+                                <p className="text-sm text-green-700">
+                                  Your laundry order has been successfully
+                                  completed.
+                                </p>
+                              </div>
                             </div>
                           </div>
+
+                          {/* DELIVERED ORDER SUPPORT CARD: 24-HOUR RESOLUTION WINDOW */}
+                          {supportWindow.isEligible ? (
+                            <div className="bg-gradient-to-r from-emerald-50 via-teal-50/70 to-amber-50/60 border border-emerald-300 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                                  <Sparkles size={20} />
+                                </div>
+                                <div>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <p className="font-extrabold text-sm text-gray-950">
+                                      Need help with your delivered clothes?
+                                    </p>
+                                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                      ⚡ 24h Window Active ({supportWindow.hoursLeft}h left)
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-gray-600 mt-0.5">
+                                    Report missing garments, stain issues, request a free re-wash, or speak with support.
+                                  </p>
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => setAssistantOrder(order)}
+                                className="px-4 py-2.5 bg-gray-950 hover:bg-black text-[#FFD700] rounded-xl font-black text-xs flex items-center justify-center gap-2 shrink-0 transition shadow-sm active:scale-98"
+                              >
+                                <MessageCircle size={15} />
+                                <span>Order Support Chat</span>
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-gray-500">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-gray-200 text-gray-600 flex items-center justify-center shrink-0">
+                                  <Clock size={20} />
+                                </div>
+                                <div>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <p className="font-bold text-sm text-gray-800">
+                                      24-Hour Post-Delivery Support Window Closed
+                                    </p>
+                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-200 text-gray-600">
+                                      24h Expired
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-gray-500 mt-0.5">
+                                    Instant issue claims & free re-wash are valid within 24 hours of delivery. For general queries, call our helpline.
+                                  </p>
+                                </div>
+                              </div>
+                              <a
+                                href="tel:+918004411976"
+                                className="px-4 py-2.5 bg-white hover:bg-gray-100 text-gray-900 border border-gray-300 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shrink-0 transition shadow-2xs"
+                              >
+                                <Phone size={13} />
+                                <span>Call Helpline</span>
+                              </a>
+                            </div>
+                          )}
                         </div>
                       )}
 
@@ -788,6 +959,16 @@ export default function MyOrders() {
           })}
         </div>
       </div>
+
+      {/* Interactive AI Assistant Modal for Orders */}
+      <AnimatePresence>
+        {assistantOrder && (
+          <OrderAssistant
+            order={assistantOrder}
+            onClose={() => setAssistantOrder(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
