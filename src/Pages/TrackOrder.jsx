@@ -38,6 +38,12 @@ const STATUS = {
     gradient: "from-yellow-400 to-orange-400",
     soft: "bg-yellow-50 text-yellow-700 border-yellow-200",
   },
+  "accepted": {
+    label: "Order Accepted",
+    message: "Your order has been accepted. Pickup will be initiated soon.",
+    gradient: "from-yellow-400 to-orange-400",
+    soft: "bg-yellow-50 text-yellow-700 border-yellow-200",
+  },
   "picked-up": {
     label: "Picked Up",
     message: "Your clothes have been picked up and are on their way to our facility.",
@@ -257,8 +263,12 @@ export default function EnhancedTrackOrder() {
     );
   }
 
-  const currentStep = STEPS.findIndex((step) => step.key === order.status);
-  const status = STATUS[order.status] || STATUS.pending;
+  const normalizedStatus = order.status?.toLowerCase();
+  const currentStep =
+    normalizedStatus === "accepted" || normalizedStatus === "pending"
+      ? 0
+      : STEPS.findIndex((step) => step.key === normalizedStatus);
+  const status = STATUS[normalizedStatus] || STATUS[order.status] || STATUS.pending;
   const progress =
     currentStep >= 0
       ? Math.max(5, ((currentStep + 1) / STEPS.length) * 100)
@@ -616,7 +626,7 @@ export default function EnhancedTrackOrder() {
 
               {order.payment?.method === "COD" &&
                 order.payment?.status !== "paid" &&
-                order.status === "pending" && (
+                (normalizedStatus === "pending" || normalizedStatus === "accepted") && (
                   <motion.button
                     whileHover={{ y: -2 }}
                     whileTap={{ scale: 0.98 }}
@@ -722,7 +732,7 @@ export default function EnhancedTrackOrder() {
             variants={fadeUp}
             className="grid gap-3 sm:grid-cols-2"
           >
-            {["pending"].includes(order.status) && (
+            {["pending", "accepted"].includes(normalizedStatus) && (
               <motion.button
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.98 }}
@@ -739,7 +749,7 @@ export default function EnhancedTrackOrder() {
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowHelp(true)}
               className={`flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-500 to-cyan-500 px-6 py-4 text-sm font-black text-white shadow-lg transition hover:shadow-xl ${
-                !["pending", "picked-up", "in-progress"].includes(order.status)
+                !["pending", "accepted", "picked-up", "in-progress"].includes(normalizedStatus)
                   ? "sm:col-span-2"
                   : ""
               }`}

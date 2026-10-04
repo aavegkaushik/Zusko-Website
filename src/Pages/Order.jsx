@@ -2,9 +2,9 @@ import { useState, useContext, useEffect, useRef } from "react";
 import { CartContext } from "../context/CartContext";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Search, X, Shirt, Baby, Home, Sparkles,
+  Search, X, Sparkles,
   ChevronRight, Clock, Zap, Wind, Droplets, Layers,
-  Check,
+  Check, ArrowUp
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import API from "../config/api";
@@ -20,10 +20,10 @@ const categoryMeta = {
 };
 
 const services = [
-  { name:"Wash & Fold", icon:<Droplets size={18} />, desc:"Clean & neatly folded", time:"24 hrs", color:"#3B82F6", bg:"#EFF6FF" },
-  { name:"Wash & Iron", icon:<Wind size={18} />, desc:"Washed & pressed crisp", time:"36 hrs", color:"#8B5CF6", bg:"#F5F3FF", popular:true },
-  { name:"Dry Clean", icon:<Layers size={18} />, desc:"Premium solvent care", time:"48 hrs", color:"#F59E0B", bg:"#FFFBEB" },
-  { name:"Steam Iron", icon:<Zap size={18} />, desc:"Quick steam press only", time:"12 hrs", color:"#10B981", bg:"#ECFDF5" },
+  { name: "Wash & Fold", icon: <Droplets size={18} />, desc: "Clean & neatly folded", time: "24 hrs", color: "#3B82F6", bg: "#EFF6FF" },
+  { name: "Wash & Iron", icon: <Wind size={18} />, desc: "Washed & pressed crisp", time: "36 hrs", color: "#8B5CF6", bg: "#F5F3FF", popular: true },
+  { name: "Dry Clean", icon: <Layers size={18} />, desc: "Premium solvent care", time: "48 hrs", color: "#F59E0B", bg: "#FFFBEB" },
+  { name: "Steam Iron", icon: <Zap size={18} />, desc: "Quick steam press only", time: "12 hrs", color: "#10B981", bg: "#ECFDF5" },
 ];
 
 const itemEmoji = {
@@ -45,25 +45,17 @@ const itemEmoji = {
 
 function SkeletonCard() {
   return (
-    <div className="bg-white rounded-2xl overflow-hidden animate-pulse border border-gray-100" style={{ boxShadow: "0 2px 10px rgba(0,0,0,0.04)" }}>
-      {/* Top row */}
-      <div className="flex items-start gap-4 px-5 pt-5 pb-4">
-        <div className="w-14 h-14 rounded-2xl bg-gray-100 flex-shrink-0" />
-        <div className="flex-1 pt-1">
-          <div className="h-4 w-36 bg-gray-100 rounded-full mb-2" />
-          <div className="h-3 w-24 bg-gray-100 rounded-full" />
-        </div>
+    <div
+      className="bg-white rounded-2xl p-3.5 sm:p-4 border border-gray-100 flex items-center gap-3 sm:gap-4 animate-pulse"
+      style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}
+    >
+      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gray-100 flex-shrink-0" />
+      <div className="flex-1 min-w-0">
+        <div className="h-4 w-32 sm:w-44 bg-gray-100 rounded-full mb-2" />
+        <div className="h-3 w-20 bg-gray-100 rounded-full mb-2" />
+        <div className="h-4 w-16 bg-gray-100 rounded-full" />
       </div>
-      {/* Divider */}
-      <div style={{ height: "1px", background: "#F5F5F5", marginLeft: "20px", marginRight: "20px" }} />
-      {/* Bottom row */}
-      <div className="flex items-center justify-between px-5 py-3.5">
-        <div>
-          <div className="h-3 w-20 bg-gray-100 rounded-full mb-1.5" />
-          <div className="h-5 w-12 bg-gray-100 rounded-full" />
-        </div>
-        <div className="h-10 w-24 bg-gray-100 rounded-full" />
-      </div>
+      <div className="h-9 w-20 sm:h-10 sm:w-24 bg-gray-100 rounded-full flex-shrink-0" />
     </div>
   );
 }
@@ -87,18 +79,26 @@ export default function BookLaundry() {
   const [pricingLoading, setPricingLoading] = useState(true);
   const [pricingError, setPricingError] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
-  // Mobile service carousel
+  // Mobile service carousel ref
   const serviceScrollRef = useRef(null);
 
   const scrollServices = () => {
     if (!serviceScrollRef.current) return;
-
     serviceScrollRef.current.scrollBy({
-      left: 170,
+      left: 160,
       behavior: "smooth",
     });
   };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const getSmartPlaceholders = () => {
     const hour = new Date().getHours();
@@ -110,7 +110,7 @@ export default function BookLaundry() {
 
   const { cart, addItem, increaseQty, decreaseQty } = useContext(CartContext);
 
-const getItemQty = (item) => {
+  const getItemQty = (item) => {
     const careLevel =
       selectedService === "Dry Clean" ? selectedCareLevel : "regular";
 
@@ -209,43 +209,40 @@ const getItemQty = (item) => {
   }, []);
 
   // Active order
-useEffect(() => {
-  if (!user || !token) {
-    setIsLoading(false);
-    return;
-  }
-
-  let cancelled = false;
-
-  const fetchActiveOrder = async () => {
-    try {
-      const res = await API.get("/orders/active");
-
-      if (!cancelled && res.data?.data?.length > 0) {
-        setActiveOrder(res.data.data[0]);
-      }
-    } catch (err) {
-      if (err.response?.status !== 401) {
-        console.error(
-          "ACTIVE ORDER ERROR:",
-          err
-        );
-      }
-    } finally {
-      if (!cancelled) {
-        setTimeout(() => {
-          setIsLoading(false);
-        }, 600);
-      }
+  useEffect(() => {
+    if (!user || !token) {
+      setIsLoading(false);
+      return;
     }
-  };
 
-  fetchActiveOrder();
+    let cancelled = false;
 
-  return () => {
-    cancelled = true;
-  };
-}, [user, token]);
+    const fetchActiveOrder = async () => {
+      try {
+        const res = await API.get("/orders/active");
+
+        if (!cancelled && res.data?.data?.length > 0) {
+          setActiveOrder(res.data.data[0]);
+        }
+      } catch (err) {
+        if (err.response?.status !== 401) {
+          console.error("ACTIVE ORDER ERROR:", err);
+        }
+      } finally {
+        if (!cancelled) {
+          setTimeout(() => {
+            setIsLoading(false);
+          }, 600);
+        }
+      }
+    };
+
+    fetchActiveOrder();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user, token]);
 
   // Typewriter
   useEffect(() => {
@@ -270,47 +267,59 @@ useEffect(() => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#F8F9FB]" style={{ paddingBottom: cartCount > 0 ? "100px" : "40px" }}>
+    <div
+      className="min-h-screen bg-[#F8F9FB]"
+      style={{
+        paddingBottom: cartCount > 0 ? "calc(88px + env(safe-area-inset-bottom, 16px))" : "48px",
+      }}
+    >
 
       {/* ══════════════════════════════════════════
-          HERO — full bleed, no max-width cap
+          HERO — Optimized: Compact on mobile, expansive on desktop
       ══════════════════════════════════════════ */}
       <div
         className="relative overflow-hidden w-full"
         style={{
           background:
-            "radial-gradient(circle at 78% 18%, rgba(255,215,0,0.18), transparent 28%), linear-gradient(135deg, #080808 0%, #111111 52%, #1b1605 100%)",
-          paddingTop: "72px",
+            "radial-gradient(circle at 80% 20%, rgba(255,215,0,0.16), transparent 30%), linear-gradient(135deg, #080808 0%, #121212 50%, #1a1504 100%)",
+          paddingTop: "68px",
         }}
       >
-        {/* Decorative blobs — large on desktop */}
-        <div className="absolute top-[-80px] right-[-80px] w-[500px] h-[500px] rounded-full pointer-events-none opacity-[0.18]"
-          style={{ background: "radial-gradient(circle, #FFD700, transparent 65%)" }} />
-        <div className="absolute bottom-[-60px] left-[-60px] w-72 h-72 rounded-full pointer-events-none opacity-[0.10]"
-          style={{ background: "radial-gradient(circle, #FFD700, transparent 65%)" }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full pointer-events-none opacity-[0.04]"
-          style={{ background: "radial-gradient(circle, #FFD700, transparent 65%)" }} />
+        {/* Decorative ambient lights */}
+        <div
+          className="absolute top-[-70px] right-[-70px] w-80 sm:w-[460px] h-80 sm:h-[460px] rounded-full pointer-events-none opacity-20"
+          style={{ background: "radial-gradient(circle, #FFD700, transparent 65%)" }}
+        />
+        <div
+          className="absolute bottom-[-50px] left-[-50px] w-56 sm:w-72 h-56 sm:h-72 rounded-full pointer-events-none opacity-10"
+          style={{ background: "radial-gradient(circle, #FFD700, transparent 65%)" }}
+        />
 
-        {/* Hero inner — wider on desktop */}
-        <div className="relative z-10 w-full max-w-[1480px] mx-auto px-5 sm:px-7 lg:px-12 xl:px-20 pt-10 pb-16">
+        {/* Hero Content Container */}
+        <div className="relative z-10 w-full max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-20 pt-6 pb-11 sm:pt-9 sm:pb-16">
           <div className="lg:flex lg:items-end lg:justify-between lg:gap-12">
 
             {/* Left: headline copy */}
             <div className="lg:max-w-xl">
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
+                initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="inline-flex items-center gap-2 mb-5"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full mb-3 sm:mb-4 text-[11px] sm:text-xs font-bold"
+                style={{
+                  background: "rgba(255,215,0,0.10)",
+                  border: "1px solid rgba(255,215,0,0.25)",
+                  color: "#FFD700",
+                }}
               >
-                
+                <Sparkles size={12} />
+                <span>Premium Doorstep Laundry & Dry Clean</span>
               </motion.div>
 
               <motion.h1
-                initial={{ opacity: 0, y: 24 }}
+                initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1, duration: 0.6 }}
-                className="font-black leading-[1.08] text-white"
-                style={{ fontSize: "clamp(32px, 5vw, 64px)" }}
+                transition={{ delay: 0.1, duration: 0.5 }}
+                className="font-black leading-[1.1] text-white text-2xl sm:text-4xl md:text-5xl lg:text-[54px] tracking-tight"
               >
                 Clean Clothes.<br />
                 <span style={{ color: "#FFD700" }}>Delivered Fast.</span>
@@ -319,38 +328,47 @@ useEffect(() => {
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.25 }}
-                className="mt-4 text-sm lg:text-base"
-                style={{ color: "rgba(255,255,255,0.5)" }}
+                transition={{ delay: 0.2 }}
+                className="mt-2.5 sm:mt-4 text-xs sm:text-sm lg:text-base leading-relaxed"
+                style={{ color: "rgba(255,255,255,0.6)" }}
               >
                 Doorstep pickup · Expert fabric care · Effortless reordering
               </motion.p>
 
+              {/* Quick Trust Badges */}
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.35 }}
-                className="flex flex-wrap gap-2.5 mt-7"
+                transition={{ delay: 0.3 }}
+                className="flex flex-wrap items-center gap-2 mt-4 sm:mt-6"
               >
                 {[
-                  { icon: "🚚", label: "Slot Based Pickup" },
-                  { icon: "⭐", label: "Trusted Service" },
+                  { icon: "🚚", label: "Slot Pickup" },
+                  { icon: "⭐", label: "4.9★ Rated" },
                   { icon: "🧺", label: "Fabric Safe" },
                 ].map((chip) => (
-                  <span key={chip.label}
-                    className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full"
-                    style={{ background: "rgba(255,255,255,0.055)", color: "rgba(255,255,255,0.78)", border: "1px solid rgba(255,255,255,0.10)", backdropFilter: "blur(14px)" }}>
-                    {chip.icon} {chip.label}
+                  <span
+                    key={chip.label}
+                    className="flex items-center gap-1 text-[11px] sm:text-xs font-semibold px-2.5 py-1 rounded-full"
+                    style={{
+                      background: "rgba(255,255,255,0.06)",
+                      color: "rgba(255,255,255,0.85)",
+                      border: "1px solid rgba(255,255,255,0.12)",
+                      backdropFilter: "blur(12px)",
+                    }}
+                  >
+                    <span>{chip.icon}</span>
+                    <span>{chip.label}</span>
                   </span>
                 ))}
               </motion.div>
             </div>
 
-            {/* Right: stats strip — hidden on mobile */}
+            {/* Right: stats strip — desktop only */}
             <motion.div
-              initial={{ opacity: 0, x: 30 }}
+              initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
+              transition={{ delay: 0.35 }}
               className="hidden lg:flex items-stretch gap-3 pb-1"
             >
               {[
@@ -358,16 +376,19 @@ useEffect(() => {
                 { val: "4.9★", label: "Average Rating" },
                 { val: "24hr", label: "Turnaround" },
               ].map((stat) => (
-                <div key={stat.label}
-                  className="min-w-[118px] rounded-2xl border px-4 py-4 text-center"
+                <div
+                  key={stat.label}
+                  className="min-w-[110px] rounded-2xl border px-4 py-3.5 text-center"
                   style={{
                     background: "rgba(255,255,255,0.045)",
-                    borderColor: "rgba(255,255,255,0.09)",
+                    borderColor: "rgba(255,255,255,0.1)",
                     backdropFilter: "blur(16px)",
                   }}
                 >
                   <p className="font-black text-2xl text-white tracking-tight">{stat.val}</p>
-                  <p className="text-[10px] mt-1.5 uppercase tracking-[0.12em]" style={{ color: "rgba(255,255,255,0.38)" }}>{stat.label}</p>
+                  <p className="text-[10px] mt-1 uppercase tracking-[0.12em]" style={{ color: "rgba(255,255,255,0.4)" }}>
+                    {stat.label}
+                  </p>
                 </div>
               ))}
             </motion.div>
@@ -378,25 +399,31 @@ useEffect(() => {
       {/* ══════════════════════════════════════════
           SEARCH BAR — floats over hero bottom
       ══════════════════════════════════════════ */}
-      <div className="w-full max-w-[1400px] mx-auto px-6 lg:px-16 xl:px-24" style={{ marginTop: "-26px", position: "relative", zIndex: 30 }}>
+      <div
+        className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-16 xl:px-24"
+        style={{ marginTop: "-22px", position: "relative", zIndex: 30 }}
+      >
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.45, type: "spring", stiffness: 200 }}
+          transition={{ delay: 0.35, type: "spring", stiffness: 220 }}
           className="relative overflow-hidden"
           style={{
-            background: "rgba(255,255,255,0.96)",
-            borderRadius: "20px",
+            background: "rgba(255,255,255,0.98)",
+            borderRadius: "18px",
             boxShadow: searchFocused
-              ? "0 0 0 3px rgba(255,215,0,0.3), 0 8px 40px rgba(0,0,0,0.13)"
-              : "0 4px 30px rgba(0,0,0,0.11)",
-            transition: "box-shadow 0.25s ease",
-            /* On desktop stretch to full column width */
+              ? "0 0 0 3px rgba(255,215,0,0.35), 0 8px 30px rgba(0,0,0,0.12)"
+              : "0 4px 24px rgba(0,0,0,0.09)",
+            transition: "box-shadow 0.2s ease",
             maxWidth: "100%",
           }}
         >
-          <Search size={18} className="absolute left-5 top-1/2 -translate-y-1/2 pointer-events-none"
-            style={{ color: searchFocused ? "#FFD700" : "#9CA3AF", transition: "color 0.2s" }} />
+          <Search
+            size={18}
+            className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 pointer-events-none"
+            style={{ color: searchFocused ? "#EAB308" : "#9CA3AF", transition: "color 0.2s" }}
+          />
+
           <input
             type="text"
             value={search}
@@ -404,26 +431,30 @@ useEffect(() => {
             onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
             placeholder=""
-            className="w-full h-[62px] bg-transparent outline-none text-sm font-semibold text-gray-800"
-            style={{ paddingLeft: "48px", paddingRight: "44px", borderRadius: "18px" }}
+            className="w-full h-[52px] sm:h-[58px] bg-transparent outline-none text-sm sm:text-base font-semibold text-gray-900"
+            style={{ paddingLeft: "46px", paddingRight: "44px", borderRadius: "18px" }}
           />
+
           {!search && (
-            <div className="absolute top-1/2 -translate-y-1/2 pointer-events-none text-sm flex items-center gap-0.5 text-gray-400"
-              style={{ left: "48px" }}>
+            <div
+              className="absolute top-1/2 -translate-y-1/2 pointer-events-none text-xs sm:text-sm flex items-center gap-0.5 text-gray-400 font-medium"
+              style={{ left: "46px" }}
+            >
               <span>{placeholderText}</span>
               <span style={{ opacity: showCursor ? 1 : 0, transition: "opacity 0.1s" }}>|</span>
             </div>
           )}
+
           {search && (
             <motion.button
-              initial={{ scale: 0.5, opacity: 0 }}
+              initial={{ scale: 0.6, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               onClick={() => setSearch("")}
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center"
-              style={{ background: "#F3F4F6" }}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center bg-gray-100 hover:bg-gray-200 transition-colors"
               whileTap={{ scale: 0.85 }}
+              aria-label="Clear search"
             >
-              <X size={13} color="#6B7280" />
+              <X size={14} color="#4B5563" />
             </motion.button>
           )}
         </motion.div>
@@ -431,10 +462,10 @@ useEffect(() => {
 
       {/* ══════════════════════════════════════════
           MAIN LAYOUT
-          Mobile:  single column stack
-          Desktop: left sidebar (fixed 280px) + scrollable content area
+          Mobile: single column streamlined stack
+          Desktop: left sidebar (sticky 280px) + content + right cart
       ══════════════════════════════════════════ */}
-      <div className="w-full max-w-[1480px] mx-auto px-5 sm:px-7 lg:px-12 xl:px-20 mt-8">
+      <div className="w-full max-w-[1480px] mx-auto px-3.5 sm:px-6 lg:px-12 xl:px-20 mt-5 sm:mt-8">
         <div className="lg:flex lg:gap-8 xl:gap-10 lg:items-start">
 
           {/* ── LEFT SIDEBAR (desktop only) ───────────────── */}
@@ -462,7 +493,7 @@ useEffect(() => {
                           Active Order
                         </span>
                         <p className="text-white font-bold text-sm mt-0.5 capitalize">
-                          {activeOrder.status.replaceAll("-", " ")}
+                          {activeOrder.status?.replaceAll("-", " ")}
                         </p>
                         <p className="text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>
                           #{activeOrder.orderId}
@@ -471,9 +502,13 @@ useEffect(() => {
                       <span className="text-xl">🚚</span>
                     </div>
                     <div className="w-full h-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.1)" }}>
-                      <motion.div initial={{ width: 0 }} animate={{ width: "65%" }}
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: "65%" }}
                         transition={{ duration: 1.2, ease: "easeOut", delay: 0.6 }}
-                        className="h-full rounded-full" style={{ background: "linear-gradient(90deg,#FFD700,#FFA500)" }} />
+                        className="h-full rounded-full"
+                        style={{ background: "linear-gradient(90deg,#FFD700,#FFA500)" }}
+                      />
                     </div>
                     <div className="flex items-center justify-end mt-3">
                       <span className="text-xs font-semibold flex items-center gap-1" style={{ color: "#FFD700" }}>
@@ -510,9 +545,7 @@ useEffect(() => {
                       </div>
                       {isSelected && (
                         <div className="w-5 h-5 rounded-full bg-gray-900 flex items-center justify-center flex-shrink-0">
-                          <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                            <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
+                          <Check size={12} className="text-white" strokeWidth={2.5} />
                         </div>
                       )}
                     </motion.button>
@@ -532,12 +565,11 @@ useEffect(() => {
                       key={service.name}
                       whileTap={{ scale: 0.97 }}
                       onClick={() => {
-  setSelectedService(service.name);
-
-  if (service.name !== "Dry Clean") {
-    setSelectedCareLevel("regular");
-  }
-}}
+                        setSelectedService(service.name);
+                        if (service.name !== "Dry Clean") {
+                          setSelectedCareLevel("regular");
+                        }
+                      }}
                       className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-150 relative"
                       style={{
                         background: isSelected ? "#101010" : "white",
@@ -545,8 +577,10 @@ useEffect(() => {
                         boxShadow: isSelected ? "0 4px 16px rgba(0,0,0,0.18)" : "0 1px 4px rgba(0,0,0,0.04)",
                       }}
                     >
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                        style={{ background: isSelected ? "rgba(255,215,0,0.15)" : service.bg, color: isSelected ? "#FFD700" : service.color }}>
+                      <div
+                        className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={{ background: isSelected ? "rgba(255,215,0,0.15)" : service.bg, color: isSelected ? "#FFD700" : service.color }}
+                      >
                         {service.icon}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -554,8 +588,10 @@ useEffect(() => {
                         <p className={`text-[11px] mt-0.5 truncate ${isSelected ? "text-gray-400" : "text-gray-400"}`}>{service.desc}</p>
                       </div>
                       {service.popular && (
-                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0"
-                          style={{ background: isSelected ? "rgba(255,215,0,0.2)" : "#FFF7E6", color: isSelected ? "#FFD700" : "#D97706" }}>
+                        <span
+                          className="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0"
+                          style={{ background: isSelected ? "rgba(255,215,0,0.2)" : "#FFF7E6", color: isSelected ? "#FFD700" : "#D97706" }}
+                        >
                           HOT
                         </span>
                       )}
@@ -564,406 +600,389 @@ useEffect(() => {
                 })}
               </div>
             </div>
+
+            {/* Dry Clean Care Level (sidebar) */}
             {selectedService === "Dry Clean" && (
-  <motion.div
-    initial={{ opacity: 0, y: 8 }}
-    animate={{ opacity: 1, y: 0 }}
-    className="mt-4 rounded-2xl border border-yellow-200 bg-gradient-to-br from-yellow-50 to-white p-3"
-  >
-    <div className="flex items-center gap-2 mb-3 px-1">
-      <div className="w-7 h-7 rounded-lg bg-yellow-400 flex items-center justify-center">
-        <Sparkles size={14} className="text-black" />
-      </div>
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 rounded-2xl border border-yellow-200 bg-gradient-to-br from-yellow-50 to-white p-3"
+              >
+                <div className="flex items-center gap-2 mb-3 px-1">
+                  <div className="w-7 h-7 rounded-lg bg-yellow-400 flex items-center justify-center">
+                    <Sparkles size={14} className="text-black" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-extrabold text-gray-900">Choose Care Level</p>
+                    <p className="text-[10px] text-gray-500">Select how we handle your clothes</p>
+                  </div>
+                </div>
 
-      <div>
-        <p className="text-xs font-extrabold text-gray-900">
-          Choose Care Level
-        </p>
-        <p className="text-[10px] text-gray-500">
-          Select how we handle your clothes
-        </p>
-      </div>
-    </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCareLevel("regular")}
+                    className={`rounded-xl border p-2.5 text-left transition-all ${
+                      selectedCareLevel === "regular"
+                        ? "border-gray-900 bg-gray-900 text-white shadow-md"
+                        : "border-gray-200 bg-white text-gray-800 hover:border-gray-400"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-extrabold">Regular</span>
+                      {selectedCareLevel === "regular" && <Check size={12} className="text-amber-400" />}
+                    </div>
+                    <p className="text-[10px] text-gray-400">Standard dry clean</p>
+                  </button>
 
-    <div className="grid grid-cols-2 gap-2">
-      {/* REGULAR */}
-      <button
-        type="button"
-        onClick={() => setSelectedCareLevel("regular")}
-        className={`rounded-xl border p-3 text-left transition-all ${
-          selectedCareLevel === "regular"
-            ? "border-gray-900 bg-gray-900 text-white shadow-md"
-            : "border-gray-200 bg-white text-gray-800 hover:border-gray-400"
-        }`}
-      >
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-xs font-extrabold">
-            Regular
-          </span>
-
-          {selectedCareLevel === "regular" && (
-            <Check size={13} />
-          )}
-        </div>
-
-        <p
-          className={`text-[10px] ${
-            selectedCareLevel === "regular"
-              ? "text-gray-400"
-              : "text-gray-400"
-          }`}
-        >
-          Standard dry clean
-        </p>
-      </button>
-
-      {/* PREMIUM */}
-      <button
-        type="button"
-        onClick={() => setSelectedCareLevel("premium")}
-        className={`relative rounded-xl border p-3 text-left transition-all ${
-          selectedCareLevel === "premium"
-            ? "border-yellow-400 bg-yellow-400 text-black shadow-md"
-            : "border-yellow-200 bg-white text-gray-800 hover:border-yellow-400"
-        }`}
-      >
-        <span className="absolute -top-2 right-2 rounded-full bg-black px-2 py-0.5 text-[8px] font-black tracking-wide text-yellow-400">
-          PREMIUM
-        </span>
-
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-xs font-extrabold">
-            Premium
-          </span>
-
-          {selectedCareLevel === "premium" && (
-            <Check size={13} />
-          )}
-        </div>
-
-        <p
-          className={`text-[10px] ${
-            selectedCareLevel === "premium"
-              ? "text-gray-800"
-              : "text-gray-400"
-          }`}
-        >
-          Extra care & finishing
-        </p>
-      </button>
-    </div>
-  </motion.div>
-)}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCareLevel("premium")}
+                    className={`relative rounded-xl border p-2.5 text-left transition-all ${
+                      selectedCareLevel === "premium"
+                        ? "border-yellow-400 bg-yellow-400 text-black shadow-md font-semibold"
+                        : "border-yellow-200 bg-white text-gray-800 hover:border-yellow-400"
+                    }`}
+                  >
+                    <span className="absolute -top-2 right-2 rounded-full bg-black px-1.5 py-0.5 text-[8px] font-black tracking-wide text-yellow-400">
+                      PREMIUM
+                    </span>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-extrabold">Premium</span>
+                      {selectedCareLevel === "premium" && <Check size={12} />}
+                    </div>
+                    <p className="text-[10px] text-gray-800">Extra care & finishing</p>
+                  </button>
+                </div>
+              </motion.div>
+            )}
           </aside>
 
           {/* ── MAIN CONTENT COLUMN ───────────────────────── */}
           <div className="flex-1 min-w-0">
 
-            {/* Active order — mobile only */}
+            {/* Mobile Active Order Banner — Sleek & compact */}
             <AnimatePresence>
               {activeOrder && (
                 <motion.div
-                  initial={{ opacity: 0, y: -10 }}
+                  initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => navigate(`/track-order/${activeOrder._id}`)}
-                  className="lg:hidden mb-5 rounded-3xl overflow-hidden cursor-pointer"
-                  style={{ background: "linear-gradient(135deg,#101010,#1e1700)", boxShadow: "0 8px 28px rgba(0,0,0,0.2)" }}
+                  className="lg:hidden mb-4 rounded-2xl overflow-hidden cursor-pointer border border-amber-500/25"
+                  style={{
+                    background: "linear-gradient(135deg, #101010 0%, #1a1402 100%)",
+                    boxShadow: "0 6px 20px rgba(0,0,0,0.16)",
+                  }}
                 >
-                  <div className="p-5">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <span className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "#FFD700" }}>Active Order</span>
-                        <p className="text-white font-bold text-lg mt-1 capitalize">{activeOrder.status.replaceAll("-", " ")}</p>
-                        <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.35)" }}>#{activeOrder.orderId}</p>
+                  <div className="p-3.5">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-400"></span>
+                        </span>
+                        <span className="text-[10px] font-black tracking-wider uppercase text-[#FFD700]">
+                          Active Order
+                        </span>
+                        <span className="text-[10px] text-gray-400">
+                          #{activeOrder.orderId}
+                        </span>
                       </div>
-                      <span className="text-3xl">🚚</span>
+                      <span className="text-xs font-black text-amber-400 flex items-center gap-0.5">
+                        Track Live <ChevronRight size={13} />
+                      </span>
                     </div>
-                    <div className="mt-4 w-full h-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.1)" }}>
-                      <motion.div initial={{ width: 0 }} animate={{ width: "65%" }}
-                        transition={{ duration: 1.2, ease: "easeOut", delay: 0.6 }}
-                        className="h-full rounded-full" style={{ background: "linear-gradient(90deg,#FFD700,#FFA500)" }} />
+
+                    <div className="flex items-center justify-between">
+                      <p className="text-white font-extrabold text-sm capitalize">
+                        {activeOrder.status?.replaceAll("-", " ")}
+                      </p>
+                      <span className="text-[11px] text-gray-400">
+                        Est. delivery in 2 hrs
+                      </span>
                     </div>
-                    <div className="flex items-center justify-between mt-4">
-                      <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Est. delivery in 2 hrs</span>
-                      <span className="text-xs font-semibold flex items-center gap-1" style={{ color: "#FFD700" }}>Track Live <ChevronRight size={13} /></span>
+
+                    <div className="mt-2.5 w-full h-1.5 rounded-full bg-white/10 overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: "65%" }}
+                        transition={{ duration: 1.2, ease: "easeOut", delay: 0.3 }}
+                        className="h-full rounded-full bg-gradient-to-r from-[#FFD700] to-[#FFA500]"
+                      />
                     </div>
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {/* Mobile: categories 2-col grid */}
-            <div className="lg:hidden mb-5">
-              <h2 className="text-[13px] font-bold text-gray-400 uppercase tracking-widest mb-3">Category</h2>
-              <div className="grid grid-cols-2 gap-3">
+            {/* Mobile: 4-Column Category Grid — Space-saving & ergonomic */}
+            <div className="lg:hidden mb-4">
+              <div className="flex items-center justify-between mb-2 px-1">
+                <h2 className="text-[11px] font-black text-gray-400 uppercase tracking-widest">
+                  Categories
+                </h2>
+                <span className="text-[11px] font-bold text-gray-400">
+                  {categoryCounts[selectedCategory] || 0} items
+                </span>
+              </div>
+              <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
                 {Object.entries(categoryMeta).map(([cat, data], i) => {
                   const isSelected = selectedCategory === cat;
                   return (
                     <motion.button
                       key={cat}
                       whileTap={{ scale: 0.94 }}
-                      whileHover={{ y: -2 }}
-                      initial={{ opacity: 0, y: 16 }}
+                      initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.07 }}
-                      onClick={() => { setSelectedCategory(cat); setSearch(""); }}
-                      className="relative overflow-hidden text-left p-4 rounded-2xl"
-                      style={{
-                        background: isSelected ? "linear-gradient(135deg,#FFD700,#FFA500)" : "white",
-                        border: isSelected ? "none" : "1px solid #F0F0F0",
-                        boxShadow: isSelected ? "0 6px 20px rgba(255,165,0,0.3)" : "0 2px 8px rgba(0,0,0,0.05)",
-                      }}
-                    >
-                      <span className="text-2xl block mb-2">{data.emoji}</span>
-                      <p className={`font-bold text-[14px] ${isSelected ? "text-gray-900" : "text-gray-800"}`}>{cat}</p>
-                      <p className={`text-[11px] mt-0.5 ${isSelected ? "text-gray-700" : "text-gray-400"}`}>{categoryCounts[cat] || 0} items</p>
-                      {isSelected && (
-                        <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-gray-900 flex items-center justify-center">
-                          <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                            <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </div>
-                      )}
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Mobile: services horizontal scroll */}
-            <div className="lg:hidden mb-5">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-[13px] font-bold text-gray-400 uppercase tracking-widest">Service Type</h2>
-
-                {/* Mobile scroll hint */}
-                <motion.div
-                  initial={{ opacity: 0, x: 6 }}
-                  animate={{ opacity: 1, x: [6, 0, 6] }}
-                  transition={{
-                    opacity: { duration: 0.4 },
-                    x: { duration: 1.4, repeat: Infinity, ease: "easeInOut" },
-                  }}
-                  className="flex items-center gap-1.5 rounded-full px-2.5 py-1"
-                  style={{
-                    background: "#FFF9E6",
-                    border: "1px solid #FDE68A",
-                    color: "#A16207",
-                  }}
-                >
-                  <span className="text-[9px] font-extrabold uppercase tracking-wide whitespace-nowrap">
-                    Swipe
-                  </span>
-                  <ChevronRight size={12} strokeWidth={2.5} />
-                </motion.div>
-              </div>
-
-              <div className="relative">
-                <div
-                  ref={serviceScrollRef}
-                  className="flex gap-3 overflow-x-auto pb-2 pr-8"
-                  style={{
-                    scrollbarWidth: "none",
-                    WebkitOverflowScrolling: "touch",
-                    scrollBehavior: "smooth",
-                  }}
-                >
-                {services.map((service, i) => {
-                  const isSelected = selectedService === service.name;
-                  return (
-                    <motion.button
-                      key={service.name}
-                      whileTap={{ scale: 0.93 }}
-                      initial={{ opacity: 0, x: 16 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.07 }}
+                      transition={{ delay: i * 0.04 }}
                       onClick={() => {
-  setSelectedService(service.name);
-
-  if (service.name !== "Dry Clean") {
-    setSelectedCareLevel("regular");
-  }
-}}
-                      className="relative flex-shrink-0 p-4 rounded-2xl text-left"
+                        setSelectedCategory(cat);
+                        setSearch("");
+                      }}
+                      className={`relative p-2 sm:p-2.5 rounded-2xl text-center transition-all flex flex-col items-center justify-center ${
+                        isSelected
+                          ? "shadow-[0_4px_16px_rgba(255,165,0,0.32)] border-transparent"
+                          : "bg-white border-gray-100 hover:border-gray-200 shadow-[0_2px_6px_rgba(0,0,0,0.04)]"
+                      } border`}
                       style={{
-                        width: "150px",
-                        background: isSelected ? "#101010" : "white",
-                        border: isSelected ? "none" : "1px solid #F0F0F0",
-                        boxShadow: isSelected ? "0 6px 20px rgba(0,0,0,0.22)" : "0 2px 8px rgba(0,0,0,0.05)",
+                        background: isSelected
+                          ? "linear-gradient(135deg, #FFD700 0%, #FFA500 100%)"
+                          : "white",
                       }}
                     >
-                      {service.popular && (
-                        <span className="absolute top-3 right-3 text-[9px] font-bold px-1.5 py-0.5 rounded-full"
-                          style={{ background: isSelected ? "rgba(255,215,0,0.2)" : "#FFF7E6", color: isSelected ? "#FFD700" : "#D97706" }}>
-                          HOT
-                        </span>
+                      <span className="text-2xl sm:text-3xl block leading-none mb-1">
+                        {data.emoji}
+                      </span>
+                      <span
+                        className={`font-black text-[12px] sm:text-xs leading-tight truncate w-full ${
+                          isSelected ? "text-gray-950 font-extrabold" : "text-gray-700"
+                        }`}
+                      >
+                        {cat}
+                      </span>
+                      <span
+                        className={`text-[9px] font-bold mt-0.5 ${
+                          isSelected ? "text-gray-900/80" : "text-gray-400"
+                        }`}
+                      >
+                        {categoryCounts[cat] || 0}
+                      </span>
+                      {isSelected && (
+                        <div className="w-1.5 h-1.5 rounded-full bg-gray-950 mt-1" />
                       )}
-                      <div className="w-8 h-8 rounded-xl flex items-center justify-center mb-2.5"
-                        style={{ background: isSelected ? "rgba(255,215,0,0.15)" : service.bg, color: isSelected ? "#FFD700" : service.color }}>
-                        {service.icon}
-                      </div>
-                      <p className={`text-sm font-bold leading-tight ${isSelected ? "text-white" : "text-gray-800"}`}>{service.name}</p>
-                      <p className={`text-[11px] mt-0.5 ${isSelected ? "text-gray-400" : "text-gray-400"}`}>{service.desc}</p>
-                      <div className="flex items-center gap-1 mt-2">
-                        <Clock size={10} color={isSelected ? "#FFD700" : "#9CA3AF"} />
-                        <span className={`text-[10px] font-semibold ${isSelected ? "text-yellow-400" : "text-gray-400"}`}>{service.time}</span>
-                      </div>
                     </motion.button>
                   );
                 })}
-                </div>
-
-                {/* Right fade makes the horizontal scroll affordance obvious */}
-                <div
-                  className="pointer-events-none absolute right-0 top-0 bottom-2 w-14"
-                  style={{
-                    background: "linear-gradient(90deg, rgba(248,249,251,0), #F8F9FB 88%)",
-                  }}
-                />
-
-                {/* Clickable floating arrow — scrolls services */}
-                <motion.button
-                  type="button"
-                  aria-label="Show more services"
-                  onClick={scrollServices}
-                  whileHover={{ scale: 1.08 }}
-                  whileTap={{ scale: 0.9 }}
-                  animate={{ x: [0, 3, 0] }}
-                  transition={{
-                    x: { duration: 1.2, repeat: Infinity, ease: "easeInOut" },
-                  }}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center z-10 cursor-pointer"
-                  style={{
-                    background: "rgba(255,255,255,0.98)",
-                    boxShadow: "0 5px 18px rgba(0,0,0,0.16)",
-                    border: "1px solid rgba(0,0,0,0.08)",
-                    color: "#111827",
-                  }}
-                >
-                  <ChevronRight size={17} strokeWidth={2.7} />
-                </motion.button>
               </div>
             </div>
 
-            {selectedService === "Dry Clean" && (
-  <motion.div
-    initial={{ opacity: 0, y: 8 }}
-    animate={{ opacity: 1, y: 0 }}
-    className="mb-5 rounded-2xl border border-yellow-200 bg-gradient-to-br from-yellow-50 to-white p-3"
-  >
-    <div className="flex items-center gap-2 mb-3">
-      <div className="w-8 h-8 rounded-xl bg-yellow-400 flex items-center justify-center">
-        <Sparkles size={15} className="text-black" />
-      </div>
-
-      <div>
-        <p className="text-xs font-extrabold text-gray-900">
-          Choose Care Level
-        </p>
-        <p className="text-[10px] text-gray-500">
-          Premium care gives your clothes extra attention
-        </p>
-      </div>
-    </div>
-
-    <div className="grid grid-cols-2 gap-2">
-      <button
-        type="button"
-        onClick={() => setSelectedCareLevel("regular")}
-        className={`rounded-xl border p-3 text-left ${
-          selectedCareLevel === "regular"
-            ? "border-gray-900 bg-gray-900 text-white"
-            : "border-gray-200 bg-white"
-        }`}
-      >
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-extrabold">
-            Regular
-          </span>
-
-          {selectedCareLevel === "regular" && (
-            <Check size={13} />
-          )}
-        </div>
-
-        <p className="text-[10px] mt-1 text-gray-400">
-          Standard care
-        </p>
-      </button>
-
-      <button
-        type="button"
-        onClick={() => setSelectedCareLevel("premium")}
-        className={`rounded-xl border p-3 text-left ${
-          selectedCareLevel === "premium"
-            ? "border-yellow-400 bg-yellow-400 text-black"
-            : "border-yellow-200 bg-white"
-        }`}
-      >
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-extrabold">
-            ✨ Premium
-          </span>
-
-          {selectedCareLevel === "premium" && (
-            <Check size={13} />
-          )}
-        </div>
-
-        <p
-          className={`text-[10px] mt-1 ${
-            selectedCareLevel === "premium"
-              ? "text-gray-800"
-              : "text-gray-400"
-          }`}
-        >
-          Extra care & finishing
-        </p>
-      </button>
-    </div>
-  </motion.div>
-)}
-
-            {/* ── ITEM GRID / LIST ─────────────────────────── */}
-            <div>
-              <div className="flex items-end justify-between mb-4 px-1">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-gray-400 mb-1">
-                    {selectedService}
-                  </p>
-                  <h2 className="text-xl sm:text-2xl font-black tracking-tight text-gray-950">
-                    {search ? `Results for "${search}"` : selectedCategory}
-                  </h2>
-                </div>
-                <span className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[11px] font-bold text-gray-500 shadow-sm">
-                  {currentItems.length} {currentItems.length === 1 ? "item" : "items"}
+            {/* Mobile: Services Snap Carousel */}
+            <div className="lg:hidden mb-4">
+              <div className="flex items-center justify-between mb-2 px-1">
+                <h2 className="text-[11px] font-black text-gray-400 uppercase tracking-widest">
+                  Service Type
+                </h2>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200/60">
+                  {selectedService}
                 </span>
               </div>
 
-              {/*
-                Always single column — names need full width, especially
-                on xl where the right cart panel already eats space.
-              */}
-              <div className="grid grid-cols-1 gap-3">
+              <div className="relative -mx-3.5 sm:-mx-6 px-3.5 sm:px-6">
+                <div
+                  ref={serviceScrollRef}
+                  className="flex gap-2.5 overflow-x-auto pb-2 pt-0.5 snap-x snap-mandatory"
+                  style={{
+                    scrollbarWidth: "none",
+                    WebkitOverflowScrolling: "touch",
+                  }}
+                >
+                  {services.map((service, i) => {
+                    const isSelected = selectedService === service.name;
+                    return (
+                      <motion.button
+                        key={service.name}
+                        whileTap={{ scale: 0.94 }}
+                        initial={{ opacity: 0, x: 12 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        onClick={() => {
+                          setSelectedService(service.name);
+                          if (service.name !== "Dry Clean") {
+                            setSelectedCareLevel("regular");
+                          }
+                        }}
+                        className={`snap-start relative flex-shrink-0 p-3 rounded-2xl text-left transition-all ${
+                          isSelected
+                            ? "bg-[#101010] text-white shadow-[0_6px_20px_rgba(0,0,0,0.22)] border-amber-400/40"
+                            : "bg-white text-gray-800 border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.04)]"
+                        } border`}
+                        style={{ width: "138px" }}
+                      >
+                        {service.popular && (
+                          <span
+                            className="absolute top-2.5 right-2.5 text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider"
+                            style={{
+                              background: isSelected ? "rgba(255,215,0,0.22)" : "#FFF7E6",
+                              color: isSelected ? "#FFD700" : "#D97706",
+                              border: isSelected ? "1px solid rgba(255,215,0,0.4)" : "1px solid #FDE68A",
+                            }}
+                          >
+                            HOT
+                          </span>
+                        )}
+                        <div
+                          className="w-8 h-8 rounded-xl flex items-center justify-center mb-2"
+                          style={{
+                            background: isSelected ? "rgba(255,215,0,0.15)" : service.bg,
+                            color: isSelected ? "#FFD700" : service.color,
+                          }}
+                        >
+                          {service.icon}
+                        </div>
+                        <p className="text-[13px] font-black leading-tight truncate">
+                          {service.name}
+                        </p>
+                        <p
+                          className={`text-[10px] mt-0.5 truncate ${
+                            isSelected ? "text-gray-400" : "text-gray-400"
+                          }`}
+                        >
+                          {service.desc}
+                        </p>
+                        <div className="flex items-center gap-1 mt-2">
+                          <Clock size={10} color={isSelected ? "#FFD700" : "#9CA3AF"} />
+                          <span
+                            className={`text-[10px] font-bold ${
+                              isSelected ? "text-amber-400" : "text-gray-500"
+                            }`}
+                          >
+                            {service.time}
+                          </span>
+                        </div>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile: Dry Clean Care Level */}
+            {selectedService === "Dry Clean" && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-4 rounded-2xl border border-amber-200/80 bg-gradient-to-br from-amber-50/50 to-white p-3"
+              >
+                <div className="flex items-center justify-between mb-2 px-0.5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-lg bg-amber-400 flex items-center justify-center flex-shrink-0">
+                      <Sparkles size={13} className="text-black" />
+                    </div>
+                    <span className="text-xs font-black text-gray-900">Dry Clean Care Level</span>
+                  </div>
+                  <span className="text-[10px] text-amber-800 font-semibold bg-amber-100/70 px-2 py-0.5 rounded-full">
+                    {selectedCareLevel === "premium" ? "Premium Active" : "Regular Active"}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCareLevel("regular")}
+                    className={`p-2.5 rounded-xl border text-left transition-all ${
+                      selectedCareLevel === "regular"
+                        ? "border-gray-900 bg-gray-900 text-white shadow-sm"
+                        : "border-gray-200 bg-white text-gray-800 hover:border-gray-300"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold">Standard</span>
+                      {selectedCareLevel === "regular" && <Check size={12} className="text-amber-400" />}
+                    </div>
+                    <p className={`text-[10px] mt-0.5 ${selectedCareLevel === "regular" ? "text-gray-300" : "text-gray-400"}`}>
+                      Standard care
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCareLevel("premium")}
+                    className={`relative p-2.5 rounded-xl border text-left transition-all ${
+                      selectedCareLevel === "premium"
+                        ? "border-amber-400 bg-gradient-to-br from-amber-400 to-yellow-400 text-black shadow-sm font-semibold"
+                        : "border-amber-200/80 bg-white text-gray-800 hover:border-amber-300"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black flex items-center gap-1">
+                        ✨ Premium
+                      </span>
+                      {selectedCareLevel === "premium" && <Check size={12} className="text-black" />}
+                    </div>
+                    <p className={`text-[10px] mt-0.5 ${selectedCareLevel === "premium" ? "text-black/80 font-medium" : "text-gray-400"}`}>
+                      Extra finishing
+                    </p>
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* ── ITEM GRID / LIST ─────────────────────────── */}
+            <div>
+              <div className="flex items-center justify-between mb-3 px-1">
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-black uppercase tracking-[0.16em] text-gray-400">
+                      {selectedService}
+                    </span>
+                    <span className="text-gray-300">•</span>
+                    <span className="text-[10px] font-black uppercase tracking-[0.16em] text-amber-600">
+                      {selectedCategory}
+                    </span>
+                  </div>
+                  <h2 className="text-lg sm:text-2xl font-black tracking-tight text-gray-950 mt-0.5">
+                    {search ? `Results for "${search}"` : `${selectedCategory} Collection`}
+                  </h2>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  {search && (
+                    <button
+                      onClick={() => setSearch("")}
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 px-2.5 py-1 rounded-full transition-colors"
+                    >
+                      Clear <X size={11} />
+                    </button>
+                  )}
+                  <span className="rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[11px] font-extrabold text-gray-600 shadow-xs">
+                    {currentItems.length} {currentItems.length === 1 ? "item" : "items"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Responsive Single Column List */}
+              <div className="grid grid-cols-1 gap-2.5 sm:gap-3">
                 <AnimatePresence mode="popLayout">
                   {isLoading
                     ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
                     : currentItems.length === 0
                     ? (
                       <motion.div
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 15 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="col-span-full flex flex-col items-center py-20 text-center"
+                        className="col-span-full flex flex-col items-center py-14 sm:py-20 text-center bg-white rounded-3xl border border-gray-100 p-6"
                       >
-                        <span className="text-5xl mb-4">🔍</span>
-                        <p className="font-bold text-gray-800 text-lg">Nothing found</p>
-                        <p className="text-gray-400 text-sm mt-1">Try a different search term</p>
+                        <span className="text-4xl sm:text-5xl mb-3">🔍</span>
+                        <p className="font-extrabold text-gray-900 text-base sm:text-lg">No clothes found</p>
+                        <p className="text-gray-400 text-xs sm:text-sm mt-1 max-w-xs">
+                          {search ? `We couldn't find anything matching "${search}"` : "No items available in this category & service."}
+                        </p>
                         <motion.button
                           whileTap={{ scale: 0.95 }}
                           onClick={() => setSearch("")}
-                          className="mt-5 px-6 py-2.5 rounded-full text-sm font-bold"
+                          className="mt-4 px-5 py-2 rounded-full text-xs sm:text-sm font-black shadow-sm"
                           style={{ background: "#FFD700", color: "#101010" }}
                         >
                           Browse All Clothes
@@ -975,18 +994,18 @@ useEffect(() => {
                         const price = Number(item.price);
                         return (
                           <ItemCard
-  key={item._id}
-  item={item}
-  qty={qty}
-  price={price}
-  index={i}
-  selectedService={selectedService}
-  selectedCareLevel={selectedCareLevel}
-  selectedCategory={selectedCategory}
-  addItem={addItem}
-  increaseQty={increaseQty}
-  decreaseQty={decreaseQty}
-/>
+                            key={item._id}
+                            item={item}
+                            qty={qty}
+                            price={price}
+                            index={i}
+                            selectedService={selectedService}
+                            selectedCareLevel={selectedCareLevel}
+                            selectedCategory={selectedCategory}
+                            addItem={addItem}
+                            increaseQty={increaseQty}
+                            decreaseQty={decreaseQty}
+                          />
                         );
                       })}
                 </AnimatePresence>
@@ -1004,46 +1023,84 @@ useEffect(() => {
         </div>
       </div>
 
+      {/* ── MOBILE SCROLL TO TOP BUTTON ── */}
+      <AnimatePresence>
+        {showScrollTop && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            aria-label="Scroll to top"
+            className="xl:hidden fixed right-3.5 z-40 w-9 h-9 rounded-full bg-white/95 text-gray-800 shadow-md border border-gray-200 flex items-center justify-center transition-transform"
+            style={{
+              bottom: cartCount > 0 ? "calc(78px + env(safe-area-inset-bottom, 14px))" : "20px",
+            }}
+          >
+            <ArrowUp size={16} strokeWidth={2.4} />
+          </motion.button>
+        )}
+      </AnimatePresence>
+
       {/* ── STICKY CART BAR (mobile + non-xl desktop) ── */}
       <AnimatePresence>
         {cartCount > 0 && (
           <motion.div
-            initial={{ y: 100, opacity: 0 }}
+            initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 280, damping: 24 }}
-            className="xl:hidden fixed bottom-0 left-0 right-0 z-50 px-4 pb-4 pt-2"
-            style={{ pointerEvents: "none" }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 26 }}
+            className="xl:hidden fixed bottom-0 left-0 right-0 z-50 px-3 sm:px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-2 pointer-events-none"
           >
-            <div className="max-w-[860px] mx-auto" style={{ pointerEvents: "auto" }}>
-              <div className="rounded-2xl p-1"
+            <div className="max-w-[700px] mx-auto pointer-events-auto">
+              <div
+                className="rounded-2xl p-1 shadow-[0_8px_30px_rgba(0,0,0,0.20)] border border-white/80"
                 style={{
-                  background: "rgba(255,255,255,0.88)",
+                  background: "rgba(255, 255, 255, 0.94)",
                   backdropFilter: "blur(20px)",
-                  boxShadow: "0 -2px 30px rgba(0,0,0,0.10), 0 8px 28px rgba(0,0,0,0.08)",
-                  border: "1px solid rgba(255,255,255,0.9)",
-                }}>
+                  WebkitBackdropFilter: "blur(20px)",
+                }}
+              >
                 <motion.button
-                  whileTap={{ scale: 0.97 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => navigate("/cart")}
-                  className="w-full flex items-center justify-between px-5 py-3.5 rounded-[18px]"
-                  style={{ background: "linear-gradient(135deg,#101010,#1e1700)" }}
+                  className="w-full flex items-center justify-between px-4 sm:px-5 py-3 rounded-xl transition-transform"
+                  style={{
+                    background: "linear-gradient(135deg, #0f0f0f 0%, #1e1700 100%)",
+                  }}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm"
-                      style={{ background: "#FFD700", color: "#101010" }}>
+                  <div className="flex items-center gap-2.5 sm:gap-3">
+                    <div
+                      className="w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs sm:text-sm text-gray-950 shadow-sm"
+                      style={{
+                        background: "linear-gradient(135deg, #FFD700, #FFA500)",
+                      }}
+                    >
                       {cartCount}
                     </div>
                     <div className="text-left">
-                      <p className="text-white font-bold text-sm leading-none">View Cart</p>
-                      <p className="text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>
-                        {cartCount} {cartCount === 1 ? "item" : "items"}
+                      <p className="text-white font-extrabold text-xs sm:text-sm leading-tight flex items-center gap-1.5">
+                        <span>View Laundry Bag</span>
+                      </p>
+                      <p className="text-[10px] text-gray-400 font-medium">
+                        {cartCount} {cartCount === 1 ? "item" : "items"} added
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-bold text-white">₹{cartTotal}</span>
-                    <ChevronRight size={16} color="#FFD700" />
+
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="text-right">
+                      <p className="text-white font-black text-sm sm:text-base leading-tight">
+                        ₹{cartTotal}
+                      </p>
+                      <p className="text-[9px] text-[#FFD700] uppercase font-bold tracking-wider">
+                        Proceed →
+                      </p>
+                    </div>
+                    <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-[#FFD700]">
+                      <ChevronRight size={14} />
+                    </div>
                   </div>
                 </motion.button>
               </div>
@@ -1069,13 +1126,15 @@ function CartSummaryPanel({ cart, cartCount, cartTotal, navigate }) {
       {/* Header */}
       <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
         <h3 className="font-bold text-gray-900 text-sm">Your Cart</h3>
-        <span className="text-xs font-bold px-2.5 py-1 rounded-full"
-          style={{ background: "#FFF9E6", color: "#D97706" }}>
+        <span
+          className="text-xs font-bold px-2.5 py-1 rounded-full"
+          style={{ background: "#FFF9E6", color: "#D97706" }}
+        >
           {cartCount} {cartCount === 1 ? "item" : "items"}
         </span>
       </div>
 
-      {/* Items — stacked layout so names never clip */}
+      {/* Items — stacked layout */}
       <div className="py-2 max-h-80 overflow-y-auto" style={{ scrollbarWidth: "thin" }}>
         <AnimatePresence>
           {cart.map((item) => (
@@ -1086,7 +1145,6 @@ function CartSummaryPanel({ cart, cartCount, cartTotal, navigate }) {
               exit={{ opacity: 0, height: 0 }}
               className="px-5 py-3 border-b border-gray-50 last:border-0"
             >
-              {/* Name + service row */}
               <div className="flex items-start gap-2.5 mb-2">
                 <span className="text-lg leading-none flex-shrink-0 mt-0.5">
                   {itemEmoji[item.name] || "🧺"}
@@ -1097,21 +1155,21 @@ function CartSummaryPanel({ cart, cartCount, cartTotal, navigate }) {
                   </p>
                   <p className="text-[11px] text-gray-400 mt-0.5">{item.service}</p>
                   {item.careLevel === "premium" && (
-  <span
-    className="inline-flex items-center gap-1 mt-1 text-[9px] font-extrabold px-2 py-0.5 rounded-full"
-    style={{
-      background: "#FFF4BF",
-      color: "#92400E",
-      border: "1px solid #FDE68A",
-    }}
-  >
-    <Sparkles size={9} />
-    Premium Care
-  </span>
-)}
+                    <span
+                      className="inline-flex items-center gap-1 mt-1 text-[9px] font-extrabold px-2 py-0.5 rounded-full"
+                      style={{
+                        background: "#FFF4BF",
+                        color: "#92400E",
+                        border: "1px solid #FDE68A",
+                      }}
+                    >
+                      <Sparkles size={9} />
+                      Premium Care
+                    </span>
+                  )}
                 </div>
               </div>
-              {/* Qty × price row */}
+
               <div className="flex items-center justify-between pl-8">
                 <span className="text-xs text-gray-400 font-medium">
                   ₹{item.price} × {item.qty}
@@ -1127,11 +1185,9 @@ function CartSummaryPanel({ cart, cartCount, cartTotal, navigate }) {
 
       {/* Footer */}
       <div className="px-5 py-4 border-t border-gray-100">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-gray-500">Subtotal</span>
-          <span className="font-bold text-gray-900">₹{cartTotal}</span>
-        </div>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm text-gray-500 font-medium">Subtotal</span>
+          <span className="font-extrabold text-gray-900 text-base">₹{cartTotal}</span>
         </div>
         <motion.button
           whileHover={{ scale: 1.02 }}
@@ -1141,8 +1197,10 @@ function CartSummaryPanel({ cart, cartCount, cartTotal, navigate }) {
           style={{ background: "linear-gradient(135deg,#101010,#1e1700)", color: "white" }}
         >
           View Cart
-          <span className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-            style={{ background: "#FFD700" }}>
+          <span
+            className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{ background: "#FFD700" }}
+          >
             <ChevronRight size={12} color="#101010" />
           </span>
         </motion.button>
@@ -1151,7 +1209,7 @@ function CartSummaryPanel({ cart, cartCount, cartTotal, navigate }) {
   );
 }
 
-// ─── ITEM CARD ────────────────────────────────────────────────────────────────
+// ─── ITEM CARD (Mobile-first, Responsive & Ultra-Clean) ────────────────────────
 
 function ItemCard({
   item,
@@ -1171,150 +1229,167 @@ function ItemCard({
     "🧺";
 
   const displayName = item.variant ? `${item.name} (${item.variant})` : item.name;
+  const isInCart = qty > 0;
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.03, type: "spring", stiffness: 280, damping: 24 }}
-      whileHover={{ y: -2 }}
-      className="bg-white rounded-2xl"
-      style={{
-        boxShadow: qty > 0 ? "0 4px 20px rgba(255,215,0,0.12)" : "0 2px 10px rgba(0,0,0,0.06)",
-        border: qty > 0 ? "1.5px solid rgba(255,215,0,0.45)" : "1px solid #F0F0F0",
-        transition: "border 0.15s, box-shadow 0.15s",
-      }}
+      transition={{ delay: Math.min(index * 0.02, 0.25), type: "spring", stiffness: 280, damping: 24 }}
+      className={`rounded-2xl transition-all duration-200 relative overflow-hidden ${
+        isInCart
+          ? "bg-gradient-to-r from-amber-50/40 via-white to-white border-amber-300 shadow-[0_4px_16px_rgba(255,215,0,0.12)]"
+          : "bg-white border-gray-100 hover:border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.03)]"
+      } border`}
     >
-      {/* Top row: emoji icon + name + service tag */}
-      <div className="flex items-start gap-4 px-5 pt-5 pb-4">
-        {/* Icon */}
+      {/* Visual in-cart accent stripe on left */}
+      {isInCart && (
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[#FFD700] to-[#FFA500]" />
+      )}
+
+      {/* Unified flex row: Icon + Details + Action */}
+      <div className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4">
+        {/* Emoji Icon Container */}
         <div
-          className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
-          style={{ background: qty > 0 ? "#FFF9E6" : "#F8F9FB" }}
+          className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl flex-shrink-0 transition-transform ${
+            isInCart ? "scale-105" : ""
+          }`}
+          style={{
+            background: isInCart
+              ? "linear-gradient(135deg, #FFF9E6, #FEF3C7)"
+              : "#F8F9FB",
+            border: isInCart ? "1px solid rgba(255,215,0,0.35)" : "1px solid #F0F2F5",
+          }}
         >
           {emoji}
         </div>
 
-        {/* Name + service */}
-        <div className="flex-1 min-w-0 pt-0.5">
-          <p className="font-bold text-gray-900 text-[16px] leading-snug break-words">
+        {/* Content details */}
+        <div className="flex-1 min-w-0 pr-1">
+          <h3 className="font-bold text-gray-900 text-[14px] sm:text-[16px] leading-snug truncate">
             {displayName}
-          </p>
-          <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-  <span
-    className="inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full"
-    style={{
-      background: "#F3F4F6",
-      color: "#6B7280",
-    }}
-  >
-    {selectedService}
-  </span>
+          </h3>
 
-  {selectedService === "Dry Clean" &&
-    selectedCareLevel === "premium" && (
-      <span
-        className="inline-flex items-center gap-1 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full"
-        style={{
-          background: "#FFF4BF",
-          color: "#92400E",
-          border: "1px solid #FDE68A",
-        }}
-      >
-        <Sparkles size={10} />
-        Premium Care
-      </span>
-    )}
-</div>
-        </div>
-      </div>
+          {/* Badges */}
+          <div className="flex flex-wrap items-center gap-1.5 mt-1">
+            <span className="text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+              {selectedService}
+            </span>
 
-      {/* Divider */}
-      <div style={{ height: "1px", background: "#F5F5F5", marginLeft: "20px", marginRight: "20px" }} />
+            {selectedService === "Dry Clean" && selectedCareLevel === "premium" && (
+              <span
+                className="inline-flex items-center gap-0.5 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full"
+                style={{
+                  background: "#FFF4BF",
+                  color: "#92400E",
+                  border: "1px solid #FDE68A",
+                }}
+              >
+                <Sparkles size={9} />
+                Premium
+              </span>
+            )}
+          </div>
 
-      {/* Bottom row: price left, action right */}
-      <div className="flex items-center justify-between px-5 py-3.5">
-        <div>
-          <p className="text-[11px] text-gray-400 mb-0.5">Price per piece</p>
-          <p className="font-black text-gray-900 text-[18px] leading-none">₹{price}</p>
+          {/* Price */}
+          <div className="flex items-baseline gap-1 mt-1">
+            <span className="font-black text-gray-950 text-base sm:text-lg leading-none">
+              ₹{price}
+            </span>
+            <span className="text-[10px] text-gray-400 font-medium">/ piece</span>
+          </div>
         </div>
 
-        <AnimatePresence mode="wait">
-          {qty === 0 ? (
-            <motion.button
-              key="add"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 320, damping: 22 }}
-              whileTap={{ scale: 0.88 }}
-              onClick={() =>
-  addItem({
-    ...item,
-    pricingId: item._id,
-    price,
-    service: selectedService,
-    careLevel:
-      selectedService === "Dry Clean"
-        ? selectedCareLevel
-        : "regular",
-    category: selectedCategory,
-  })
-}
-              className="h-10 px-7 rounded-full font-bold text-sm"
-              style={{ background: "#FFD700", color: "#101010" }}
-            >
-              Add
-            </motion.button>
-          ) : (
-            <motion.div
-              key="stepper"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 320, damping: 22 }}
-              className="flex items-center rounded-full overflow-hidden"
-              style={{ background: "#101010" }}
-            >
+        {/* Action Button: Add or Stepper */}
+        <div className="flex-shrink-0 flex items-center justify-end">
+          <AnimatePresence mode="wait">
+            {qty === 0 ? (
               <motion.button
-                whileTap={{ scale: 0.82 }}
+                key="add"
+                initial={{ scale: 0.85, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.85, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                whileTap={{ scale: 0.9 }}
                 onClick={() =>
-  decreaseQty({
-    ...item,
-    pricingId: item._id,
-    service: selectedService,
-    careLevel:
-      selectedService === "Dry Clean"
-        ? selectedCareLevel
-        : "regular",
-  })
-}
-                className="w-10 h-10 flex items-center justify-center text-xl font-bold text-white"
+                  addItem({
+                    ...item,
+                    pricingId: item._id,
+                    price,
+                    service: selectedService,
+                    careLevel:
+                      selectedService === "Dry Clean"
+                        ? selectedCareLevel
+                        : "regular",
+                    category: selectedCategory,
+                  })
+                }
+                className="h-9 px-4 sm:h-10 sm:px-6 rounded-full font-black text-xs sm:text-sm flex items-center justify-center gap-1 transition-all shadow-xs active:shadow-none"
+                style={{
+                  background: "linear-gradient(135deg, #FFD700, #FBBF24)",
+                  color: "#111827",
+                  boxShadow: "0 2px 8px rgba(251, 191, 36, 0.35)",
+                }}
               >
-                −
+                <span>Add</span>
+                <span className="text-base leading-none font-black">+</span>
               </motion.button>
-              <span className="text-white font-bold text-sm w-7 text-center">{qty}</span>
-              <motion.button
-                whileTap={{ scale: 0.82 }}
-                onClick={() =>
-  increaseQty({
-    ...item,
-    pricingId: item._id,
-    service: selectedService,
-    careLevel:
-      selectedService === "Dry Clean"
-        ? selectedCareLevel
-        : "regular",
-  })
-}
-                className="w-10 h-10 flex items-center justify-center text-xl font-bold"
-                style={{ color: "#FFD700" }}
+            ) : (
+              <motion.div
+                key="stepper"
+                initial={{ scale: 0.85, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.85, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                className="flex items-center rounded-full overflow-hidden p-0.5 shadow-md"
+                style={{
+                  background: "#101010",
+                  border: "1px solid rgba(255, 215, 0, 0.3)",
+                }}
               >
-                +
-              </motion.button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                <motion.button
+                  whileTap={{ scale: 0.8 }}
+                  onClick={() =>
+                    decreaseQty({
+                      ...item,
+                      pricingId: item._id,
+                      service: selectedService,
+                      careLevel:
+                        selectedService === "Dry Clean"
+                          ? selectedCareLevel
+                          : "regular",
+                    })
+                  }
+                  className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-lg font-bold text-white hover:text-amber-300 transition-colors"
+                  aria-label="Decrease quantity"
+                >
+                  −
+                </motion.button>
+                <span className="text-amber-300 font-black text-xs sm:text-sm w-6 sm:w-7 text-center">
+                  {qty}
+                </span>
+                <motion.button
+                  whileTap={{ scale: 0.8 }}
+                  onClick={() =>
+                    increaseQty({
+                      ...item,
+                      pricingId: item._id,
+                      service: selectedService,
+                      careLevel:
+                        selectedService === "Dry Clean"
+                          ? selectedCareLevel
+                          : "regular",
+                    })
+                  }
+                  className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-lg font-bold text-amber-400 hover:text-amber-300 transition-colors"
+                  aria-label="Increase quantity"
+                >
+                  +
+                </motion.button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </motion.div>
   );

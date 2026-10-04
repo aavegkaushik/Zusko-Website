@@ -98,6 +98,11 @@ export default function Payment() {
         },
       });
       console.log("ORDER SUCCESS:", response.data);
+      const createdOrder = response.data?.data || response.data?.order || response.data;
+      if (createdOrder) {
+        if (createdOrder._id) sessionStorage.setItem("latestOrderId", createdOrder._id);
+        if (createdOrder.orderId) sessionStorage.setItem("latestOrderCode", createdOrder.orderId);
+      }
       sessionStorage.setItem("orderSuccess", "true");
       clearCart();
       navigate("/success");
@@ -147,6 +152,11 @@ export default function Payment() {
               },
             });
             console.log("ORDER CREATED", orderRes.data);
+            const createdOrder = orderRes.data?.data || orderRes.data?.order || orderRes.data;
+            if (createdOrder) {
+              if (createdOrder._id) sessionStorage.setItem("latestOrderId", createdOrder._id);
+              if (createdOrder.orderId) sessionStorage.setItem("latestOrderCode", createdOrder.orderId);
+            }
             sessionStorage.setItem("orderSuccess", "true");
             clearCart();
             navigate("/success", { replace: true });
