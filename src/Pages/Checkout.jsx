@@ -276,7 +276,7 @@ export default function Checkout() {
   } = useContext(CartContext);
 
   const navigate = useNavigate();
-  const { user } = useContext(AuthContext);
+  const { user, token, isAuthenticated } = useContext(AuthContext);
 
   const [location, setLocation] = useState(null);
   const [locationLoading, setLocationLoading] = useState(false);
@@ -321,8 +321,10 @@ export default function Checkout() {
   );
 
   useEffect(() => {
-    if (!user) navigate("/login");
-  }, [user, navigate]);
+    if (!user || !token || !isAuthenticated) {
+      navigate("/auth/login", { state: { from: "/checkout" }, replace: true });
+    }
+  }, [user, token, isAuthenticated, navigate]);
 
   useEffect(() => {
     if (!user) return;

@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { ArrowRight, Check, Sparkles, ShieldCheck, Clock3, Leaf, Truck, Star, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 import points from "../assets/points.png";
 import restImage from "../assets/Lo-fi concept-pana.svg";
@@ -113,6 +114,7 @@ const trustItems = [
 
 const Home = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   return (
     <div className="min-h-screen overflow-hidden bg-white text-gray-900">
@@ -671,7 +673,11 @@ const Home = () => {
 
               <motion.button
                 type="button"
-                onClick={() => navigate("/auth/login")}
+                onClick={() =>
+                  navigate(isAuthenticated ? "/place-order" : "/auth/login", {
+                    state: { from: "/place-order" },
+                  })
+                }
                 whileHover={{
                   scale: 1.04,
                   boxShadow: "0 20px 70px rgba(250,204,21,0.28)",

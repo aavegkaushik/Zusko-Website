@@ -1,10 +1,11 @@
 
 import { useState, useContext, useEffect } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import API from "../config/api";
 import OtpInput from "react-otp-input";
+import { isTokenExpired } from "../utils/auth";
 
 import {
   Zap,
@@ -114,8 +115,11 @@ const InputField = ({
 ============================================================ */
 
 export default function Login() {
-  const { login, user } = useContext(AuthContext);
+  const { login, user, token } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const from = location.state?.from || "/place-order";
 
   /* ============================================================
      STATE
@@ -146,10 +150,10 @@ export default function Login() {
   ============================================================ */
 
   useEffect(() => {
-    if (user) {
-      navigate("/place-order");
+    if (user && token && !isTokenExpired(token)) {
+      navigate(from, { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, token, navigate, from]);
 
   /* ============================================================
      OTP TIMER
@@ -372,7 +376,7 @@ export default function Login() {
         login(data.user, data.token);
 
         setTimeout(() => {
-          navigate("/place-order");
+          navigate(from, { replace: true });
         }, 350);
       } else {
         showMessage(

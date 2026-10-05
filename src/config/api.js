@@ -1,4 +1,5 @@
 import axios from "axios";
+import { isTokenExpired, clearAuthStorage } from "../utils/auth";
 
 const API = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -15,8 +16,13 @@ API.interceptors.request.use(
     const token = localStorage.getItem("token");
 
     if (token) {
-      config.headers = config.headers || {};
-      config.headers.Authorization = `Bearer ${token}`;
+      if (isTokenExpired(token)) {
+        clearAuthStorage();
+        window.dispatchEvent(new CustomEvent("auth:session-expired"));
+      } else {
+        config.headers = config.headers || {};
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
 
     return config;
@@ -39,15 +45,24 @@ API.interceptors.response.use(
       method: error.config?.method,
     });
 
-    // IMPORTANT:
-    // Do NOT globally redirect on every 401.
-    //
-    // Public APIs can legitimately return 401 when the user
-    // is logged out. Example:
-    //
-    // GET /coupons/available
-    //
-    // That should NOT force the entire website to login.
+    if (status === 401) {
+      const url = error.config?.url || "";
+      const isAuthEndpoint =
+        url.includes("/auth/login") ||
+        url.includes("/auth/send-otp");
+
+      const hadToken = Boolean(
+        localStorage.getItem("token") ||
+        error.config?.headers?.Authorization
+      );
+
+      if (hadToken && !isAuthEndpoint) {
+        console.warn("401 Unauthorized received for authenticated request. Clearing session.");
+        clearAuthStorage();
+        window.dispatchEvent(new CustomEvent("auth:session-expired"));
+      }
+    }
+
     return Promise.reject(error);
   }
 );

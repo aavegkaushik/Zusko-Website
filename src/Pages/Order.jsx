@@ -63,7 +63,7 @@ function SkeletonCard() {
 // ─── MAIN COMPONENT ────────────────────────────────────────────────────────────
 
 export default function BookLaundry() {
-  const { user, token } = useAuth();
+  const { user, token, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState("Men");
   const [selectedService, setSelectedService] = useState("Wash & Iron");
@@ -210,7 +210,7 @@ export default function BookLaundry() {
 
   // Active order
   useEffect(() => {
-    if (!user || !token) {
+    if (!user || !token || !isAuthenticated) {
       setIsLoading(false);
       return;
     }

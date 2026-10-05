@@ -10,7 +10,7 @@ import { useAuth } from "../context/AuthContext";
 const SCROLL_THRESHOLD = 80;
 
 const Navbar = () => {
-  const { user, logout } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const profileRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -149,10 +149,11 @@ const Navbar = () => {
         <div className="hidden md:flex items-center gap-3">
 
           {/* Book Now / New Order CTA */}
-          {(!user || !isPlaceOrder) && (
+          {(!isAuthenticated || !isPlaceOrder) && (
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }}>
               <Link
-                to={user ? "/place-order" : "/auth/login"}
+                to={isAuthenticated ? "/place-order" : "/auth/login"}
+                state={!isAuthenticated ? { from: "/place-order" } : undefined}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200"
                 style={{
                   background: "linear-gradient(135deg, #FFD700, #FFA500)",
@@ -160,17 +161,17 @@ const Navbar = () => {
                   boxShadow: "0 4px 16px rgba(255,165,0,0.35)",
                 }}
               >
-                {user ? (
+                {isAuthenticated ? (
                   <><Sparkles size={14} /> New Order</>
                 ) : (
-                  <>Book Now</>
+                  <>Book Laundry</>
                 )}
               </Link>
             </motion.div>
           )}
 
           {/* Profile dropdown */}
-          {user && (
+          {isAuthenticated && user && (
             <div className="relative" ref={profileRef}>
               <motion.button
                 whileTap={{ scale: 0.95 }}
@@ -299,9 +300,10 @@ const Navbar = () => {
 
         {/* Mobile right cluster */}
         <div className="md:hidden flex items-center gap-3">
-          {!menuOpen && !user && (
+          {!menuOpen && !isAuthenticated && (
             <Link
               to="/auth/login"
+              state={{ from: "/place-order" }}
               className="text-xs font-bold px-3 py-1.5 rounded-lg transition-all"
               style={{
                 background: "#FFD700",
@@ -311,7 +313,7 @@ const Navbar = () => {
               Book
             </Link>
           )}
-          {!menuOpen && user && (
+          {!menuOpen && isAuthenticated && user && (
             <div
               className="w-8 h-8 rounded-xl flex items-center justify-center font-black text-sm"
               style={{ background: "#FFD700", color: "#101010" }}
@@ -436,7 +438,7 @@ const Navbar = () => {
               />
 
               {/* Profile links — if logged in */}
-              {user && (
+              {isAuthenticated && user && (
                 <div className="space-y-1">
                   {[
                     { to: "/user/profile", icon: <User size={15} />, label: "My Profile" },
@@ -481,7 +483,8 @@ const Navbar = () => {
                 className="pt-1"
               >
                 <Link
-                  to={user ? "/place-order" : "/auth/login"}
+                  to={isAuthenticated ? "/place-order" : "/auth/login"}
+                  state={!isAuthenticated ? { from: "/place-order" } : undefined}
                   onClick={() => setMenuOpen(false)}
                   className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl text-sm font-bold"
                   style={{
@@ -490,7 +493,7 @@ const Navbar = () => {
                     boxShadow: "0 4px 16px rgba(255,165,0,0.3)",
                   }}
                 >
-                  {user ? "New Order" : "Book Laundry"}
+                  {isAuthenticated ? "New Order" : "Book Laundry"}
                   <FaExternalLinkAlt size={11} />
                 </Link>
               </motion.div>
