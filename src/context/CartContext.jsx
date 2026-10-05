@@ -28,7 +28,7 @@ const DELIVERY_FEES = {
 // =========================================================
 
 const getDeliveryFee = (pincode, total) => {
-  if (total >= 200) {
+  if (total >= 499) {
     return 0;
   }
 

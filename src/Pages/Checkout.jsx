@@ -326,6 +326,13 @@ export default function Checkout() {
     }
   }, [user, token, isAuthenticated, navigate]);
 
+  // Ensure free delivery when order total is 499 or above
+  useEffect(() => {
+    if (Number(total) >= 499 && deliveryFee > 0) {
+      setDeliveryFee(0);
+    }
+  }, [total, deliveryFee]);
+
   useEffect(() => {
     if (!user) return;
 
@@ -510,9 +517,11 @@ export default function Checkout() {
         Number(delivery.distanceKm || 0)
       );
 
-      setDeliveryFee(
-        Number(delivery.deliveryFee || 0)
-      );
+      // Orders ₹499 and above enjoy free pickup & delivery. Below ₹499, delivery charges apply.
+      const calculatedFee =
+        Number(total) >= 499 ? 0 : Number(delivery.deliveryFee || 0);
+
+      setDeliveryFee(calculatedFee);
 
       const isServiceable = delivery.serviceable === true;
 

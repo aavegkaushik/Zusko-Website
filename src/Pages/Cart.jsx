@@ -79,7 +79,7 @@ export default function Cart() {
   const navigate = useNavigate();
   const [showAllCoupons, setShowAllCoupons] = useState(false);
   const itemCount = cart.reduce((s, i) => s + i.qty, 0);
-  const freeDeliveryThreshold = 200;
+  const freeDeliveryThreshold = 499;
   const remaining = freeDeliveryThreshold - total;
   const progressPct = Math.min((total / freeDeliveryThreshold) * 100, 100);
 
