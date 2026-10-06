@@ -42,6 +42,7 @@ const Profile = lazy(() => import("./Pages/Profile.jsx"));
 const EditProfile = lazy(() => import("./Pages/EditProfile.jsx"));
 const Addresses = lazy(() => import("./Pages/Addresses.jsx"));
 const OutOfArea = lazy(() => import("./Pages/OutOfArea.jsx"));
+const LaunchingSoon = lazy(() => import("./Pages/LaunchingSoon.jsx"));
 const PageNotFound = lazy(() => import("./Pages/PagenotFound.jsx"));
 
 // Minimal lightweight loader for smooth route transitions
@@ -230,6 +231,7 @@ const App = () => {
                 }
               />
 
+              <Route path="/launching-soon" element={<LaunchingSoon />} />
               <Route path="*" element={<PageNotFound />} />
             </Routes>
           </Suspense>

@@ -81,10 +81,22 @@ export default function Payment() {
   if (!state) return <Navigate to="/place-order" replace />;
   const { orderData } = state;
 
-  // ── All original logic untouched ─────────────────────────────────────────
+  // ── TEMPORARY LAUNCHING SOON MODE ─────────────────────────────────────────
+  // Set to false when ready to go live. All backend APIs remain 100% intact!
+  const LAUNCHING_SOON_MODE = true;
 
   const handleCOD = async () => {
     setProcessingMethod("cod");
+
+    if (LAUNCHING_SOON_MODE) {
+      setTimeout(() => {
+        navigate("/launching-soon", {
+          state: { orderData, paymentMethod: "COD" },
+        });
+      }, 350);
+      return;
+    }
+
     try {
       const response = await API.post("/orders/create", {
         ...orderData,
@@ -117,6 +129,16 @@ export default function Payment() {
 
   const handleOnlinePayment = async () => {
     setProcessingMethod("online");
+
+    if (LAUNCHING_SOON_MODE) {
+      setTimeout(() => {
+        navigate("/launching-soon", {
+          state: { orderData, paymentMethod: "ONLINE" },
+        });
+      }, 350);
+      return;
+    }
+
     try {
       const { data } = await API.post("/payment/create-order", {
         amount: orderData.total,
