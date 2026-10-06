@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { FaExternalLinkAlt, FaBars, FaTimes } from "react-icons/fa";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useScroll } from "framer-motion";
 import Logo from "../assets/Zusko White Logo.png";
 import LogoAlt from "../assets/zusko.png";
 import { User, Package, LogOut, ChevronDown, Sparkles } from "lucide-react";
@@ -15,7 +15,7 @@ const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const { scrollYProgress } = useScroll();
   const [showProfile, setShowProfile] = useState(false);
 
   const isHome = location.pathname === "/";
@@ -45,15 +45,16 @@ const Navbar = () => {
   }, []);
 
   useEffect(() => {
+    let ticking = false;
     const onScroll = () => {
-      if (typeof window === "undefined") return;
-      const scrollTop = window.scrollY;
-      const docHeight =
-        document.documentElement.scrollHeight -
-        document.documentElement.clientHeight;
-      const progress = docHeight > 0 ? scrollTop / docHeight : 0;
-      setScrolled(scrollTop > SCROLL_THRESHOLD);
-      setScrollProgress(progress);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const isPast = window.scrollY > SCROLL_THRESHOLD;
+          setScrolled((prev) => (prev !== isPast ? isPast : prev));
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -511,11 +512,11 @@ const Navbar = () => {
         transition={{ duration: 0.3 }}
       >
         <motion.div
-          className="h-full"
+          className="h-full origin-left"
           style={{
-            width: `${scrollProgress * 100}%`,
-            background: "linear-gradient(90deg, #FFD700, #FFA500, transparent)",
-            transition: "width 0.15s ease",
+            scaleX: scrollYProgress,
+            transformOrigin: "0%",
+            background: "linear-gradient(90deg, #FFD700, #FFA500)",
           }}
         />
       </motion.div>

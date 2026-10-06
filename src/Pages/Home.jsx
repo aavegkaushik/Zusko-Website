@@ -117,7 +117,7 @@ const Home = () => {
   const { isAuthenticated } = useAuth();
 
   return (
-    <div className="min-h-screen overflow-hidden bg-white text-gray-900">
+    <div className="min-h-screen overflow-x-hidden bg-white text-gray-900">
 
       {/* =========================================================
           HERO
@@ -275,14 +275,15 @@ const Home = () => {
               />
 
               {/* Card */}
-
               <div className="relative overflow-hidden rounded-[2rem] border border-gray-100 bg-white/80 p-6 shadow-[0_30px_80px_rgba(0,0,0,0.08)] backdrop-blur-xl sm:p-10">
 
                 <motion.img
                   src={restImage}
                   alt="Easy and convenient laundry service"
                   loading="lazy"
-                  className="relative z-10 w-full object-contain"
+                  decoding="async"
+                  className="relative z-10 w-full object-contain transform-gpu"
+                  style={{ willChange: "transform" }}
                   animate={{
                     y: [0, -8, 0],
                   }}
@@ -294,15 +295,15 @@ const Home = () => {
                 />
 
                 {/* Floating card */}
-
                 <motion.div
                   animate={{ y: [0, -5, 0] }}
+                  style={{ willChange: "transform" }}
                   transition={{
                     duration: 3,
                     repeat: Infinity,
                     ease: "easeInOut",
                   }}
-                  className="absolute bottom-5 left-5 z-20 flex items-center gap-3 rounded-2xl border border-white/80 bg-white/90 px-4 py-3 shadow-xl backdrop-blur-xl"
+                  className="absolute bottom-5 left-5 z-20 flex items-center gap-3 rounded-2xl border border-white/80 bg-white/95 px-4 py-3 shadow-xl transform-gpu"
                 >
                   <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-green-50">
                     <Check size={17} className="text-green-600" />
@@ -616,7 +617,8 @@ const Home = () => {
               repeat: Infinity,
               ease: "easeInOut",
             }}
-            className="absolute -left-32 top-0 h-96 w-96 rounded-full bg-yellow-400/10 blur-3xl"
+            style={{ willChange: "transform" }}
+            className="pointer-events-none absolute -left-32 top-0 h-96 w-96 rounded-full bg-yellow-400/10 blur-3xl transform-gpu"
           />
 
           <motion.div
@@ -629,7 +631,8 @@ const Home = () => {
               repeat: Infinity,
               ease: "easeInOut",
             }}
-            className="absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-yellow-500/10 blur-3xl"
+            style={{ willChange: "transform" }}
+            className="pointer-events-none absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-yellow-500/10 blur-3xl transform-gpu"
           />
 
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(250,204,21,0.08),transparent_45%)]" />
@@ -730,12 +733,13 @@ const Home = () => {
               animate={{
                 y: [0, -8, 0],
               }}
+              style={{ willChange: "transform" }}
               transition={{
                 duration: 4,
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
-              className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.05] p-6 shadow-[0_30px_100px_rgba(0,0,0,0.5)] backdrop-blur-xl sm:p-8"
+              className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.05] p-6 shadow-[0_30px_100px_rgba(0,0,0,0.5)] backdrop-blur-xl sm:p-8 transform-gpu"
             >
 
               <div className="mb-7 flex items-center justify-between">

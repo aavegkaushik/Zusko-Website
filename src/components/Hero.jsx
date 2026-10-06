@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import logo from '../assets/Zusko White Logo.png'
@@ -8,53 +8,82 @@ export default function Hero({
   poster = "/images/hero-poster.jpg",
   logoSrc = logo,
 }) {
+  const videoRef = useRef(null);
+  const headerRef = useRef(null);
 
+  // Pause video decoding when hero is off-screen to save GPU/CPU cycles
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!videoRef.current) return;
+        if (entry.isIntersecting) {
+          videoRef.current.play().catch(() => {});
+        } else {
+          videoRef.current.pause();
+        }
+      },
+      { threshold: 0.05 }
+    );
+
+    if (headerRef.current) {
+      observer.observe(headerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.2,
-        delayChildren: 0.3,
+        staggerChildren: 0.15,
+        delayChildren: 0.2,
       },
     },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 15 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.8, ease: "easeOut" },
+      transition: { duration: 0.6, ease: "easeOut" },
     },
   };
 
   return (
-    <header className="relative w-full h-screen overflow-hidden bg-black" id="hero">
+    <header
+      ref={headerRef}
+      className="relative w-full h-screen overflow-hidden bg-black"
+      id="hero"
+    >
       {/* Background video with elegant overlay */}
       <video
+        ref={videoRef}
         aria-hidden="true"
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
         autoPlay
         muted
         loop
         playsInline
+        preload="metadata"
         poster={poster}
       >
-        <source src={videoSrc} type="video/mp4" />
+        <source src={videoSrc} type="video/webm" />
       </video>
 
       {/* Premium gradient overlay */}
-      <div className="absolute inset-0 bg-linear-to-b from-black/45 via-black/40 to-black/70" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/40 to-black/70 pointer-events-none" />
       
-      {/* Subtle animated light accent */}
+      {/* Subtle animated light accent with GPU promotion */}
       <motion.div
-        className="absolute top-0 right-0 w-1/2 h-1/2 bg-linear-to-bl from-yellow-400/10 to-transparent rounded-full blur-3xl -z-10"
+        className="absolute top-0 right-0 w-1/2 h-1/2 bg-gradient-to-bl from-yellow-400/10 to-transparent rounded-full blur-3xl -z-10 pointer-events-none"
+        style={{ willChange: "opacity" }}
         animate={{
-          opacity: [0.3, 0.5, 0.3],
+          opacity: [0.25, 0.45, 0.25],
         }}
-        transition={{ duration: 8, repeat: Infinity }}
+        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
       />
 
 
