@@ -122,8 +122,9 @@ export const CartProvider = ({ children }) => {
     return (
       a.name === b.name &&
       a.service === b.service &&
-      (a.careLevel || "regular") ===
-        (b.careLevel || "regular")
+      (a.service === "Dry Clean"
+        ? (a.careLevel || "regular") === (b.careLevel || "regular")
+        : true)
     );
   };
 
@@ -140,7 +141,7 @@ export const CartProvider = ({ children }) => {
           ? item.careLevel === "premium"
             ? "premium"
             : "regular"
-          : "regular",
+          : null,
     };
 
     setCart((prev) => {
@@ -182,7 +183,7 @@ export const CartProvider = ({ children }) => {
           ? item.careLevel === "premium"
             ? "premium"
             : "regular"
-          : "regular",
+          : null,
     };
 
     setCart((prev) =>
@@ -210,7 +211,7 @@ export const CartProvider = ({ children }) => {
           ? item.careLevel === "premium"
             ? "premium"
             : "regular"
-          : "regular",
+          : null,
     };
 
     setCart((prev) =>

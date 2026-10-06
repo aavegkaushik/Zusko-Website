@@ -341,20 +341,28 @@ export default function Cart() {
     {item.service}
   </span>
 
-  {/* Premium Care Badge */}
-  {item.careLevel === "premium" && (
-    <span
-      className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full"
-      style={{
-        background: "linear-gradient(135deg, #FFF8D6, #FFF1A8)",
-        color: "#9A6700",
-        border: "1px solid #F5D76E",
-        boxShadow: "0 1px 4px rgba(245, 180, 0, 0.12)",
-      }}
-    >
-      <Sparkles size={10} strokeWidth={2.5} />
-      Premium Care
-    </span>
+  {/* Care Level Badge - Only for Dry Clean */}
+  {item.service === "Dry Clean" && (
+    item.careLevel === "premium" ? (
+      <span
+        className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full"
+        style={{
+          background: "linear-gradient(135deg, #FFF8D6, #FFF1A8)",
+          color: "#9A6700",
+          border: "1px solid #F5D76E",
+          boxShadow: "0 1px 4px rgba(245, 180, 0, 0.12)",
+        }}
+      >
+        <Sparkles size={10} strokeWidth={2.5} />
+        Premium Care
+      </span>
+    ) : (
+      <span
+        className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 border border-gray-200"
+      >
+        Regular Care
+      </span>
+    )
   )}
 
   {/* Price */}

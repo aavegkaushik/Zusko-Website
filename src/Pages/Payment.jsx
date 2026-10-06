@@ -715,30 +715,32 @@ export default function Payment() {
             {item.service}
           </span>
 
-          {/* Care Level */}
-          {isPremium ? (
-            <span
-              className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full"
-              style={{
-                background: "#FFF8E1",
-                color: "#B7791F",
-                border: "1px solid #F6D365",
-              }}
-            >
-              <Sparkles size={9} strokeWidth={2.5} />
-              Premium Care
-            </span>
-          ) : (
-            <span
-              className="text-[10px] font-medium px-1.5 py-0.5 rounded-full"
-              style={{
-                background: "#F3F4F6",
-                color: "#6B7280",
-                border: "1px solid #E5E7EB",
-              }}
-            >
-              Regular Care
-            </span>
+          {/* Care Level - Only for Dry Clean */}
+          {item.service === "Dry Clean" && (
+            isPremium ? (
+              <span
+                className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                style={{
+                  background: "#FFF8E1",
+                  color: "#B7791F",
+                  border: "1px solid #F6D365",
+                }}
+              >
+                <Sparkles size={9} strokeWidth={2.5} />
+                Premium Care
+              </span>
+            ) : (
+              <span
+                className="text-[10px] font-medium px-1.5 py-0.5 rounded-full"
+                style={{
+                  background: "#F3F4F6",
+                  color: "#6B7280",
+                  border: "1px solid #E5E7EB",
+                }}
+              >
+                Regular Care
+              </span>
+            )
           )}
 
           {/* Quantity */}

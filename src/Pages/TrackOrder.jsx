@@ -527,15 +527,17 @@ export default function EnhancedTrackOrder() {
       {item.service || "Laundry Service"}
     </span>
 
-    {item.careLevel === "premium" ? (
-      <span className="inline-flex items-center gap-1 rounded-full border border-yellow-200 bg-yellow-50 px-2.5 py-1 text-[10px] font-black text-yellow-700">
-        <Sparkles size={11} />
-        Premium Care
-      </span>
-    ) : (
-      <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-[10px] font-bold text-gray-600">
-        Regular Care
-      </span>
+    {item.service === "Dry Clean" && (
+      item.careLevel === "premium" ? (
+        <span className="inline-flex items-center gap-1 rounded-full border border-yellow-200 bg-yellow-50 px-2.5 py-1 text-[10px] font-black text-yellow-700">
+          <Sparkles size={11} />
+          Premium Care
+        </span>
+      ) : (
+        <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-[10px] font-bold text-gray-600">
+          Regular Care
+        </span>
+      )
     )}
   </div>
 

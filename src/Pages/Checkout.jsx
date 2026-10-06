@@ -887,7 +887,9 @@ if (!addressVerified) {
           price: item.price,
           service: item.service,
           careLevel:
-            item.careLevel || "regular",
+            item.service === "Dry Clean"
+              ? item.careLevel || "regular"
+              : null,
         })),
 
         originalTotal: total,
@@ -2124,28 +2126,30 @@ if (!addressVerified) {
                             {item.service}
                           </span>
 
-                          <span
-                            className="text-[10px] font-medium px-1.5 py-0.5 rounded-full"
-                            style={{
-                              background:
-                                isPremium
-                                  ? "#FFF8E1"
-                                  : "#F3F4F6",
-                              color:
-                                isPremium
-                                  ? "#B7791F"
-                                  : "#6B7280",
-                              border:
-                                "1px solid " +
-                                (isPremium
-                                  ? "#F6D365"
-                                  : "#E5E7EB"),
-                            }}
-                          >
-                            {isPremium
-                              ? "Premium Care"
-                              : "Regular Care"}
-                          </span>
+                          {item.service === "Dry Clean" && (
+                            <span
+                              className="text-[10px] font-medium px-1.5 py-0.5 rounded-full"
+                              style={{
+                                background:
+                                  isPremium
+                                    ? "#FFF8E1"
+                                    : "#F3F4F6",
+                                color:
+                                  isPremium
+                                    ? "#B7791F"
+                                    : "#6B7280",
+                                border:
+                                  "1px solid " +
+                                  (isPremium
+                                    ? "#F6D365"
+                                    : "#E5E7EB"),
+                              }}
+                            >
+                              {isPremium
+                                ? "Premium Care"
+                                : "Regular Care"}
+                            </span>
+                          )}
 
                           <span className="text-[10px] text-gray-400">
                             × {item.qty}

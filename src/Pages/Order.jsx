@@ -119,9 +119,6 @@ export default function BookLaundry() {
   const { cart, addItem, increaseQty, decreaseQty } = useContext(CartContext);
 
   const getItemQty = (item) => {
-    const careLevel =
-      selectedService === "Dry Clean" ? selectedCareLevel : "regular";
-
     return (
       cart.find(
         (i) =>
@@ -130,7 +127,9 @@ export default function BookLaundry() {
             : i.name === item.name &&
               i.variant === (item.variant || "") &&
               i.service === selectedService) &&
-          (i.careLevel || "regular") === careLevel
+          (selectedService === "Dry Clean"
+            ? (i.careLevel || "regular") === selectedCareLevel
+            : true)
       )?.qty ?? 0
     );
   };
@@ -1162,18 +1161,26 @@ function CartSummaryPanel({ cart, cartCount, cartTotal, navigate }) {
                     {item.variant ? `${item.name} (${item.variant})` : item.name}
                   </p>
                   <p className="text-[11px] text-gray-400 mt-0.5">{item.service}</p>
-                  {item.careLevel === "premium" && (
-                    <span
-                      className="inline-flex items-center gap-1 mt-1 text-[9px] font-extrabold px-2 py-0.5 rounded-full"
-                      style={{
-                        background: "#FFF4BF",
-                        color: "#92400E",
-                        border: "1px solid #FDE68A",
-                      }}
-                    >
-                      <Sparkles size={9} />
-                      Premium Care
-                    </span>
+                  {item.service === "Dry Clean" && (
+                    item.careLevel === "premium" ? (
+                      <span
+                        className="inline-flex items-center gap-1 mt-1 text-[9px] font-extrabold px-2 py-0.5 rounded-full"
+                        style={{
+                          background: "#FFF4BF",
+                          color: "#92400E",
+                          border: "1px solid #FDE68A",
+                        }}
+                      >
+                        <Sparkles size={9} />
+                        Premium Care
+                      </span>
+                    ) : (
+                      <span
+                        className="inline-flex items-center mt-1 text-[9px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 border border-gray-200"
+                      >
+                        Regular Care
+                      </span>
+                    )
                   )}
                 </div>
               </div>
@@ -1328,7 +1335,7 @@ function ItemCard({
                     careLevel:
                       selectedService === "Dry Clean"
                         ? selectedCareLevel
-                        : "regular",
+                        : null,
                     category: selectedCategory,
                   })
                 }
@@ -1365,7 +1372,7 @@ function ItemCard({
                       careLevel:
                         selectedService === "Dry Clean"
                           ? selectedCareLevel
-                          : "regular",
+                          : null,
                     })
                   }
                   className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-lg font-bold text-white hover:text-amber-300 transition-colors"
@@ -1386,7 +1393,7 @@ function ItemCard({
                       careLevel:
                         selectedService === "Dry Clean"
                           ? selectedCareLevel
-                          : "regular",
+                          : null,
                     })
                   }
                   className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center text-lg font-bold text-amber-400 hover:text-amber-300 transition-colors"
