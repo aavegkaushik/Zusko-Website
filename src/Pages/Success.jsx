@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import { useEffect, useState } from "react";
@@ -269,9 +269,28 @@ function StatusItem({
 // ============================================================
 export default function Success() {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const [orderId, setOrderId] = useState(() => sessionStorage.getItem("latestOrderId") || "");
-  const [orderCode, setOrderCode] = useState(() => sessionStorage.getItem("latestOrderCode") || "");
+  const [orderId, setOrderId] = useState(() => {
+    const fromState = location.state?.orderId || location.state?.order?._id || location.state?.order?.id;
+    if (fromState) {
+      sessionStorage.setItem("latestOrderId", String(fromState));
+      return String(fromState);
+    }
+    return sessionStorage.getItem("latestOrderId") || "";
+  });
+
+  const [orderCode, setOrderCode] = useState(() => {
+    const fromState =
+      location.state?.orderCode ||
+      location.state?.order?.orderId ||
+      location.state?.order?.code;
+    if (fromState) {
+      sessionStorage.setItem("latestOrderCode", String(fromState));
+      return String(fromState);
+    }
+    return sessionStorage.getItem("latestOrderCode") || "";
+  });
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
@@ -280,6 +299,7 @@ export default function Success() {
     : orderId
     ? `#ZK-${orderId.slice(-6).toUpperCase()}`
     : `#ZK-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+
 
   // ==========================================================
   // CONFETTI CELEBRATION
