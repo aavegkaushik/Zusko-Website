@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
+import offerImg from '../assets/offer.png';
+
 const Carousel = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   
   const slides = [
-    image1,
-    "https://wowslider.com/sliders/demo-93/data1/images/lake.jpg",
-    "https://wowslider.com/sliders/demo-93/data1/images/sunset.jpg"
+    offerImg,
+    "https://images.unsplash.com/photo-1545173168-9f1947eebb7f?auto=format&fit=crop&w=1200&q=80",
+    "https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?auto=format&fit=crop&w=1200&q=80"
   ];
 
   const nextSlide = () => {

@@ -11,6 +11,7 @@ import SplashScreen from "./components/SplashScreen";
 import UnderDevelopmentPopup from "./components/UnderDevelopmentPopup";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import CareerNavbar from "./components/CareerNavbar.jsx";
+import ErrorBoundary from "./components/ErrorBoundary.jsx";
 
 // Lazy load secondary routes to keep initial bundle ultra-light
 const About = lazy(() => import("./Pages/About.jsx"));
@@ -115,126 +116,128 @@ const App = () => {
             <Navbar />
           )}
 
-          <Suspense fallback={<RouteLoader />}>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={<Home />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/services" element={<Services />} />
-              <Route path="/career" element={<Career />} />
-              <Route path="/career/:jobId" element={<JobDetails />} />
-              <Route path="/apply/:jobId" element={<ApplyJob />} />
-              <Route path="/team" element={<Team />} />
-              <Route path="/help" element={<HelpSupport />} />
-              <Route path="/terms" element={<TermsAndConditions />} />
-              <Route path="/privacy" element={<PrivacyPolicy />} />
-              <Route path="/blog" element={<Blog />} />
-              <Route path="/for-business" element={<ForBusiness />} />
-              <Route path="/cookie-policy" element={<CookiePolicy />} />
-              <Route path="/partnerwithus" element={<PartnerWithUs />} />
-              <Route path="/available/:city" element={<CityAvailability />} />
-              <Route path="/auth/login" element={<Login />} />
-              <Route path="/career/success" element={<CareerSuccess />} />
-              <Route path="/track-order/:id" element={<TrackOrder />} />
+          <ErrorBoundary>
+            <Suspense fallback={<RouteLoader />}>
+              <Routes>
+                {/* Public routes */}
+                <Route path="/" element={<Home />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/services" element={<Services />} />
+                <Route path="/career" element={<Career />} />
+                <Route path="/career/:jobId" element={<JobDetails />} />
+                <Route path="/apply/:jobId" element={<ApplyJob />} />
+                <Route path="/team" element={<Team />} />
+                <Route path="/help" element={<HelpSupport />} />
+                <Route path="/terms" element={<TermsAndConditions />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/for-business" element={<ForBusiness />} />
+                <Route path="/cookie-policy" element={<CookiePolicy />} />
+                <Route path="/partnerwithus" element={<PartnerWithUs />} />
+                <Route path="/available/:city" element={<CityAvailability />} />
+                <Route path="/auth/login" element={<Login />} />
+                <Route path="/career/success" element={<CareerSuccess />} />
+                <Route path="/track-order/:id" element={<TrackOrder />} />
 
-              {/* Protected routes */}
-              <Route
-                path="/my-orders"
-                element={
-                  <ProtectedRoute>
-                    <MyOrders />
-                  </ProtectedRoute>
-                }
-              />
+                {/* Protected routes */}
+                <Route
+                  path="/my-orders"
+                  element={
+                    <ProtectedRoute>
+                      <MyOrders />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/user/profile"
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/user/profile"
+                  element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/profile/edit"
-                element={
-                  <ProtectedRoute>
-                    <EditProfile />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/profile/edit"
+                  element={
+                    <ProtectedRoute>
+                      <EditProfile />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/addresses"
-                element={
-                  <ProtectedRoute>
-                    <Addresses />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/addresses"
+                  element={
+                    <ProtectedRoute>
+                      <Addresses />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/orders/:id/rate"
-                element={
-                  <ProtectedRoute>
-                    <RateOrder />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/orders/:id/rate"
+                  element={
+                    <ProtectedRoute>
+                      <RateOrder />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/place-order"
-                element={
-                  <ProtectedRoute>
-                    <Order />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/place-order"
+                  element={
+                    <ProtectedRoute>
+                      <Order />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/cart"
-                element={
-                  <ProtectedRoute>
-                    <Cart />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/cart"
+                  element={
+                    <ProtectedRoute>
+                      <Cart />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/checkout"
-                element={
-                  <ProtectedRoute>
-                    <Checkout />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/checkout"
+                  element={
+                    <ProtectedRoute>
+                      <Checkout />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route path="/out-of-area" element={<OutOfArea />} />
+                <Route path="/out-of-area" element={<OutOfArea />} />
 
-              <Route
-                path="/payment"
-                element={
-                  <ProtectedRoute>
-                    <Payment />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/payment"
+                  element={
+                    <ProtectedRoute>
+                      <Payment />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/success"
-                element={
-                  <ProtectedRoute>
-                    <Success />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/success"
+                  element={
+                    <ProtectedRoute>
+                      <Success />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route path="/launching-soon" element={<LaunchingSoon />} />
-              <Route path="*" element={<PageNotFound />} />
-            </Routes>
-          </Suspense>
+                <Route path="/launching-soon" element={<LaunchingSoon />} />
+                <Route path="*" element={<PageNotFound />} />
+              </Routes>
+            </Suspense>
+          </ErrorBoundary>
 
           <Footer />
         </>

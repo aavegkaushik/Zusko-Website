@@ -4,6 +4,7 @@ import axios from "axios";
 import { Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
+import toast from "react-hot-toast";
 const API = import.meta.env.VITE_API_URL;
 const ApplyJob = () => {
   const navigate = useNavigate();
@@ -43,12 +44,11 @@ const onSubmit = async (data) => {
 
   } catch (error) {
     console.error(error);
-
-    alert(
+    toast.error(
       error.response?.data?.message ||
       "Failed to submit application"
     );
-  }  finally {
+  } finally {
     setIsSubmitting(false);
   }
 };

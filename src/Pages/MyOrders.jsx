@@ -1,6 +1,7 @@
 import { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import toast from "react-hot-toast";
 import { CartContext } from "../context/CartContext";
 import {
   Package,
@@ -62,22 +63,22 @@ export default function MyOrders() {
       setReorderingId(order._id);
 
       if (!order?.items?.length) {
-        alert("This order does not contain any items to reorder.");
+        toast.error("This order does not contain any items to reorder.");
         return;
       }
 
       const items = reorderItems(order.items);
 
       if (!items.length) {
-        alert("Unable to restore this order to cart.");
+        toast.error("Unable to restore this order to cart.");
         return;
       }
 
+      toast.success("Items added to cart!");
       navigate("/cart");
     } catch (error) {
       console.error("Book again failed:", error);
-
-      alert("Something went wrong while reordering.");
+      toast.error("Something went wrong while reordering.");
     } finally {
       setReorderingId(null);
     }

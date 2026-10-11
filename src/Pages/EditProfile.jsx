@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import toast from "react-hot-toast";
 import {
   User,
   Mail,
@@ -63,14 +64,14 @@ export default function EditProfile() {
         }
       );
 
-      alert(
+      toast.success(
         res.data.message ||
           "Profile updated successfully"
       );
 
       navigate("/profile");
     } catch (error) {
-      alert(
+      toast.error(
         error?.response?.data
           ?.message ||
           "Update failed"

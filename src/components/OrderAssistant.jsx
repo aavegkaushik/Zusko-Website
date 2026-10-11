@@ -924,7 +924,7 @@ Answer politely, concisely and helpfully in easy-to-understand Hinglish or Engli
         };
 
       // 16. SUBMIT STAR RATING
-      default:
+      default: {
         if (optionId && optionId.startsWith("submit_rating_")) {
           const stars = optionId.replace("submit_rating_", "");
           const isHighRating = Number(stars) >= 4;
@@ -994,6 +994,7 @@ Answer politely, concisely and helpfully in easy-to-understand Hinglish or Engli
                 { label: "📋 Switch Order", query: "Show all my orders", id: "switch_order" },
               ],
         };
+      }
     }
   };
 

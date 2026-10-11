@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import toast from "react-hot-toast";
 import {
   Package,
   Calendar,
@@ -161,26 +162,42 @@ export default function EnhancedTrackOrder() {
 
   const handlePayPendingOrder = async () => {
     try {
+      if (!window.Razorpay) {
+        toast.error("Payment gateway is loading. Please try again in a moment.");
+        return;
+      }
+
       const { data } = await API.post("/payment/create-order", {
         orderId: order._id,
       });
 
-      const razorOrder = data.data;
+      const razorOrder = data.data || data.order || data;
+      const razorpayKey =
+        razorOrder?.key ||
+        import.meta.env.VITE_RAZORPAY_KEY ||
+        import.meta.env.VITE_RAZORPAY_KEY_ID;
+
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY,
+        key: razorpayKey,
         amount: razorOrder.amount,
-        currency: razorOrder.currency,
+        currency: razorOrder.currency || "INR",
         order_id: razorOrder.id,
         name: "Zusko Laundry",
         description: "Pending Order Payment",
         handler: async (response) => {
-          const { data } = await API.post("/payment/pay-pending", {
-            orderId: order._id,
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature,
-          });
-          setOrder(data.data);
+          try {
+            const { data: payData } = await API.post("/payment/pay-pending", {
+              orderId: order._id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+            setOrder(payData.data || payData);
+            toast.success("Payment completed successfully!");
+          } catch (payErr) {
+            console.error("Pay pending error:", payErr);
+            toast.error(payErr.response?.data?.message || "Payment verification failed");
+          }
         },
         theme: { color: "#fbbf24" },
       };
@@ -188,7 +205,7 @@ export default function EnhancedTrackOrder() {
       new window.Razorpay(options).open();
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.message || "Payment failed");
+      toast.error(err.response?.data?.message || "Payment initialization failed");
     }
   };
 
@@ -197,11 +214,11 @@ export default function EnhancedTrackOrder() {
 
     try {
       const { data } = await API.patch(`/orders/${orderId}/cancel`);
-      alert(data.message);
+      toast.success(data.message || "Order cancelled successfully");
       fetchOrder();
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.message || "Failed to cancel order");
+      toast.error(err.response?.data?.message || "Failed to cancel order");
     }
   };
 

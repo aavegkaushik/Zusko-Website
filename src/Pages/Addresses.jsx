@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Plus, MapPin, Pencil, Trash2 } from "lucide-react";
+import toast from "react-hot-toast";
 import API from "../config/api";
 
 export default function Addresses() {
@@ -47,8 +48,9 @@ export default function Addresses() {
           (item) => item._id !== id
         )
       );
+      toast.success("Address deleted successfully");
     } catch (err) {
-      alert("Delete failed");
+      toast.error("Failed to delete address");
     }
   };
 

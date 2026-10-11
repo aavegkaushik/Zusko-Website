@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Star } from "lucide-react";
+import toast from "react-hot-toast";
 import API from "../config/api";
 import confetti from "canvas-confetti";
 import { AnimatePresence, motion } from "framer-motion";
@@ -113,7 +114,7 @@ export default function RateOrder() {
 
   const submitReview = async () => {
     if (!stars) {
-      alert("Please select a rating");
+      toast.error("Please select a star rating first");
       return;
     }
 
@@ -155,7 +156,7 @@ export default function RateOrder() {
         navigate("/my-orders");
       }, 2800);
     } catch (error) {
-      alert(error.response?.data?.message || "Failed to submit review");
+      toast.error(error.response?.data?.message || "Failed to submit review");
     } finally {
       setLoading(false);
     }

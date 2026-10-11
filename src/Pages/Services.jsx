@@ -566,7 +566,7 @@ const ServiceBlock = ({
   service,
   index,
 }) => {
-
+  const navigate = useNavigate();
   const ref = useRef(null);
 
   const {

@@ -5,6 +5,7 @@ import axios from "axios";
 import API from "../config/api";
 import { AuthContext } from "../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
+import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import {
   MapPin,
@@ -325,6 +326,13 @@ export default function Checkout() {
       navigate("/auth/login", { state: { from: "/checkout" }, replace: true });
     }
   }, [user, token, isAuthenticated, navigate]);
+
+  // If cart is empty, redirect user to booking page
+  useEffect(() => {
+    if (!cart || cart.length === 0) {
+      navigate("/place-order", { replace: true });
+    }
+  }, [cart, navigate]);
 
   // Ensure free delivery when order total is 499 or above
   useEffect(() => {
@@ -792,42 +800,38 @@ export default function Checkout() {
 
   const onSubmit = async (data) => {
     if (!data.fullAddress?.trim()) {
-      alert("Please enter your full address.");
+      toast.error("Please enter your full address.");
       return;
     }
 
     if (!data.pincode || !/^\d{6}$/.test(data.pincode)) {
-      alert("Please enter a valid 6-digit pincode.");
+      toast.error("Please enter a valid 6-digit pincode.");
       return;
     }
 
     if (!location) {
-  alert(
-    "Please use your current location or select a location on the map."
-  );
-  return;
-}
+      toast.error("Please use your current location or select a location on the map.");
+      return;
+    }
 
-// Location selected but outside Zusko service area
-if (location && !serviceable) {
-  navigate("/out-of-area");
-  return;
-}
+    // Location selected but outside Zusko service area
+    if (location && !serviceable) {
+      navigate("/out-of-area");
+      return;
+    }
 
-// Location is still being verified
-if (!addressVerified) {
-  alert("Please wait while we verify your pickup location.");
-  return;
-}
+    // Location is still being verified
+    if (!addressVerified) {
+      toast.error("Please wait while we verify your pickup location.");
+      return;
+    }
 
     if (
       orderForSomeoneElse &&
       (!recipientName.trim() ||
         !/^[6-9]\d{9}$/.test(recipientPhone))
     ) {
-      alert(
-        "Please enter the recipient's valid name and 10-digit mobile number."
-      );
+      toast.error("Please enter the recipient's valid name and 10-digit mobile number.");
       return;
     }
 
@@ -911,7 +915,7 @@ if (!addressVerified) {
       });
     } catch (error) {
       console.error("CHECKOUT ERROR:", error);
-      alert("Unable to continue. Please try again.");
+      toast.error("Unable to continue checkout. Please try again.");
     } finally {
       setLoading(false);
     }
