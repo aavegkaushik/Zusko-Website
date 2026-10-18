@@ -28,7 +28,13 @@ import {
   Briefcase,
   Plus,
   X,
+  Pencil,
+  Trash2,
+  Star,
+  Check,
 } from "lucide-react";
+import AddressModal from "../components/AddressModal";
+import AllAddressesModal from "../components/AllAddressesModal";
 import {
   MapContainer,
   TileLayer,
@@ -293,6 +299,13 @@ export default function Checkout() {
   const [savedAddressLoading, setSavedAddressLoading] = useState(false);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
 
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [isAllAddressesModalOpen, setIsAllAddressesModalOpen] = useState(false);
+  const [editingAddress, setEditingAddress] = useState(null);
+  const [addressToDelete, setAddressToDelete] = useState(null);
+  const [deletingAddressId, setDeletingAddressId] = useState(null);
+  const [settingDefaultId, setSettingDefaultId] = useState(null);
+
   const [mapOpen, setMapOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [recipientName, setRecipientName] = useState("");
@@ -315,6 +328,11 @@ export default function Checkout() {
 
   const pincode = watch("pincode");
   const selectedDate = watch("date");
+
+  const selectedAddress = useMemo(
+    () => savedAddresses.find((a) => a._id === selectedAddressId) || null,
+    [savedAddresses, selectedAddressId]
+  );
 
   const finalAmount = useMemo(
     () => Math.max(0, Number(finalTotal || 0) + Number(deliveryFee || 0)),
@@ -344,6 +362,7 @@ export default function Checkout() {
   useEffect(() => {
     if (!user) return;
 
+    let isMounted = true;
     const fetchSavedAddresses = async () => {
       try {
         setSavedAddressLoading(true);
@@ -356,19 +375,33 @@ export default function Checkout() {
           response?.data ||
           [];
 
-        setSavedAddresses(
-          Array.isArray(addresses) ? addresses : []
-        );
+        const addressList = Array.isArray(addresses) ? addresses : [];
+        if (!isMounted) return;
+        setSavedAddresses(addressList);
       } catch (error) {
         console.error("SAVED ADDRESS ERROR:", error);
-        setSavedAddresses([]);
+        if (isMounted) setSavedAddresses([]);
       } finally {
-        setSavedAddressLoading(false);
+        if (isMounted) setSavedAddressLoading(false);
       }
     };
 
     fetchSavedAddresses();
+    return () => {
+      isMounted = false;
+    };
   }, [user]);
+
+  // Auto-select default or first address when savedAddresses are loaded
+  useEffect(() => {
+    if (savedAddresses.length > 0 && !selectedAddressId && !location) {
+      const defaultAddr =
+        savedAddresses.find((a) => a.isDefault) || savedAddresses[0];
+      if (defaultAddr) {
+        selectSavedAddress(defaultAddr);
+      }
+    }
+  }, [savedAddresses]);
 
   useEffect(() => {
     if (pincode?.length !== 6) return;
@@ -678,8 +711,9 @@ export default function Checkout() {
       !Number.isFinite(longitude)
     ) {
       setLocationError(
-        "This saved address has no valid map location. Please select it on the map."
+        "This address does not have GPS coordinates. Tap 'Edit' to tag location."
       );
+      toast.error("Address is missing GPS location. Please tap Edit to tag location.");
       return;
     }
 
@@ -694,38 +728,114 @@ export default function Checkout() {
     });
     setLocationError("");
 
-    setValue(
-      "fullAddress",
-      address.line1 ||
-        address.fullAddress ||
-        ""
-    );
+    const fullAddr =
+      [address.line1, address.line2].filter(Boolean).join(", ") ||
+      address.fullAddress ||
+      "";
 
-    setValue(
-      "landmark",
-      address.landmark || ""
-    );
-
-    setValue(
-      "pincode",
-      address.pincode || ""
-    );
-
-    setCity(address.city || "");
+    setValue("fullAddress", fullAddr, { shouldValidate: true });
+    setValue("landmark", address.landmark || "", { shouldValidate: true });
+    setValue("pincode", address.pincode || "", { shouldValidate: true });
+    setValue("state", address.state || "Uttar Pradesh", { shouldValidate: true });
+    setCity(address.city || "Jhansi");
 
     if (orderForSomeoneElse) {
-      setRecipientName(
-        address.fullName || ""
-      );
-      setRecipientPhone(
-        address.phone || ""
-      );
+      setRecipientName(address.fullName || "");
+      setRecipientPhone(address.phone || "");
     }
 
-    await calculateDeliveryEstimate(
-      latitude,
-      longitude
-    );
+    await calculateDeliveryEstimate(latitude, longitude);
+  };
+
+  const handleOpenAddAddress = () => {
+    setEditingAddress(null);
+    setIsAddressModalOpen(true);
+  };
+
+  const handleOpenEditAddress = (address, e) => {
+    e?.stopPropagation();
+    setEditingAddress(address);
+    setIsAddressModalOpen(true);
+  };
+
+  const handleAddressSaved = (savedAddress, isEdit) => {
+    if (!savedAddress) return;
+
+    setSavedAddresses((prev) => {
+      let updated;
+      if (isEdit) {
+        updated = prev.map((item) =>
+          item._id === savedAddress._id ? savedAddress : item
+        );
+      } else {
+        updated = [savedAddress, ...prev];
+      }
+
+      if (savedAddress.isDefault) {
+        updated = updated.map((item) => ({
+          ...item,
+          isDefault: item._id === savedAddress._id,
+        }));
+      }
+      return updated;
+    });
+
+    selectSavedAddress(savedAddress);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!addressToDelete?._id) return;
+    const targetId = addressToDelete._id;
+
+    try {
+      setDeletingAddressId(targetId);
+      await API.delete(`/addresses/${targetId}`);
+      toast.success("Address deleted successfully");
+
+      setSavedAddresses((prev) => prev.filter((a) => a._id !== targetId));
+
+      if (selectedAddressId === targetId) {
+        setSelectedAddressId(null);
+        setLocation(null);
+        setSelectedLocation(null);
+        setServiceable(false);
+        setAddressVerified(false);
+        setValue("fullAddress", "");
+        setValue("landmark", "");
+        setValue("pincode", "");
+      }
+    } catch (error) {
+      console.error("DELETE ADDRESS ERROR:", error);
+      toast.error(
+        error?.response?.data?.message || "Failed to delete address"
+      );
+    } finally {
+      setDeletingAddressId(null);
+      setAddressToDelete(null);
+    }
+  };
+
+  const handleSetDefaultAddress = async (addressId, e) => {
+    e?.stopPropagation();
+    try {
+      setSettingDefaultId(addressId);
+      await API.patch(`/addresses/${addressId}/default`);
+      toast.success("Default address updated");
+
+      setSavedAddresses((prev) =>
+        prev.map((addr) => ({
+          ...addr,
+          isDefault: addr._id === addressId,
+        }))
+      );
+    } catch (error) {
+      console.error("SET DEFAULT ERROR:", error);
+      toast.error(
+        error?.response?.data?.message || "Failed to set default address"
+      );
+    } finally {
+      setSettingDefaultId(null);
+    }
   };
 
   const handleMapLocationSelect = async ({
@@ -799,18 +909,27 @@ export default function Checkout() {
   };
 
   const onSubmit = async (data) => {
-    if (!data.fullAddress?.trim()) {
-      toast.error("Please enter your full address.");
+    const activeAddress = savedAddresses.find((a) => a._id === selectedAddressId);
+    const resolvedFullAddress = (
+      data.fullAddress ||
+      [activeAddress?.line1, activeAddress?.line2].filter(Boolean).join(", ") ||
+      activeAddress?.fullAddress ||
+      ""
+    ).trim();
+    const resolvedPincode = data.pincode || activeAddress?.pincode;
+
+    if (!selectedAddressId && !resolvedFullAddress) {
+      toast.error("Please select or add a delivery address.");
       return;
     }
 
-    if (!data.pincode || !/^\d{6}$/.test(data.pincode)) {
+    if (!resolvedPincode || !/^\d{6}$/.test(resolvedPincode)) {
       toast.error("Please enter a valid 6-digit pincode.");
       return;
     }
 
     if (!location) {
-      toast.error("Please use your current location or select a location on the map.");
+      toast.error("Please select a valid delivery address with GPS location.");
       return;
     }
 
@@ -869,15 +988,11 @@ export default function Checkout() {
         },
 
         address: {
-          fullAddress:
-            data.fullAddress.trim(),
-          landmark:
-            data.landmark?.trim() || "",
-          city: city || "Jhansi",
-          state:
-            data.state?.trim() ||
-            "Uttar Pradesh",
-          pincode: data.pincode,
+          fullAddress: resolvedFullAddress,
+          landmark: (data.landmark || activeAddress?.landmark || "").trim(),
+          city: city || activeAddress?.city || "Jhansi",
+          state: (data.state || activeAddress?.state || "Uttar Pradesh").trim(),
+          pincode: resolvedPincode,
 
           location: {
             latitude: location.latitude,
@@ -1143,574 +1258,369 @@ export default function Checkout() {
                 )}
               </AnimatePresence>
 
-              {/* SAVED ADDRESSES */}
+              {/* SAVED ADDRESSES SECTION (HORIZONTAL SCROLL + VIEW ALL POPUP) */}
               <div>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-2.5">
                   <div>
-                    <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">
-                      Previously Used
-                    </p>
-                    <p className="text-[10px] text-gray-400 mt-0.5">
-                      Tap an address to use it
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs font-extrabold text-gray-900 uppercase tracking-wider">
+                        Saved Addresses
+                      </p>
+                      {savedAddresses.length > 0 && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900">
+                          {savedAddresses.length}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-gray-400 mt-0.5">
+                      Swipe horizontally or tap View All
                     </p>
                   </div>
 
-                  {savedAddresses.length > 0 && (
-                    <span className="text-[10px] font-semibold text-gray-400">
-                      {savedAddresses.length} saved
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {savedAddresses.length > 2 && (
+                      <button
+                        type="button"
+                        onClick={() => setIsAllAddressesModalOpen(true)}
+                        className="text-xs font-bold text-amber-800 hover:text-amber-950 flex items-center gap-0.5 px-2.5 py-1 rounded-xl bg-amber-50 hover:bg-amber-100/80 transition-all"
+                      >
+                        <span>View All ({savedAddresses.length})</span>
+                        <ChevronRight size={13} />
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={handleOpenAddAddress}
+                      className="flex items-center gap-1 px-2.5 sm:px-3 py-1 rounded-xl font-bold text-xs bg-[#101010] text-[#FFD700] hover:bg-black transition-all shadow-xs"
+                    >
+                      <Plus size={13} />
+                      <span>Add</span>
+                    </button>
+                  </div>
                 </div>
 
                 {savedAddressLoading ? (
-                  <div className="flex items-center gap-2 py-3 text-xs text-gray-400">
-                    <Loader2
-                      size={14}
-                      className="animate-spin"
-                    />
+                  <div className="flex items-center justify-center gap-2.5 py-6 rounded-2xl bg-gray-50/70 border border-gray-100 text-xs font-semibold text-gray-500">
+                    <Loader2 size={15} className="animate-spin text-amber-500" />
                     Loading saved addresses...
                   </div>
                 ) : savedAddresses.length > 0 ? (
-                  <div className="flex gap-2 overflow-x-auto pb-1 snap-x">
-                    {savedAddresses.map(
-                      (address) => {
-                        const selected =
-                          selectedAddressId ===
-                          address._id;
+                  <div
+                    className="flex gap-3 overflow-x-auto pb-2.5 pt-1 snap-x scrollbar-none -mx-1 px-1"
+                    style={{ WebkitOverflowScrolling: "touch" }}
+                  >
+                    {savedAddresses.map((address) => {
+                      const selected = selectedAddressId === address._id;
+                      const label = address.label || "Home";
+                      const lowerLabel = label.toLowerCase();
+                      const isWork = lowerLabel === "work" || lowerLabel === "office";
+                      const isOther = !isWork && lowerLabel !== "home";
 
-                        const label =
-                          address.label ||
-                          address.title ||
-                          "Home";
+                      const Icon = isWork ? Briefcase : isOther ? MapPin : Home;
+                      const iconBg = isWork
+                        ? "bg-indigo-50 text-indigo-600"
+                        : isOther
+                        ? "bg-purple-50 text-purple-600"
+                        : "bg-amber-50 text-amber-600";
 
-                        const Icon =
-                          label.toLowerCase() ===
-                          "work"
-                            ? Briefcase
-                            : Home;
+                      const fullStreetAddress =
+                        [address.line1, address.line2].filter(Boolean).join(", ") ||
+                        address.fullAddress ||
+                        "Saved address";
 
-                        return (
-                          <button
-                            type="button"
-                            key={address._id}
-                            onClick={() =>
-                              selectSavedAddress(
-                                address
-                              )
-                            }
-                            className="w-[220px] sm:w-[235px] shrink-0 text-left p-3.5 rounded-2xl transition-all snap-start"
-                            style={{
-                              background:
-                                selected
-                                  ? "#FFF9E6"
-                                  : "#FAFAFA",
-                              border:
-                                selected
-                                  ? "1.5px solid #FFD700"
-                                  : "1px solid #ECECEC",
-                              boxShadow:
-                                selected
-                                  ? "0 4px 16px rgba(255,215,0,0.12)"
-                                  : "none",
-                            }}
-                          >
-                            <div className="flex items-center gap-2">
-                              <div
-                                className="w-7 h-7 rounded-lg flex items-center justify-center"
-                                style={{
-                                  background:
-                                    selected
-                                      ? "#FFD700"
-                                      : "white",
-                                }}
-                              >
-                                <Icon
-                                  size={13}
-                                  color="#111"
-                                />
+                      return (
+                        <div
+                          key={address._id}
+                          onClick={() => selectSavedAddress(address)}
+                          className={`w-[260px] sm:w-[280px] shrink-0 snap-start rounded-2xl p-3.5 transition-all duration-200 cursor-pointer flex flex-col justify-between ${
+                            selected
+                              ? "bg-[#FFFDF5] border-2 border-[#FFD700] shadow-[0_4px_16px_rgba(255,215,0,0.18)]"
+                              : "bg-white border border-gray-200 hover:border-gray-300 hover:shadow-xs"
+                          }`}
+                        >
+                          {/* Top: Tag + Default + Selected Checkmark */}
+                          <div>
+                            <div className="flex items-start justify-between gap-1.5 mb-1.5">
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <div
+                                  className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${iconBg}`}
+                                >
+                                  <Icon size={14} />
+                                </div>
+                                <span className="text-xs font-black text-gray-900 tracking-wide uppercase truncate">
+                                  {label}
+                                </span>
+                                {address.isDefault && (
+                                  <span className="px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase bg-emerald-100 text-emerald-800 tracking-wider shrink-0">
+                                    DEFAULT
+                                  </span>
+                                )}
                               </div>
 
-                              <span className="text-xs font-bold text-gray-800 truncate">
-                                {label}
-                              </span>
-
-                              {selected && (
-                                <CheckCircle
-                                  size={14}
-                                  color="#10B981"
-                                  className="ml-auto shrink-0"
-                                />
+                              {selected ? (
+                                <div className="flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-emerald-500 text-white shadow-xs shrink-0">
+                                  <Check size={10} strokeWidth={3} />
+                                  <span className="text-[9px] font-extrabold uppercase">
+                                    DELIVER
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="w-4 h-4 rounded-full border border-gray-300 shrink-0" />
                               )}
                             </div>
 
-                            <p className="text-[11px] text-gray-500 mt-2 line-clamp-2 leading-relaxed">
-                              {address.line1 ||
-                                address.fullAddress ||
-                                "Saved address"}
-                            </p>
-
-                            {address.city && (
-                              <p className="text-[10px] text-gray-400 mt-1">
-                                {address.city}
-                                {address.pincode
-                                  ? ` • ${address.pincode}`
-                                  : ""}
+                            {/* Receiver Info */}
+                            {(address.fullName || address.phone) && (
+                              <p className="text-[10px] font-bold text-gray-700 truncate mb-0.5">
+                                {address.fullName}
+                                {address.fullName && address.phone && " • "}
+                                {address.phone}
                               </p>
                             )}
-                          </button>
-                        );
-                      }
+
+                            {/* Street Address */}
+                            <p className="text-[11px] text-gray-700 font-medium line-clamp-2 leading-snug">
+                              {fullStreetAddress}
+                            </p>
+
+                            {/* Landmark & City */}
+                            <p className="text-[10px] text-gray-400 mt-1 truncate">
+                              {address.landmark ? `${address.landmark} • ` : ""}
+                              {address.city || "Jhansi"}
+                              {address.pincode ? ` - ${address.pincode}` : ""}
+                            </p>
+                          </div>
+
+                          {/* Action Toolbar */}
+                          <div
+                            className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between gap-1 text-[11px]"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {!address.isDefault ? (
+                              <button
+                                type="button"
+                                onClick={(e) =>
+                                  handleSetDefaultAddress(address._id, e)
+                                }
+                                disabled={settingDefaultId === address._id}
+                                className="text-[10px] font-bold text-gray-500 hover:text-amber-800 flex items-center gap-1 transition-colors"
+                              >
+                                {settingDefaultId === address._id ? (
+                                  <Loader2
+                                    size={11}
+                                    className="animate-spin text-amber-500"
+                                  />
+                                ) : (
+                                  <Star size={11} className="text-gray-400" />
+                                )}
+                                <span>Default</span>
+                              </button>
+                            ) : (
+                              <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-0.5">
+                                <Check size={10} /> Default
+                              </span>
+                            )}
+
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={(e) =>
+                                  handleOpenEditAddress(address, e)
+                                }
+                                className="px-2 py-1 rounded-lg font-bold text-gray-700 hover:text-black hover:bg-gray-100 transition-all flex items-center gap-1 text-[11px]"
+                              >
+                                <Pencil size={11} className="text-gray-500" />
+                                <span>Edit</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setAddressToDelete(address);
+                                }}
+                                className="p-1 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {/* End Card 1: + Add New Address */}
+                    <button
+                      type="button"
+                      onClick={handleOpenAddAddress}
+                      className="w-[130px] shrink-0 snap-start rounded-2xl border-2 border-dashed border-gray-200 hover:border-amber-400 bg-gray-50/60 hover:bg-amber-50/20 p-3.5 flex flex-col items-center justify-center text-center gap-1.5 group transition-all"
+                    >
+                      <div className="w-8 h-8 rounded-xl bg-white group-hover:bg-amber-100 text-gray-400 group-hover:text-amber-700 flex items-center justify-center shadow-xs transition-colors">
+                        <Plus size={16} />
+                      </div>
+                      <p className="text-xs font-bold text-gray-800 group-hover:text-black">
+                        Add New
+                      </p>
+                      <p className="text-[10px] text-gray-400">
+                        New address
+                      </p>
+                    </button>
+
+                    {/* End Card 2: View All (if > 2 addresses) */}
+                    {savedAddresses.length > 2 && (
+                      <button
+                        type="button"
+                        onClick={() => setIsAllAddressesModalOpen(true)}
+                        className="w-[130px] shrink-0 snap-start rounded-2xl border border-gray-200 bg-white hover:bg-amber-50/40 p-3.5 flex flex-col items-center justify-center text-center gap-1.5 group transition-all shadow-xs"
+                      >
+                        <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shadow-xs">
+                          <ChevronRight size={16} />
+                        </div>
+                        <p className="text-xs font-bold text-gray-800">
+                          View All
+                        </p>
+                        <p className="text-[10px] text-gray-400">
+                          {savedAddresses.length} saved
+                        </p>
+                      </button>
                     )}
                   </div>
                 ) : (
-                  <div
-                    className="flex items-center gap-3 p-3 rounded-2xl"
-                    style={{
-                      background: "#FAFAFA",
-                      border:
-                        "1px dashed #D1D5DB",
-                    }}
-                  >
-                    <Plus
-                      size={15}
-                      color="#9CA3AF"
-                    />
-                    <div>
-                      <p className="text-xs font-semibold text-gray-600">
-                        No saved addresses yet
-                      </p>
-                      <p className="text-[10px] text-gray-400">
-                        Your first address will be saved automatically.
-                      </p>
+                  <div className="p-5 rounded-2xl bg-gradient-to-b from-gray-50 to-amber-50/20 border-2 border-dashed border-gray-200 text-center">
+                    <div className="w-10 h-10 mx-auto rounded-xl bg-white shadow-xs flex items-center justify-center mb-2">
+                      <MapPin size={20} className="text-amber-500" />
                     </div>
-                  </div>
-                )}
-              </div>
-
-              {/* LOCATION ACTIONS */}
-              <div className="grid sm:grid-cols-2 gap-2.5">
-                <button
-                  type="button"
-                  onClick={traceCurrentLocation}
-                  disabled={locationLoading}
-                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-sm transition-all disabled:opacity-60"
-                  style={{
-                    background: "#101010",
-                    color: "white",
-                    boxShadow:
-                      "0 5px 16px rgba(16,16,16,0.14)",
-                  }}
-                >
-                  {locationLoading ? (
-                    <>
-                      <Loader2
-                        size={16}
-                        className="animate-spin"
-                      />
-                      Detecting...
-                    </>
-                  ) : (
-                    <>
-                      <Navigation
-                        size={16}
-                        color="#FFD700"
-                      />
-                      Use My Current Location
-                    </>
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setMapOpen((prev) => !prev)
-                  }
-                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-sm transition-all"
-                  style={{
-                    background: "#F8F9FB",
-                    color: "#111827",
-                    border:
-                      "1px solid #E5E7EB",
-                  }}
-                >
-                  {mapOpen ? (
-                    <>
-                      <X size={16} />
-                      Close Map
-                    </>
-                  ) : (
-                    <>
-                      <MapPinned size={16} />
-                      Select on Map
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {/* MAP */}
-<AnimatePresence initial={false}>
-  {mapOpen && (
-    <motion.div
-      initial={{
-        opacity: 0,
-        height: 0,
-      }}
-      animate={{
-        opacity: 1,
-        height: "auto",
-      }}
-      exit={{
-        opacity: 0,
-        height: 0,
-      }}
-      className="overflow-hidden"
-    >
-      <div className="space-y-2.5">
-
-        {/* MAP */}
-        <div
-          className="rounded-2xl overflow-hidden relative"
-          style={{
-            height: "330px",
-            border: "1px solid #E5E7EB",
-          }}
-        >
-          <MapContainer
-            center={
-              selectedLocation
-                ? [
-                    selectedLocation.latitude,
-                    selectedLocation.longitude,
-                  ]
-                : ZUSKO_LOCATION
-            }
-            zoom={14}
-            scrollWheelZoom
-            style={{
-              width: "100%",
-              height: "100%",
-            }}
-          >
-            <TileLayer
-              attribution="&copy; OpenStreetMap contributors"
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-
-            <MapController
-              position={selectedLocation}
-            />
-
-            <LocationPicker
-              position={selectedLocation}
-              onSelect={handleMapLocationSelect}
-            />
-          </MapContainer>
-
-          {/* TOP INSTRUCTION */}
-          <div
-            className="absolute left-3 right-3 top-3 z-[1000] px-3 py-2.5 rounded-xl bg-white/95 backdrop-blur shadow-lg pointer-events-none"
-          >
-            <div className="flex items-center gap-2">
-              <MapPinned
-                size={15}
-                color="#EF4444"
-              />
-
-              <p className="text-[11px] font-semibold text-gray-700">
-                Tap anywhere on the map to choose the pickup location
-              </p>
-            </div>
-          </div>
-
-          {/* BOTTOM INFO */}
-          <div
-            className="absolute bottom-3 left-3 right-3 z-[1000] px-3 py-2 rounded-xl bg-white/95 backdrop-blur shadow-lg pointer-events-none"
-          >
-            <p className="text-[10px] text-gray-500">
-              The selected location will be used to calculate the road distance and delivery charge.
-            </p>
-          </div>
-        </div>
-
-        {/* DONE BUTTON — ONLY AFTER LOCATION IS SELECTED */}
-        <AnimatePresence>
-          {selectedLocation && (
-            <motion.button
-              type="button"
-              initial={{
-                opacity: 0,
-                y: 8,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
-              exit={{
-                opacity: 0,
-                y: 8,
-              }}
-              whileTap={{
-                scale: 0.98,
-              }}
-              onClick={() => setMapOpen(false)}
-              className="w-full py-3.5 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all"
-              style={{
-                background: "#101010",
-                color: "white",
-                boxShadow:
-                  "0 5px 16px rgba(16,16,16,0.14)",
-              }}
-            >
-              <CheckCircle
-                size={16}
-                color="#FFD700"
-              />
-
-              Done
-            </motion.button>
-          )}
-        </AnimatePresence>
-
-      </div>
-    </motion.div>
-  )}
-</AnimatePresence>
-
-              {/* LOCATION ERROR */}
-              {locationError && !serviceable && !addressLoading && (
-                <motion.div
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex items-start gap-2.5 p-3 rounded-2xl"
-                  style={{
-                    background: "#FEF2F2",
-                    border: "1px solid #FECACA",
-                  }}
-                >
-                  <AlertCircle size={15} color="#EF4444" className="mt-0.5 shrink-0" />
-                  <p className="text-[11px] font-semibold text-red-600 leading-relaxed">
-                    {locationError}
-                  </p>
-                </motion.div>
-              )}
-
-              {/* ADDRESS FORM — ONLY AFTER SERVICEABILITY IS CONFIRMED */}
-              {serviceable && addressVerified && location && (
-              <div className="grid gap-3">
-                <PremiumInput
-                  label="Full Address"
-                  icon={MapPin}
-                  placeholder="House / flat no., street, area..."
-                  error={
-                    errors.fullAddress?.message
-                  }
-                  {...register("fullAddress", {
-                    required:
-                      "Address is required",
-                  })}
-                />
-
-                <div className="grid sm:grid-cols-2 gap-3">
-                  <PremiumInput
-                    label="Landmark"
-                    icon={MapPinned}
-                    placeholder="Near school, mall, temple..."
-                    {...register("landmark")}
-                  />
-
-                  <PremiumInput
-                    label="Pincode"
-                    icon={MapPin}
-                    placeholder="6-digit pincode"
-                    maxLength={6}
-                    inputMode="numeric"
-                    error={
-                      errors.pincode?.message ||
-                      pinError
-                    }
-                    {...register("pincode", {
-                      required:
-                        "Pincode is required",
-                      pattern: {
-                        value:
-                          /^[0-9]{6}$/,
-                        message:
-                          "Enter valid 6-digit pincode",
-                      },
-                      onChange: (e) => {
-                        e.target.value =
-                          e.target.value
-                            .replace(/\D/g, "")
-                            .slice(0, 6);
-                      },
-                    })}
-                  />
-                </div>
-
-                {/* LOCATION STATUS */}
-                <AnimatePresence mode="wait">
-                  {reverseGeocoding && (
-                    <motion.div
-                      initial={{
-                        opacity: 0,
-                        y: -4,
-                      }}
-                      animate={{
-                        opacity: 1,
-                        y: 0,
-                      }}
-                      exit={{
-                        opacity: 0,
-                      }}
-                      className="flex items-center gap-2 text-[11px] text-gray-400"
-                    >
-                      <Loader2
-                        size={13}
-                        className="animate-spin"
-                      />
-                      Finding address...
-                    </motion.div>
-                  )}
-
-                  {checkingPin &&
-                    !reverseGeocoding && (
-                      <motion.div
-                        initial={{
-                          opacity: 0,
-                        }}
-                        animate={{
-                          opacity: 1,
-                        }}
-                        className="flex items-center gap-2 text-[11px] text-gray-400"
-                      >
-                        <Loader2
-                          size={13}
-                          className="animate-spin"
-                        />
-                        Verifying pincode...
-                      </motion.div>
-                    )}
-
-                  {city &&
-                    !checkingPin &&
-                    !reverseGeocoding && (
-                      <motion.div
-                        initial={{
-                          opacity: 0,
-                          scale: 0.98,
-                        }}
-                        animate={{
-                          opacity: 1,
-                          scale: 1,
-                        }}
-                        className="flex items-center gap-2"
-                      >
-                        <CheckCircle
-                          size={14}
-                          color="#10B981"
-                        />
-                        <span
-                          className="text-[11px] font-bold px-3 py-1.5 rounded-full"
-                          style={{
-                            background:
-                              "#ECFDF5",
-                            color:
-                              "#065F46",
-                          }}
-                        >
-                          📍 {city}
-                        </span>
-                      </motion.div>
-                    )}
-                </AnimatePresence>
-
-                {locationError && (
-                  <motion.div
-                    initial={{
-                      opacity: 0,
-                      y: -4,
-                    }}
-                    animate={{
-                      opacity: 1,
-                      y: 0,
-                    }}
-                    className="flex items-start gap-2.5 p-3 rounded-2xl"
-                    style={{
-                      background: "#FEF2F2",
-                      border:
-                        "1px solid #FECACA",
-                    }}
-                  >
-                    <AlertCircle
-                      size={15}
-                      color="#EF4444"
-                      className="mt-0.5 shrink-0"
-                    />
-                    <p className="text-[11px] font-semibold text-red-600 leading-relaxed">
-                      {locationError}
+                    <h4 className="text-xs font-bold text-gray-800 mb-0.5">
+                      No Saved Addresses Yet
+                    </h4>
+                    <p className="text-[11px] text-gray-400 max-w-xs mx-auto mb-3">
+                      Save your address for faster checkout.
                     </p>
-                  </motion.div>
-                )}
-
-                {addressLoading && (
-                  <div
-                    className="flex items-center gap-2 p-3 rounded-2xl"
-                    style={{
-                      background: "#F8F9FB",
-                      border:
-                        "1px solid #EFEFEF",
-                    }}
-                  >
-                    <Loader2
-                      size={14}
-                      className="animate-spin"
-                      color="#9CA3AF"
-                    />
-                    <span className="text-[11px] text-gray-500">
-                      Calculating road distance & delivery charge...
-                    </span>
+                    <button
+                      type="button"
+                      onClick={handleOpenAddAddress}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-[#101010] text-[#FFD700] hover:bg-black transition-all shadow-sm"
+                    >
+                      <Plus size={13} />
+                      Add Address
+                    </button>
                   </div>
                 )}
+              </div>
 
-                {addressVerified &&
-                  serviceable &&
-                  !addressLoading && (
-                    <div
-                      className="flex items-center justify-between gap-3 p-3 rounded-2xl"
-                      style={{
-                        background:
-                          "#ECFDF5",
-                        border:
-                          "1px solid #A7F3D0",
-                      }}
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
-                          style={{
-                            background:
-                              "#D1FAE5",
-                          }}
-                        >
-                          <CheckCircle
-                            size={15}
-                            color="#059669"
-                          />
+              {/* SELECTED ADDRESS SUMMARY CARD & SERVICEABILITY STATUS */}
+              <div className="mt-3.5 pt-3 border-t border-gray-100">
+                {selectedAddress ? (
+                  <div className="space-y-2">
+                    <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-50/70 via-white to-emerald-50/40 border border-amber-200/90 shadow-xs flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                          <CheckCircle size={16} />
                         </div>
-
                         <div className="min-w-0">
-                          <p className="text-[11px] font-bold text-emerald-800">
-                            Location verified
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xs font-black text-gray-900 uppercase">
+                              {selectedAddress.label || "Home"}
+                            </span>
+                            <span className="text-[9px] font-extrabold uppercase tracking-wide bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md">
+                              Delivering Here
+                            </span>
+                            {roadDistanceKm > 0 && (
+                              <span className="text-[10px] text-gray-400 font-semibold">
+                                • {roadDistanceKm} km
+                              </span>
+                            )}
+                          </div>
+
+                          {(selectedAddress.fullName || selectedAddress.phone) && (
+                            <p className="text-[10px] font-bold text-gray-700 mt-1 truncate">
+                              {selectedAddress.fullName}
+                              {selectedAddress.fullName && selectedAddress.phone && " • "}
+                              {selectedAddress.phone}
+                            </p>
+                          )}
+
+                          <p className="text-xs text-gray-600 font-medium mt-0.5 leading-relaxed">
+                            {[selectedAddress.line1, selectedAddress.line2].filter(Boolean).join(", ") || selectedAddress.fullAddress}
                           </p>
-                          
+
+                          <p className="text-[11px] text-gray-400 mt-0.5">
+                            {selectedAddress.landmark ? `${selectedAddress.landmark} • ` : ""}
+                            {selectedAddress.city || "Jhansi"}
+                            {selectedAddress.pincode ? ` - ${selectedAddress.pincode}` : ""}
+                          </p>
                         </div>
                       </div>
 
-                      
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEditAddress(selectedAddress)}
+                        className="shrink-0 px-2.5 py-1 rounded-lg text-xs font-bold text-gray-700 hover:text-black bg-white border border-gray-200 hover:border-amber-300 transition-all flex items-center gap-1 shadow-2xs"
+                      >
+                        <Pencil size={11} className="text-gray-500" />
+                        <span>Edit</span>
+                      </button>
                     </div>
-                  )}
+
+                    {/* Delivery Calculation / Verification Status */}
+                    {addressLoading && (
+                      <div className="flex items-center gap-2 p-3 rounded-2xl bg-gray-50 border border-gray-100 text-xs text-gray-500">
+                        <Loader2 size={14} className="animate-spin text-amber-500" />
+                        <span>Verifying delivery distance & charges...</span>
+                      </div>
+                    )}
+
+                    {locationError && !addressLoading && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex items-start gap-2.5 p-3 rounded-2xl bg-red-50 border border-red-200"
+                      >
+                        <AlertCircle size={15} className="text-red-600 mt-0.5 shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-red-700">
+                            Location Outside Service Area
+                          </p>
+                          <p className="text-[11px] text-red-600 mt-0.5 leading-relaxed">
+                            {locationError}
+                          </p>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {addressVerified && serviceable && !addressLoading && (
+                      <div className="flex items-center justify-between gap-3 p-2.5 px-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200 text-emerald-800 text-xs">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle size={14} className="text-emerald-600 shrink-0" />
+                          <span className="font-bold text-[11px]">
+                            Location verified for pickup & delivery
+                          </span>
+                        </div>
+                        <span className="text-[11px] font-black text-emerald-900 bg-white px-2 py-0.5 rounded-md border border-emerald-200">
+                          {deliveryFee === 0 ? "FREE Delivery" : `₹${deliveryFee} Delivery`}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="p-3.5 rounded-2xl bg-amber-50/50 border border-dashed border-amber-300 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <AlertCircle size={16} className="text-amber-600 shrink-0" />
+                      <p className="text-xs font-semibold text-gray-700 truncate">
+                        Select a saved address above or add a new one.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleOpenAddAddress}
+                      className="shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold bg-[#101010] text-[#FFD700] hover:bg-black transition-all shadow-xs"
+                    >
+                      + Add Address
+                    </button>
+                  </div>
+                )}
               </div>
-              )}
             </SectionCard>
 
             {serviceable && addressVerified && location && (
@@ -2445,6 +2355,88 @@ export default function Checkout() {
           </div>
         </div>
       </div>
+
+      {/* PRODUCTION GRADE ADDRESS MODAL */}
+      <AddressModal
+        isOpen={isAddressModalOpen}
+        onClose={() => {
+          setIsAddressModalOpen(false);
+          setEditingAddress(null);
+        }}
+        initialAddress={editingAddress}
+        currentLocation={location}
+        currentUser={user}
+        onAddressSaved={handleAddressSaved}
+      />
+
+      {/* DELETE CONFIRMATION DIALOG */}
+      <AnimatePresence>
+        {addressToDelete && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setAddressToDelete(null)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl z-10 text-center"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-500 mx-auto flex items-center justify-center mb-3">
+                <Trash2 size={22} />
+              </div>
+              <h4 className="text-base font-bold text-gray-900 mb-1">
+                Delete this address?
+              </h4>
+              <p className="text-xs text-gray-500 mb-5 leading-relaxed">
+                Are you sure you want to remove{" "}
+                <span className="font-semibold text-gray-800">
+                  {addressToDelete.label || "this address"}
+                </span>
+                ? This action cannot be undone.
+              </p>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setAddressToDelete(null)}
+                  className="flex-1 py-2.5 rounded-xl text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmDelete}
+                  disabled={Boolean(deletingAddressId)}
+                  className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white bg-red-600 hover:bg-red-700 transition-colors flex items-center justify-center gap-1.5 shadow-sm shadow-red-200"
+                >
+                  {deletingAddressId ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    "Delete"
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+      {/* ALL ADDRESSES MODAL (VIEW ALL POPUP) */}
+      <AllAddressesModal
+        isOpen={isAllAddressesModalOpen}
+        onClose={() => setIsAllAddressesModalOpen(false)}
+        addresses={savedAddresses}
+        selectedAddressId={selectedAddressId}
+        onSelectAddress={selectSavedAddress}
+        onOpenAddAddress={handleOpenAddAddress}
+        onOpenEditAddress={(addr) => handleOpenEditAddress(addr)}
+        onDeleteAddress={(addr) => setAddressToDelete(addr)}
+        onSetDefaultAddress={handleSetDefaultAddress}
+        settingDefaultId={settingDefaultId}
+      />
     </div>
   );
 }
