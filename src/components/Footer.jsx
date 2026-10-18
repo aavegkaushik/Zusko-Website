@@ -9,6 +9,7 @@ import Logo from "../assets/Logo.png";
 import LogowithLine from "../assets/fullLogo.png";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { prefetchRoute } from "../utils/prefetch";
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
@@ -31,26 +32,45 @@ const Footer = () => {
           </h4>
           <ul className="space-y-2 text-sm">
             <li>
-              <Link to={"/about"} className="hover:text-[#A6A6A6] transition">
+              <Link
+                to="/about"
+                onMouseEnter={() => prefetchRoute("/about")}
+                onTouchStart={() => prefetchRoute("/about")}
+                className="hover:text-[#A6A6A6] transition"
+              >
                 About Us
               </Link>
             </li>
             <li>
-              <Link to={"/team"} className="hover:text-[#A6A6A6] transition">
+              <Link
+                to="/team"
+                onMouseEnter={() => prefetchRoute("/team")}
+                onTouchStart={() => prefetchRoute("/team")}
+                className="hover:text-[#A6A6A6] transition"
+              >
                 Team
               </Link>
             </li>
             <li>
-              <Link to={"/career"} className="hover:text-[#A6A6A6] transition">
+              <Link
+                to="/career"
+                onMouseEnter={() => prefetchRoute("/career")}
+                onTouchStart={() => prefetchRoute("/career")}
+                className="hover:text-[#A6A6A6] transition"
+              >
                 Careers
               </Link>
             </li>
             <li>
-              <Link to={"/blog"} className="hover:text-[#A6A6A6] transition">
+              <Link
+                to="/blog"
+                onMouseEnter={() => prefetchRoute("/blog")}
+                onTouchStart={() => prefetchRoute("/blog")}
+                className="hover:text-[#A6A6A6] transition"
+              >
                 Blog
               </Link>
             </li>
-            {/* <li><a href="#" className="hover:text-[#A6A6A6] transition">Zusko Corporate</a></li> */}
           </ul>
         </div>
 
@@ -61,22 +81,30 @@ const Footer = () => {
           </h4>
           <ul className="space-y-2 text-sm">
             <li>
-              <Link to={"/help"} className="hover:text-[#A6A6A6] transition">
+              <Link
+                to="/help"
+                onMouseEnter={() => prefetchRoute("/help")}
+                onTouchStart={() => prefetchRoute("/help")}
+                className="hover:text-[#A6A6A6] transition"
+              >
                 Help & Support
               </Link>
             </li>
             <li>
-              <a
-                href="/partnerwithus"
+              <Link
+                to="/partnerwithus"
+                onMouseEnter={() => prefetchRoute("/partnerwithus")}
+                onTouchStart={() => prefetchRoute("/partnerwithus")}
                 className="hover:text-[#A6A6A6] transition"
               >
                 Partner with us
-              </a>
+              </Link>
             </li>
-            {/* <li><a href="#" className="hover:text-[#A6A6A6] transition">Ride with us</a></li> */}
             <li>
               <Link
-                to={"/for-business"}
+                to="/for-business"
+                onMouseEnter={() => prefetchRoute("/for-business")}
+                onTouchStart={() => prefetchRoute("/for-business")}
                 className="hover:text-[#A6A6A6] transition"
               >
                 For Businesses
@@ -99,7 +127,6 @@ const Footer = () => {
                 Jhansi
               </Link>
             </li>
-            {/* <li><Link to={'/available/delhi'} className="hover:text-[#A6A6A6] transition">Delhi</Link></li> */}
           </ul>
         </div>
 
@@ -108,21 +135,28 @@ const Footer = () => {
           <h4 className="text-md text-black font-bold uppercase mb-4">Legal</h4>
           <ul className="space-y-2 text-sm">
             <li>
-              <Link to={"/terms"} className="hover:text-[#A6A6A6] transition">
+              <Link
+                to="/terms"
+                onMouseEnter={() => prefetchRoute("/terms")}
+                onTouchStart={() => prefetchRoute("/terms")}
+                className="hover:text-[#A6A6A6] transition"
+              >
                 Terms & Conditions
               </Link>
             </li>
             <li>
               <Link
-                to={"/privacy"}
-                className="hover:text-[#A6A6A6]  transition"
+                to="/privacy"
+                onMouseEnter={() => prefetchRoute("/privacy")}
+                onTouchStart={() => prefetchRoute("/privacy")}
+                className="hover:text-[#A6A6A6] transition"
               >
                 Privacy Policy
               </Link>
             </li>
             <li>
               <Link
-                to={"/cookie-policy"}
+                to="/cookie-policy"
                 className="hover:text-[#A6A6A6] transition"
               >
                 Cookie Policy

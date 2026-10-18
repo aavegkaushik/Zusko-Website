@@ -2,16 +2,18 @@ import { Route, Routes, useLocation } from "react-router-dom";
 import { useEffect, useState, lazy, Suspense } from "react";
 import { Toaster } from "react-hot-toast";
 
-// Eager load for instant first render
-import Home from "./Pages/Home.jsx";
 import Navbar from "./components/Navbar.jsx";
 import Footer from "./components/Footer.jsx";
 import ScrollToTop from "./components/ScrollTop.jsx";
 import SplashScreen from "./components/SplashScreen";
-import UnderDevelopmentPopup from "./components/UnderDevelopmentPopup";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import CareerNavbar from "./components/CareerNavbar.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
+import TopLoadingBar from "./components/TopLoadingBar.jsx";
+
+// Route-based Code Splitting: EVERY page is loaded on-demand
+const Home = lazy(() => import("./Pages/Home.jsx"));
+const UnderDevelopmentPopup = lazy(() => import("./components/UnderDevelopmentPopup"));
 
 // Lazy load secondary routes to keep initial bundle ultra-light
 const About = lazy(() => import("./Pages/About.jsx"));
@@ -99,16 +101,19 @@ const App = () => {
           },
         }}
       />
+      <TopLoadingBar />
       <SplashScreen show={showSplash} />
 
-      {!showSplash && (
-        <>
+      <Suspense fallback={null}>
+        {showPopup && (
           <UnderDevelopmentPopup
             isOpen={showPopup}
             onClose={() => setShowPopup(false)}
           />
+        )}
+      </Suspense>
 
-          <ScrollToTop />
+      <ScrollToTop />
 
           {location.pathname.startsWith("/career") ? (
             <CareerNavbar />
@@ -240,8 +245,6 @@ const App = () => {
           </ErrorBoundary>
 
           <Footer />
-        </>
-      )}
     </>
   );
 };

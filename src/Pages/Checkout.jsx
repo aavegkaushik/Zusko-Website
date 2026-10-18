@@ -958,19 +958,19 @@ export default function Checkout() {
 
     try {
       const pickupContact =
-        orderForSomeoneElse
+        orderForSomeoneElse && recipientName
           ? {
               name: recipientName.trim(),
               phone: recipientPhone,
             }
-          : alternateContact
+          : alternateContact && data.pickupContactName
           ? {
               name: data.pickupContactName,
               phone: data.pickupContactPhone,
             }
           : {
-              name: user.name,
-              phone: user.phone,
+              name: selectedAddress?.fullName || user.name,
+              phone: selectedAddress?.phone || user.phone,
             };
 
       const orderData = {
@@ -1136,128 +1136,13 @@ export default function Checkout() {
               icon={MapPin}
               iconColor="#EF4444"
               iconBg="#FEF2F2"
-              title="Pickup & Delivery Address"
+              title="Pickup Address & Contact"
               badge={
                 serviceable
                   ? "Verified"
                   : "Required"
               }
             >
-              {/* SOMEONE ELSE */}
-              {/* <div
-                className="flex items-center justify-between gap-3 p-3.5 rounded-2xl"
-                style={{
-                  background:
-                    orderForSomeoneElse
-                      ? "#FFF9E6"
-                      : "#F8F9FB",
-                  border:
-                    orderForSomeoneElse
-                      ? "1px solid #FDE68A"
-                      : "1px solid #EFEFEF",
-                }}
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                    style={{
-                      background:
-                        orderForSomeoneElse
-                          ? "#FFD700"
-                          : "white",
-                    }}
-                  >
-                    <Users size={17} />
-                  </div>
-
-                  <div className="min-w-0">
-                    <p className="font-bold text-sm text-gray-900">
-                      Order for someone else
-                    </p>
-                    <p className="text-[11px] text-gray-400 mt-0.5">
-                      Send our pickup team to another person
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={
-                    handleSomeoneElseToggle
-                  }
-                  aria-label="Order for someone else"
-                  className="relative w-11 h-6 rounded-full transition-all shrink-0"
-                  style={{
-                    background:
-                      orderForSomeoneElse
-                        ? "#101010"
-                        : "#D1D5DB",
-                  }}
-                >
-                  <span
-                    className="absolute top-1 w-4 h-4 rounded-full bg-white transition-all shadow-sm"
-                    style={{
-                      left:
-                        orderForSomeoneElse
-                          ? "24px"
-                          : "4px",
-                    }}
-                  />
-                </button>
-              </div> */}
-
-              {/* RECIPIENT */}
-              <AnimatePresence initial={false}>
-                {orderForSomeoneElse && (
-                  <motion.div
-                    initial={{
-                      opacity: 0,
-                      height: 0,
-                    }}
-                    animate={{
-                      opacity: 1,
-                      height: "auto",
-                    }}
-                    exit={{
-                      opacity: 0,
-                      height: 0,
-                    }}
-                    className="overflow-hidden"
-                  >
-                    <div className="grid sm:grid-cols-2 gap-3 pt-1">
-                      <PremiumInput
-                        label="Person's Name"
-                        icon={User}
-                        placeholder="Who will hand over the clothes?"
-                        value={recipientName}
-                        onChange={(e) =>
-                          setRecipientName(
-                            e.target.value
-                          )
-                        }
-                      />
-
-                      <PremiumInput
-                        label="Mobile Number"
-                        icon={Phone}
-                        placeholder="10-digit mobile number"
-                        maxLength={10}
-                        inputMode="numeric"
-                        value={recipientPhone}
-                        onChange={(e) =>
-                          setRecipientPhone(
-                            e.target.value.replace(
-                              /\D/g,
-                              ""
-                            ).slice(0, 10)
-                          )
-                        }
-                      />
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
               {/* SAVED ADDRESSES SECTION (HORIZONTAL SCROLL + VIEW ALL POPUP) */}
               <div>
                 <div className="flex items-center justify-between mb-2.5">
@@ -1597,11 +1482,124 @@ export default function Checkout() {
                             Location verified for pickup & delivery
                           </span>
                         </div>
-                        <span className="text-[11px] font-black text-emerald-900 bg-white px-2 py-0.5 rounded-md border border-emerald-200">
-                          {deliveryFee === 0 ? "FREE Delivery" : `₹${deliveryFee} Delivery`}
-                        </span>
                       </div>
                     )}
+
+                    {/* INTEGRATED PICKUP CONTACT */}
+                    <div className="pt-2 border-t border-gray-100">
+                      <div className="p-3 sm:p-3.5 rounded-2xl bg-[#FBFBFC] border border-gray-200/70 flex items-center justify-between gap-3 shadow-2xs">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-8 h-8 rounded-xl bg-amber-400 text-black flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+                            <Phone size={14} />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-xs font-bold text-gray-900 truncate">
+                                {alternateContact && watch("pickupContactName")
+                                  ? watch("pickupContactName")
+                                  : (selectedAddress.fullName || user?.name || "Pickup Contact")}
+                              </span>
+                              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${
+                                alternateContact
+                                  ? "bg-amber-100 text-amber-900 border border-amber-200"
+                                  : "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                              }`}>
+                                {alternateContact ? "Alternate Contact" : "Account Contact"}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-gray-500 font-medium mt-0.5 truncate">
+                              {alternateContact && watch("pickupContactPhone")
+                                ? watch("pickupContactPhone")
+                                : (selectedAddress.phone || user?.phone || "No phone added")}
+                            </p>
+                          </div>
+                        </div>
+
+                        {!orderForSomeoneElse && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (alternateContact) {
+                                setValue("pickupContactName", "");
+                                setValue("pickupContactPhone", "");
+                              }
+                              setAlternateContact(!alternateContact);
+                            }}
+                            className={`shrink-0 px-2.5 py-1 rounded-lg text-xs font-bold transition-all border ${
+                              alternateContact
+                                ? "bg-amber-400 text-black border-amber-400 shadow-2xs"
+                                : "bg-white text-gray-700 hover:text-black border-gray-200 hover:border-gray-300 shadow-2xs"
+                            }`}
+                          >
+                            {alternateContact ? "Using Alternate" : "Someone Else?"}
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Collapsible Alternate Contact Input Form */}
+                      <AnimatePresence initial={false}>
+                        {alternateContact && !orderForSomeoneElse && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="pt-2.5 overflow-hidden"
+                          >
+                            <div className="p-3.5 rounded-2xl bg-amber-50/40 border border-amber-200/80 space-y-3">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-1.5 text-xs font-bold text-gray-800">
+                                  <User size={13} className="text-amber-600" />
+                                  <span>Someone else will hand over the laundry:</span>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setAlternateContact(false);
+                                    setValue("pickupContactName", "");
+                                    setValue("pickupContactPhone", "");
+                                  }}
+                                  className="text-[10px] font-bold text-gray-400 hover:text-red-500 transition-colors"
+                                >
+                                  Reset to my details
+                                </button>
+                              </div>
+
+                              <div className="grid sm:grid-cols-2 gap-3">
+                                <PremiumInput
+                                  label="Contact Name"
+                                  icon={User}
+                                  placeholder="Full name"
+                                  error={errors.pickupContactName?.message}
+                                  {...register("pickupContactName", {
+                                    required: alternateContact
+                                      ? "Contact name is required"
+                                      : false,
+                                  })}
+                                />
+
+                                <PremiumInput
+                                  label="Mobile Number"
+                                  icon={Phone}
+                                  placeholder="10-digit mobile number"
+                                  maxLength={10}
+                                  inputMode="numeric"
+                                  error={errors.pickupContactPhone?.message}
+                                  {...register("pickupContactPhone", {
+                                    required: alternateContact
+                                      ? "Contact number is required"
+                                      : false,
+                                    pattern: {
+                                      value: /^[6-9]\d{9}$/,
+                                      message: "Enter a valid 10-digit mobile number",
+                                    },
+                                  })}
+                                />
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
                   </div>
                 ) : (
                   <div className="p-3.5 rounded-2xl bg-amber-50/50 border border-dashed border-amber-300 flex items-center justify-between gap-3">
@@ -1625,176 +1623,6 @@ export default function Checkout() {
 
             {serviceable && addressVerified && location && (
               <>
-            {/* PICKUP CONTACT */}
-            <SectionCard
-              icon={Phone}
-              iconColor="#8B5CF6"
-              iconBg="#F5F3FF"
-              title="Pickup Contact"
-            >
-              <div
-                className="flex items-center gap-3 px-4 py-3 rounded-2xl"
-                style={{
-                  background: "#F8F9FB",
-                  border:
-                    "1px solid #EFEFEF",
-                }}
-              >
-                <div
-                  className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm shrink-0"
-                  style={{
-                    background: "#FFD700",
-                    color: "#101010",
-                  }}
-                >
-                  {user?.name?.[0]?.toUpperCase() ||
-                    "U"}
-                </div>
-
-                <div className="min-w-0">
-                  <p className="font-bold text-gray-900 text-[13px] leading-none truncate">
-                    {user?.name}
-                  </p>
-                  <p className="text-[11px] text-gray-400 mt-0.5">
-                    {user?.phone}
-                  </p>
-                </div>
-
-                <span
-                  className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0"
-                  style={{
-                    background: "#ECFDF5",
-                    color: "#065F46",
-                  }}
-                >
-                  Account
-                </span>
-              </div>
-
-              {!orderForSomeoneElse && (
-                <>
-                  <label className="flex items-start gap-3 cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      className="sr-only"
-                      checked={alternateContact}
-                      onChange={(e) =>
-                        setAlternateContact(
-                          e.target.checked
-                        )
-                      }
-                    />
-
-                    <div
-                      className="w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5"
-                      style={{
-                        background:
-                          alternateContact
-                            ? "#101010"
-                            : "white",
-                        border:
-                          alternateContact
-                            ? "none"
-                            : "1.5px solid #D1D5DB",
-                      }}
-                    >
-                      {alternateContact && (
-                        <svg
-                          width="10"
-                          height="8"
-                          viewBox="0 0 10 8"
-                          fill="none"
-                        >
-                          <path
-                            d="M1 4L3.5 6.5L9 1"
-                            stroke="#FFD700"
-                            strokeWidth="1.8"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      )}
-                    </div>
-
-                    <div>
-                      <p className="text-sm font-semibold text-gray-800">
-                        Someone else will hand over
-                      </p>
-                      <p className="text-[11px] text-gray-400 mt-0.5">
-                        Add an alternate pickup contact
-                      </p>
-                    </div>
-                  </label>
-
-                  <AnimatePresence initial={false}>
-                    {alternateContact && (
-                      <motion.div
-                        initial={{
-                          opacity: 0,
-                          height: 0,
-                        }}
-                        animate={{
-                          opacity: 1,
-                          height: "auto",
-                        }}
-                        exit={{
-                          opacity: 0,
-                          height: 0,
-                        }}
-                        className="grid sm:grid-cols-2 gap-3 overflow-hidden"
-                      >
-                        <PremiumInput
-                          label="Contact Name"
-                          icon={User}
-                          placeholder="Full name"
-                          error={
-                            errors.pickupContactName
-                              ?.message
-                          }
-                          {...register(
-                            "pickupContactName",
-                            {
-                              required:
-                                alternateContact
-                                  ? "Contact name is required"
-                                  : false,
-                            }
-                          )}
-                        />
-
-                        <PremiumInput
-                          label="Mobile Number"
-                          icon={Phone}
-                          placeholder="10-digit mobile number"
-                          maxLength={10}
-                          inputMode="numeric"
-                          error={
-                            errors.pickupContactPhone
-                              ?.message
-                          }
-                          {...register(
-                            "pickupContactPhone",
-                            {
-                              required:
-                                alternateContact
-                                  ? "Contact number is required"
-                                  : false,
-                              pattern: {
-                                value:
-                                  /^[6-9]\d{9}$/,
-                                message:
-                                  "Enter a valid 10-digit mobile number",
-                              },
-                            }
-                          )}
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </>
-              )}
-            </SectionCard>
-
             {/* SCHEDULE */}
             <SectionCard
               icon={Calendar}

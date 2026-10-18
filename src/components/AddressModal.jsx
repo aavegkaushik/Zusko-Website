@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -45,7 +45,18 @@ function MapController({ position }) {
   const map = useMap();
 
   useEffect(() => {
-    if (!position) return;
+    // Invalidate size immediately and after short delay so tiles always render fully
+    map.invalidateSize();
+    const t1 = setTimeout(() => map.invalidateSize(), 150);
+    const t2 = setTimeout(() => map.invalidateSize(), 400);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [map]);
+
+  useEffect(() => {
+    if (!position || !Number.isFinite(position.latitude) || !Number.isFinite(position.longitude)) return;
     map.flyTo([position.latitude, position.longitude], 16, {
       duration: 0.7,
     });
@@ -64,8 +75,28 @@ function LocationPicker({ position, onSelect }) {
     },
   });
 
-  return position ? (
-    <Marker position={[position.latitude, position.longitude]} />
+  const eventHandlers = useMemo(
+    () => ({
+      dragend(e) {
+        const marker = e.target;
+        if (marker != null) {
+          const latLng = marker.getLatLng();
+          onSelect({
+            latitude: latLng.lat,
+            longitude: latLng.lng,
+          });
+        }
+      },
+    }),
+    [onSelect]
+  );
+
+  return position && Number.isFinite(position.latitude) && Number.isFinite(position.longitude) ? (
+    <Marker
+      position={[position.latitude, position.longitude]}
+      draggable={true}
+      eventHandlers={eventHandlers}
+    />
   ) : null;
 }
 
@@ -100,7 +131,7 @@ export default function AddressModal({
   const [lat, setLat] = useState(null);
   const [lng, setLng] = useState(null);
 
-  const [mapOpen, setMapOpen] = useState(false);
+  const [mapOpen, setMapOpen] = useState(true);
   const [saving, setSaving] = useState(false);
   const [fetchingCity, setFetchingCity] = useState(false);
   const [gpsLoading, setGpsLoading] = useState(false);
@@ -146,8 +177,8 @@ export default function AddressModal({
         setLat(currentLocation.latitude);
         setLng(currentLocation.longitude);
       } else {
-        setLat(null);
-        setLng(null);
+        setLat(ZUSKO_LOCATION[0]);
+        setLng(ZUSKO_LOCATION[1]);
       }
     } else {
       // New Address
@@ -167,12 +198,12 @@ export default function AddressModal({
         setLat(currentLocation.latitude);
         setLng(currentLocation.longitude);
       } else {
-        setLat(null);
-        setLng(null);
+        setLat(ZUSKO_LOCATION[0]);
+        setLng(ZUSKO_LOCATION[1]);
       }
     }
 
-    setMapOpen(false);
+    setMapOpen(true);
     setErrors({});
   }, [isOpen, initialAddress, currentLocation, currentUser]);
 
@@ -447,23 +478,23 @@ export default function AddressModal({
             onSubmit={handleSave}
             className="flex-1 overflow-y-auto px-5 sm:px-6 py-4 space-y-4"
           >
-            {/* Quick GPS & Map Actions (Merged seamlessly into Add/Edit Address) */}
-            <div className="grid grid-cols-2 gap-2.5">
+            {/* Quick GPS & Map Actions */}
+            <div className="flex items-center justify-between gap-2">
               <button
                 type="button"
                 onClick={handleUseCurrentLocation}
                 disabled={gpsLoading}
-                className="w-full flex items-center justify-center gap-1.5 py-3 rounded-2xl font-bold text-xs bg-[#101010] text-white hover:bg-black transition-all shadow-sm disabled:opacity-60"
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-2xl font-bold text-xs bg-[#101010] text-white hover:bg-black transition-all shadow-sm active:scale-[0.98] disabled:opacity-60"
               >
                 {gpsLoading ? (
                   <>
                     <Loader2 size={14} className="animate-spin text-amber-400" />
-                    <span>Detecting...</span>
+                    <span>Detecting GPS Location...</span>
                   </>
                 ) : (
                   <>
-                    <Navigation size={14} className="text-[#FFD700]" />
-                    <span>Use My Location</span>
+                    <Navigation size={14} className="text-[#FFD700] fill-[#FFD700]" />
+                    <span>Use My Current Location</span>
                   </>
                 )}
               </button>
@@ -471,18 +502,18 @@ export default function AddressModal({
               <button
                 type="button"
                 onClick={() => setMapOpen((prev) => !prev)}
-                className={`w-full flex items-center justify-center gap-1.5 py-3 rounded-2xl font-bold text-xs border transition-all ${
+                className={`flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-2xl font-bold text-xs border transition-all ${
                   mapOpen
                     ? "bg-amber-50 border-amber-300 text-amber-900"
                     : "bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
                 }`}
               >
                 <MapPinned size={14} className={mapOpen ? "text-amber-700" : "text-gray-500"} />
-                <span>{mapOpen ? "Close Map" : "Select on Map"}</span>
+                <span>{mapOpen ? "Hide Map" : "Show Map"}</span>
               </button>
             </div>
 
-            {/* Embedded Leaflet Map inside Modal */}
+            {/* Embedded Leaflet Map (Default Open for Quick Pin Adjusting) */}
             <AnimatePresence initial={false}>
               {mapOpen && (
                 <motion.div
@@ -493,12 +524,12 @@ export default function AddressModal({
                 >
                   <div className="space-y-2">
                     <div
-                      className="rounded-2xl overflow-hidden relative border border-gray-200"
-                      style={{ height: "230px" }}
+                      className="rounded-2xl overflow-hidden relative border border-gray-200 shadow-xs"
+                      style={{ height: "250px" }}
                     >
                       <MapContainer
                         center={[currentMapPos.latitude, currentMapPos.longitude]}
-                        zoom={14}
+                        zoom={15}
                         scrollWheelZoom
                         style={{ width: "100%", height: "100%" }}
                       >
@@ -513,39 +544,49 @@ export default function AddressModal({
                         />
                       </MapContainer>
 
-                      {/* Map overlay hint */}
-                      <div className="absolute top-2 left-2 right-2 z-[1000] px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur shadow-sm text-center pointer-events-none">
-                        <p className="text-[10px] font-bold text-gray-700">
-                          Tap anywhere on map to pin your exact pickup point
+                      {/* Map top hint overlay */}
+                      <div className="absolute top-2.5 left-2.5 right-2.5 z-[1000] px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur shadow-sm border border-gray-100 text-center pointer-events-none">
+                        <p className="text-[11px] font-bold text-gray-800 flex items-center justify-center gap-1.5">
+                          <MapPin size={12} className="text-amber-500 shrink-0" />
+                          <span>Tap anywhere on map or drag the pin to adjust location</span>
                         </p>
                       </div>
+
+                      {/* Floating "Locate Me" button right on the map */}
+                      <button
+                        type="button"
+                        onClick={handleUseCurrentLocation}
+                        disabled={gpsLoading}
+                        title="Locate me on map"
+                        className="absolute bottom-2.5 right-2.5 z-[1000] flex items-center gap-1.5 px-3 py-2 bg-white/95 hover:bg-white text-gray-900 font-bold text-[11px] rounded-xl shadow-md border border-gray-200 backdrop-blur transition-all active:scale-95 disabled:opacity-60"
+                      >
+                        {gpsLoading ? (
+                          <Loader2 size={13} className="animate-spin text-amber-500" />
+                        ) : (
+                          <Navigation size={13} className="text-amber-500 fill-amber-500" />
+                        )}
+                        <span>Locate Me</span>
+                      </button>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => setMapOpen(false)}
-                      className="w-full py-2 rounded-xl text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200 flex items-center justify-center gap-1.5 hover:bg-amber-100 transition-colors"
-                    >
-                      <CheckCircle size={14} className="text-amber-700" />
-                      Confirm Location Pin
-                    </button>
+                    {/* Pin Status & Help info */}
+                    <div className="flex items-center justify-between gap-2 px-3.5 py-1.5 rounded-xl bg-amber-50/70 border border-amber-200/60 text-[11px]">
+                      <span className="flex items-center gap-1.5 font-bold text-amber-950 truncate">
+                        <Check size={13} className="text-emerald-600 shrink-0" />
+                        {lat && lng ? (
+                          <span>GPS Pinned: {Number(lat).toFixed(4)}, {Number(lng).toFixed(4)}</span>
+                        ) : (
+                          <span>Tap or drag pin to select location</span>
+                        )}
+                      </span>
+                      <span className="text-[10px] text-amber-800 font-semibold shrink-0">
+                        Draggable Pin Active
+                      </span>
+                    </div>
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
-
-            {/* GPS Tagged Status Badge */}
-            {lat && lng && (
-              <div className="flex items-center justify-between gap-2 px-3.5 py-2 rounded-xl bg-emerald-50 border border-emerald-200/80 text-[11px] text-emerald-800">
-                <span className="flex items-center gap-1.5 font-bold">
-                  <Check size={13} className="text-emerald-600" />
-                  GPS Pinned: {Number(lat).toFixed(4)}, {Number(lng).toFixed(4)}
-                </span>
-                <span className="text-[10px] text-emerald-600 font-semibold">
-                  Verified
-                </span>
-              </div>
-            )}
 
             {/* Label Selector (Home / Work / Other) */}
             <div>

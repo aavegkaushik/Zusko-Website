@@ -14,6 +14,7 @@ export default defineConfig({
           "vendor-react": ["react", "react-dom", "react-router-dom"],
           "vendor-framer": ["framer-motion"],
           "vendor-icons": ["lucide-react", "react-icons"],
+          "vendor-leaflet": ["leaflet", "react-leaflet"],
         },
       },
     },

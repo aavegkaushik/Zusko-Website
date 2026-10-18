@@ -6,6 +6,7 @@ import Logo from "../assets/Zusko White Logo.png";
 import LogoAlt from "../assets/zusko.png";
 import { User, Package, LogOut, ChevronDown, Sparkles } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { prefetchRoute } from "../utils/prefetch";
 
 const SCROLL_THRESHOLD = 80;
 
@@ -114,6 +115,8 @@ const Navbar = () => {
               key={link.path}
               to={link.path}
               end
+              onMouseEnter={() => prefetchRoute(link.path)}
+              onTouchStart={() => prefetchRoute(link.path)}
               onClick={() => setMenuOpen(false)}
               className="relative px-4 py-2 text-sm font-medium transition-colors duration-200 rounded-xl group"
               style={({ isActive }) => ({
@@ -155,6 +158,8 @@ const Navbar = () => {
               <Link
                 to={isAuthenticated ? "/place-order" : "/auth/login"}
                 state={!isAuthenticated ? { from: "/place-order" } : undefined}
+                onMouseEnter={() => prefetchRoute(isAuthenticated ? "/place-order" : "/auth/login")}
+                onTouchStart={() => prefetchRoute(isAuthenticated ? "/place-order" : "/auth/login")}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200"
                 style={{
                   background: "linear-gradient(135deg, #FFD700, #FFA500)",
@@ -257,10 +262,14 @@ const Navbar = () => {
                         <Link
                           key={item.to}
                           to={item.to}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = "#F8F9FB";
+                            prefetchRoute(item.to);
+                          }}
+                          onTouchStart={() => prefetchRoute(item.to)}
                           onClick={() => setShowProfile(false)}
                           className="flex items-center gap-3 px-5 py-3 transition-colors duration-150 group"
                           style={{ color: "#374151" }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = "#F8F9FB"}
                           onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
                         >
                           <div
@@ -408,6 +417,8 @@ const Navbar = () => {
                   <NavLink
                     to={link.path}
                     end
+                    onMouseEnter={() => prefetchRoute(link.path)}
+                    onTouchStart={() => prefetchRoute(link.path)}
                     onClick={() => setMenuOpen(false)}
                     className="flex items-center justify-between px-4 py-3 rounded-xl transition-colors duration-150"
                     style={({ isActive }) => ({
@@ -453,6 +464,8 @@ const Navbar = () => {
                     >
                       <Link
                         to={item.to}
+                        onMouseEnter={() => prefetchRoute(item.to)}
+                        onTouchStart={() => prefetchRoute(item.to)}
                         onClick={() => setMenuOpen(false)}
                         className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors duration-150"
                         style={{ color: useHomeLook ? "rgba(255,255,255,0.65)" : "#374151" }}
@@ -486,6 +499,8 @@ const Navbar = () => {
                 <Link
                   to={isAuthenticated ? "/place-order" : "/auth/login"}
                   state={!isAuthenticated ? { from: "/place-order" } : undefined}
+                  onMouseEnter={() => prefetchRoute(isAuthenticated ? "/place-order" : "/auth/login")}
+                  onTouchStart={() => prefetchRoute(isAuthenticated ? "/place-order" : "/auth/login")}
                   onClick={() => setMenuOpen(false)}
                   className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl text-sm font-bold"
                   style={{

@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import logo from '../assets/Zusko White Logo.png'
+import { prefetchRoute } from "../utils/prefetch";
 
 export default function Hero({
   videoSrc = "https://video.rinse.com/assets/rebrand/video/landing_2023_v2.webm",
@@ -132,23 +134,23 @@ export default function Hero({
             variants={itemVariants}
             className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            <motion.a
-              href="#get-started"
-              whileHover={{ scale: 1.05, boxShadow: "0 20px 50px rgba(250, 204, 21, 0.3)" }}
-              whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 rounded-full bg-linear-to-r from-yellow-400 to-yellow-300 hover:from-yellow-300 hover:to-yellow-200 text-black font-bold text-lg uppercase tracking-widest shadow-2xl transition-all duration-300"
+            <Link
+              to="/place-order"
+              onMouseEnter={() => prefetchRoute("/place-order")}
+              onTouchStart={() => prefetchRoute("/place-order")}
+              className="px-8 py-4 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-300 hover:from-yellow-300 hover:to-yellow-200 text-black font-bold text-lg uppercase tracking-widest shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95"
             >
               Get Started
-            </motion.a>
+            </Link>
 
-            <motion.a
-              href="/about"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 rounded-full bg-white/10 hover:bg-white/20 border border-white/30 text-white font-semibold text-lg uppercase tracking-widest backdrop-blur-sm transition-all duration-300"
+            <Link
+              to="/about"
+              onMouseEnter={() => prefetchRoute("/about")}
+              onTouchStart={() => prefetchRoute("/about")}
+              className="px-8 py-4 rounded-full bg-white/10 hover:bg-white/20 border border-white/30 text-white font-semibold text-lg uppercase tracking-widest backdrop-blur-sm transition-all duration-300 hover:scale-105 active:scale-95"
             >
               Learn More
-            </motion.a>
+            </Link>
           </motion.div>
 
           {/* Trust indicators */}

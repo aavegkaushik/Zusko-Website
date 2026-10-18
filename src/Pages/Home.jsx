@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Check, Sparkles, ShieldCheck, Clock3, Leaf, Truck, Star, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { prefetchRoute } from "../utils/prefetch";
 
 import points from "../assets/points.png";
 import restImage from "../assets/Lo-fi concept-pana.svg";
@@ -676,6 +677,8 @@ const Home = () => {
 
               <motion.button
                 type="button"
+                onMouseEnter={() => prefetchRoute(isAuthenticated ? "/place-order" : "/auth/login")}
+                onTouchStart={() => prefetchRoute(isAuthenticated ? "/place-order" : "/auth/login")}
                 onClick={() =>
                   navigate(isAuthenticated ? "/place-order" : "/auth/login", {
                     state: { from: "/place-order" },
