@@ -1,4 +1,4 @@
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Route, Routes, useLocation, Navigate } from "react-router-dom";
 import { useEffect, useState, lazy, Suspense } from "react";
 import { Toaster } from "react-hot-toast";
 
@@ -161,6 +161,13 @@ const App = () => {
                     <ProtectedRoute>
                       <Profile />
                     </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/profile"
+                  element={
+                    <Navigate to="/user/profile" replace />
                   }
                 />
 

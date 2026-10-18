@@ -61,13 +61,24 @@ const services = [
     tag: "EVERYDAY",
   },
   {
+    title: "Iron Only",
+    shortTitle: "Press & Crisp",
+    desc:
+      "Clothes already washed at home? Send them in for dedicated steam press and a crisp, crease-free finish handled with fabric-safe temperature control.",
+    icon: TbIroningFilled,
+    image:
+      "https://images.unsplash.com/photo-1582735689369-4fe89db7114c?auto=format&fit=crop&w=1200&q=80",
+    number: "04",
+    tag: "QUICK PRESS",
+  },
+  {
     title: "Steam Ironing",
     shortTitle: "Wrinkle Free",
     desc:
-      "Professional steam ironing that removes tough wrinkles while protecting fabric integrity and keeping your clothes looking fresh.",
+      "Professional high-pressure steam ironing that removes tough wrinkles while protecting fabric integrity and keeping your delicate clothes looking fresh.",
     icon: TbIroningSteamFilled,
     image: steamIron,
-    number: "04",
+    number: "05",
     tag: "EXPRESS",
   },
   {
@@ -77,7 +88,7 @@ const services = [
       "On-time doorstep pickup and delivery — convenience built into every order, without disrupting your day.",
     icon: FaTruck,
     image: delivery,
-    number: "05",
+    number: "06",
     tag: "CONVENIENCE",
   },
   {
@@ -88,7 +99,7 @@ const services = [
     icon: FaBuilding,
     image:
       "https://i.pinimg.com/1200x/ff/c4/d0/ffc4d061a4ffc26ff802187c03cbe310.jpg",
-    number: "06",
+    number: "07",
     tag: "BUSINESS",
   },
 ];

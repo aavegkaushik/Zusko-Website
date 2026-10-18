@@ -34,6 +34,14 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
   }, []);
 
+  const updateUser = useCallback((updatedUserData) => {
+    setUser((prev) => {
+      const merged = { ...prev, ...updatedUserData };
+      localStorage.setItem("user", JSON.stringify(merged));
+      return merged;
+    });
+  }, []);
+
   // Monitor token expiration on focus, periodic timer, and custom 401 events
   useEffect(() => {
     const verifyToken = () => {
@@ -74,6 +82,7 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated,
         login,
         logout,
+        updateUser,
       }}
     >
       {children}
