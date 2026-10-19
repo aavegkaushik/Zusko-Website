@@ -6,7 +6,7 @@ import logo from '../assets/Zusko White Logo.png'
 import { prefetchRoute } from "../utils/prefetch";
 
 export default function Hero({
-  videoSrc = "https://video.rinse.com/assets/rebrand/video/landing_2023_v2.webm",
+  videoSrc = "/videos/hero.mp4",
   poster = "/images/hero-poster.jpg",
   logoSrc = logo,
 }) {
@@ -69,10 +69,12 @@ export default function Hero({
         muted
         loop
         playsInline
-        preload="metadata"
         poster={poster}
       >
-        <source src={videoSrc} type="video/webm" />
+        <source
+          src={videoSrc}
+          type={videoSrc.endsWith(".webm") ? "video/webm" : "video/mp4"}
+        />
       </video>
 
       {/* Premium gradient overlay */}
