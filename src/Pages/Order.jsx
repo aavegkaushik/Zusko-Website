@@ -4,11 +4,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, X, Sparkles,
   ChevronRight, Clock, Zap, Wind, Droplets, Layers,
-  Check, ArrowUp
+  Check, ArrowUp, AlertTriangle
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import API from "../config/api";
 import { useAuth } from "../context/AuthContext";
+import { PRE_BOOKING_CONFIG } from "../config/preBookingConfig";
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
 
@@ -289,7 +290,7 @@ export default function BookLaundry() {
         style={{
           background:
             "radial-gradient(circle at 80% 20%, rgba(255,215,0,0.16), transparent 30%), linear-gradient(135deg, #080808 0%, #121212 50%, #1a1504 100%)",
-          paddingTop: "68px",
+          paddingTop: PRE_BOOKING_CONFIG.isEnabled ? "106px" : "68px",
         }}
       >
         {/* Decorative ambient lights */}
@@ -313,13 +314,13 @@ export default function BookLaundry() {
                 animate={{ opacity: 1, y: 0 }}
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full mb-3 sm:mb-4 text-[11px] sm:text-xs font-bold"
                 style={{
-                  background: "rgba(255,215,0,0.10)",
-                  border: "1px solid rgba(255,215,0,0.25)",
+                  background: "rgba(255,215,0,0.12)",
+                  border: "1px solid rgba(255,215,0,0.3)",
                   color: "#FFD700",
                 }}
               >
                 <Sparkles size={12} />
-                <span>Premium Doorstep Laundry & Dry Clean</span>
+                <span>Pre-Booking Live • {PRE_BOOKING_CONFIG.campusName} Launch</span>
               </motion.div>
 
               <motion.h1
@@ -328,8 +329,8 @@ export default function BookLaundry() {
                 transition={{ delay: 0.1, duration: 0.5 }}
                 className="font-black leading-[1.1] text-white text-2xl sm:text-4xl md:text-5xl lg:text-[54px] tracking-tight"
               >
-                Clean Clothes.<br />
-                <span style={{ color: "#FFD700" }}>Delivered Fast.</span>
+                Pre-Book Laundry.<br />
+                <span style={{ color: "#FFD700" }}>Pickup on {PRE_BOOKING_CONFIG.shortDateDisplay}.</span>
               </motion.h1>
 
               <motion.p
@@ -337,9 +338,9 @@ export default function BookLaundry() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2 }}
                 className="mt-2.5 sm:mt-4 text-xs sm:text-sm lg:text-base leading-relaxed"
-                style={{ color: "rgba(255,255,255,0.6)" }}
+                style={{ color: "rgba(255,255,255,0.7)" }}
               >
-                Doorstep pickup · Expert fabric care · Effortless reordering
+                Official launch for BIET Jhansi campus. Fixed pickup on <strong>{PRE_BOOKING_CONFIG.dateDisplay}</strong> ({PRE_BOOKING_CONFIG.timeSlot}).
               </motion.p>
 
               {/* Quick Trust Badges */}
@@ -350,17 +351,17 @@ export default function BookLaundry() {
                 className="flex flex-wrap items-center gap-2 mt-4 sm:mt-6"
               >
                 {[
-                  { icon: "🚚", label: "Slot Pickup" },
-                  { icon: "⭐", label: "4.9★ Rated" },
-                  { icon: "🧺", label: "Fabric Safe" },
+                  { icon: "📅", label: "Fixed Slot: 7 Nov (10 AM - 1 PM)" },
+                  { icon: "🏫", label: "BIET Campus Launch" },
+                  { icon: "🧺", label: "Doorstep Care" },
                 ].map((chip) => (
                   <span
                     key={chip.label}
                     className="flex items-center gap-1 text-[11px] sm:text-xs font-semibold px-2.5 py-1 rounded-full"
                     style={{
-                      background: "rgba(255,255,255,0.06)",
-                      color: "rgba(255,255,255,0.85)",
-                      border: "1px solid rgba(255,255,255,0.12)",
+                      background: "rgba(255,255,255,0.08)",
+                      color: "rgba(255,255,255,0.9)",
+                      border: "1px solid rgba(255,215,0,0.25)",
                       backdropFilter: "blur(12px)",
                     }}
                   >
@@ -378,22 +379,34 @@ export default function BookLaundry() {
               transition={{ delay: 0.35 }}
               className="hidden lg:flex items-stretch gap-3 pb-1"
             >
-              {[
-                { val: "1K+", label: "Happy Customers" },
-                { val: "4.9★", label: "Average Rating" },
-                { val: "24hr", label: "Turnaround" },
-              ].map((stat) => (
+              {(PRE_BOOKING_CONFIG.isEnabled
+                ? [
+                    { val: "Batch 1", label: "Campus Launch", highlight: true },
+                    { val: "7 Nov", label: "Fixed Pickup", highlight: true },
+                    { val: "BIET", label: "Launch Campus", highlight: false },
+                  ]
+                : [
+                    { val: "1K+", label: "Happy Customers", highlight: false },
+                    { val: "4.9★", label: "Average Rating", highlight: true },
+                    { val: "24-48hr", label: "Turnaround", highlight: false },
+                  ]
+              ).map((stat) => (
                 <div
                   key={stat.label}
-                  className="min-w-[110px] rounded-2xl border px-4 py-3.5 text-center"
+                  className="min-w-[110px] rounded-2xl border px-4 py-3.5 text-center flex flex-col justify-center"
                   style={{
-                    background: "rgba(255,255,255,0.045)",
-                    borderColor: "rgba(255,255,255,0.1)",
+                    background: "rgba(255,255,255,0.05)",
+                    borderColor: stat.highlight ? "rgba(255,215,0,0.3)" : "rgba(255,255,255,0.1)",
                     backdropFilter: "blur(16px)",
                   }}
                 >
-                  <p className="font-black text-2xl text-white tracking-tight">{stat.val}</p>
-                  <p className="text-[10px] mt-1 uppercase tracking-[0.12em]" style={{ color: "rgba(255,255,255,0.4)" }}>
+                  <p
+                    className="font-black text-2xl tracking-tight"
+                    style={{ color: stat.highlight ? "#FFD700" : "#FFFFFF" }}
+                  >
+                    {stat.val}
+                  </p>
+                  <p className="text-[10px] mt-1 uppercase tracking-[0.12em] font-semibold text-gray-400">
                     {stat.label}
                   </p>
                 </div>
@@ -663,6 +676,26 @@ export default function BookLaundry() {
                 </div>
               </motion.div>
             )}
+
+            {/* Fabric Care & Liability Advisory Card */}
+            <div className="mt-4 p-3.5 rounded-2xl bg-gradient-to-br from-amber-500/10 via-amber-50 to-orange-50 border border-amber-300 shadow-2xs">
+              <div className="flex items-start gap-2.5">
+                <div className="w-6 h-6 rounded-lg bg-amber-400 text-black flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                  <AlertTriangle size={13} className="text-black font-black" />
+                </div>
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-wider text-amber-950">
+                    Fabric Care Warning
+                  </p>
+                  <p className="text-[11px] text-gray-800 font-semibold mt-1 leading-snug">
+                    Please select services strictly according to your garment's <strong>Fabric Care Label</strong>.
+                  </p>
+                  <p className="text-[10px] text-gray-600 mt-1 leading-relaxed">
+                    Zusko will not be held responsible for fabric damage, shrinkage, color bleeding, or degradation caused by choosing an incorrect service type (e.g., submitting dry-clean-only fabrics for normal wash).
+                  </p>
+                </div>
+              </div>
+            </div>
           </aside>
 
           {/* ── MAIN CONTENT COLUMN ───────────────────────── */}
@@ -936,6 +969,24 @@ export default function BookLaundry() {
               </motion.div>
             )}
 
+            {/* Mobile: Fabric Care & Liability Warning Banner */}
+            <div className="lg:hidden mb-4 p-3 rounded-2xl bg-amber-500/10 border border-amber-300 flex items-start gap-2.5 shadow-2xs">
+              <div className="w-5 h-5 rounded-md bg-amber-400 text-black flex items-center justify-center shrink-0 mt-0.5">
+                <AlertTriangle size={12} className="text-black font-bold" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] font-black text-amber-950 uppercase tracking-wide">
+                  Fabric Care Notice
+                </p>
+                <p className="text-[11px] text-gray-800 font-semibold mt-0.5 leading-snug">
+                  Select services strictly based on your garment's <strong>Fabric Care Label</strong>.
+                </p>
+                <p className="text-[10px] text-gray-600 mt-0.5 leading-relaxed">
+                  Zusko will not be liable for damage, shrinking, or color bleeding resulting from inappropriate service selection.
+                </p>
+              </div>
+            </div>
+
             {/* ── ITEM GRID / LIST ─────────────────────────── */}
             <div>
               <div className="flex items-center justify-between mb-3 px-1">
@@ -965,6 +1016,16 @@ export default function BookLaundry() {
                   )}
                   <span className="rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[11px] font-extrabold text-gray-600 shadow-xs">
                     {currentItems.length} {currentItems.length === 1 ? "item" : "items"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Fabric Care Policy Banner above Items Grid */}
+              <div className="mb-3 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-amber-50 via-white to-amber-50 border border-amber-200/90 flex items-center justify-between gap-2.5 text-[11px] shadow-2xs">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm shrink-0">⚠️</span>
+                  <span className="font-semibold text-gray-800">
+                    <strong className="text-gray-950 font-black">Fabric Care Policy:</strong> Always select the service as per your garment's care tag. Incorrect service choice (e.g., washing dry-clean only fabric) is solely at customer's risk.
                   </span>
                 </div>
               </div>
@@ -1204,6 +1265,12 @@ function CartSummaryPanel({ cart, cartCount, cartTotal, navigate }) {
           <span className="text-sm text-gray-500 font-medium">Subtotal</span>
           <span className="font-extrabold text-gray-900 text-base">₹{cartTotal}</span>
         </div>
+
+        {/* Fabric Care Disclaimer */}
+        {/* <div className="p-2.5 mb-3 rounded-xl bg-amber-50 border border-amber-200/80 text-[10px] text-gray-700 leading-snug">
+          ⚠️ <strong>Fabric Care Note:</strong> Please verify services match garment care tags. Zusko is not liable for damage due to incorrect service selection.
+        </div> */}
+
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.97 }}

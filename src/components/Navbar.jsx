@@ -7,6 +7,7 @@ import LogoAlt from "../assets/zusko.png";
 import { User, Package, LogOut, ChevronDown, Sparkles } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { prefetchRoute } from "../utils/prefetch";
+import PreBookingBanner from "./PreBookingBanner.jsx";
 
 const SCROLL_THRESHOLD = 80;
 
@@ -93,6 +94,9 @@ const Navbar = () => {
       }}
       aria-label="Main navigation"
     >
+      {/* ── PRE-BOOKING LAUNCH BANNER ──────────────────────────────── */}
+      <PreBookingBanner />
+
       {/* ── MAIN BAR ──────────────────────────────────────────────── */}
       <div className="flex items-center justify-between px-5 py-3 md:px-12 lg:px-16 max-w-[1400px] mx-auto">
 

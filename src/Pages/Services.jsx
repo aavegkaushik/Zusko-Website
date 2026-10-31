@@ -395,6 +395,59 @@ const Services = () => {
 
           </div>
 
+          {/* Fabric Care & Selection Advisory Card */}
+          <div className="mb-16 p-6 md:p-8 rounded-3xl bg-gradient-to-r from-amber-500/10 via-yellow-400/10 to-orange-500/10 border-2 border-amber-300 shadow-sm">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4 border-b border-amber-200">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-400 text-black flex items-center justify-center font-black text-lg shadow-sm">
+                  ⚠️
+                </div>
+                <div>
+                  <h3 className="text-lg md:text-xl font-black text-gray-950">
+                    Fabric-Specific Service Selection Guide
+                  </h3>
+                  <p className="text-xs md:text-sm text-gray-600 font-medium">
+                    Choose services strictly according to your garment's fabric care instructions
+                  </p>
+                </div>
+              </div>
+              <span className="text-[11px] font-black uppercase px-3 py-1 rounded-full bg-amber-200 text-amber-950 border border-amber-300">
+                Important Notice
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+              <div className="p-3.5 rounded-2xl bg-white border border-amber-200 shadow-2xs">
+                <p className="text-xs font-black text-blue-700">Wash & Fold / Wash & Iron</p>
+                <p className="text-[11px] text-gray-600 mt-1">
+                  Suitable for 100% Cotton, daily wear, denim, bedsheets, and washable synthetic blends.
+                </p>
+              </div>
+              <div className="p-3.5 rounded-2xl bg-white border border-amber-200 shadow-2xs">
+                <p className="text-xs font-black text-amber-700">Dry Clean Only</p>
+                <p className="text-[11px] text-gray-600 mt-1">
+                  Essential for Pure Silk, Woolens, Suits, Blazers, Zari Sarees, Jackets, and delicate designer wear.
+                </p>
+              </div>
+              <div className="p-3.5 rounded-2xl bg-white border border-amber-200 shadow-2xs">
+                <p className="text-xs font-black text-emerald-700">Steam Ironing Only</p>
+                <p className="text-[11px] text-gray-600 mt-1">
+                  For already washed clothes needing wrinkle-free press with fabric-safe temperature control.
+                </p>
+              </div>
+              <div className="p-3.5 rounded-2xl bg-amber-100/70 border border-amber-300 shadow-2xs">
+                <p className="text-xs font-black text-red-700">⚠️ Liability Notice</p>
+                <p className="text-[11px] text-gray-800 font-semibold mt-1">
+                  Zusko is not liable for fabric damage, shrinkage, or color bleeding caused by choosing an incorrect service.
+                </p>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-700 mt-4 leading-relaxed font-medium bg-white/70 p-3 rounded-xl border border-amber-200/80">
+              <strong>Garment Care Disclaimer:</strong> Customers must review their clothing care tags before selecting a service. Zusko cannot be held liable for damage, color bleed, or shrinkage caused by submitting dry-clean-only, silk, or wool garments for normal water wash.
+            </p>
+          </div>
+
           <div className="space-y-32 md:space-y-48">
 
             {services.map((service, index) => (

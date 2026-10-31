@@ -3,6 +3,7 @@ import { ArrowRight, Check, Sparkles, ShieldCheck, Clock3, Leaf, Truck, Star, Za
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { prefetchRoute } from "../utils/prefetch";
+import THEME_CONFIG from "../config/themeConfig";
 
 import points from "../assets/points.png";
 import restImage from "../assets/Lo-fi concept-pana.svg";
@@ -124,7 +125,7 @@ const Home = () => {
           HERO
       ========================================================= */}
 
-      <Hero videoSrc="/videos/hero.mp4" />
+      <Hero videoSrc="/videos/hero.mp4" isDiwaliMode={THEME_CONFIG.isDiwaliThemeEnabled} />
 
       {/* =========================================================
           TRUST STRIP
@@ -465,7 +466,7 @@ const Home = () => {
                 number: "01",
                 icon: Truck,
                 title: "Schedule a pickup",
-                text: "Choose your services, add your address and book in seconds.",
+                text: "Choose services as per fabric care labels, add your address and book in seconds.",
               },
               {
                 number: "02",

@@ -1,9 +1,12 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import Logo from '../assets/zusko.png'
+import PreBookingBanner from "./PreBookingBanner.jsx";
+
 export default function CareerNavbar() {
   return (
     <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-gray-100">
+      <PreBookingBanner />
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         
         {/* Logo */}

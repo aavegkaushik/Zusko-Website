@@ -32,7 +32,10 @@ import {
   Trash2,
   Star,
   Check,
+  Lock,
+  Building2,
 } from "lucide-react";
+import { PRE_BOOKING_CONFIG } from "../config/preBookingConfig";
 import AddressModal from "../components/AddressModal";
 import AllAddressesModal from "../components/AllAddressesModal";
 import {
@@ -318,13 +321,42 @@ export default function Checkout() {
   const [pinError, setPinError] = useState("");
   const [alternateContact, setAlternateContact] = useState(false);
 
+  // BIET Campus Location Specification States
+  const [isBietCampusSelected, setIsBietCampusSelected] = useState(PRE_BOOKING_CONFIG.isEnabled);
+  const [bietHostel, setBietHostel] = useState(PRE_BOOKING_CONFIG.hostels?.[0] || "Vrindavan Bhawan (Hostel 1)");
+  const [bietCustomHostel, setBietCustomHostel] = useState("");
+  const [bietRoomNo, setBietRoomNo] = useState("");
+  const [bietNotes, setBietNotes] = useState("");
+
   const {
     register,
     handleSubmit,
     setValue,
     formState: { errors },
     watch,
-  } = useForm();
+  } = useForm({
+    defaultValues: PRE_BOOKING_CONFIG.isEnabled
+      ? {
+          date: PRE_BOOKING_CONFIG.date,
+          time: PRE_BOOKING_CONFIG.timeSlot,
+        }
+      : {},
+  });
+
+  // Keep fixed Pre-Booking slot locked when in Pre-Booking mode
+  useEffect(() => {
+    if (PRE_BOOKING_CONFIG.isEnabled) {
+      setValue("date", PRE_BOOKING_CONFIG.date, { shouldValidate: true });
+      setValue("time", PRE_BOOKING_CONFIG.timeSlot, { shouldValidate: true });
+    }
+  }, [setValue]);
+
+  // Auto-initialize BIET campus location on mount if Pre-Booking is enabled
+  useEffect(() => {
+    if (PRE_BOOKING_CONFIG.isEnabled && !location) {
+      applyBietLocation();
+    }
+  }, []);
 
   const pincode = watch("pincode");
   const selectedDate = watch("date");
@@ -615,6 +647,7 @@ export default function Checkout() {
     setLocation(newLocation);
     setSelectedLocation(newLocation);
     setSelectedAddressId(null);
+    setIsBietCampusSelected(false);
     setLocationError("");
     setAddressVerified(false);
 
@@ -630,6 +663,37 @@ export default function Checkout() {
         latitude,
         longitude
       );
+    }
+  };
+
+  const applyBietLocation = async () => {
+    try {
+      setLocationLoading(true);
+      setLocationError("");
+      setIsBietCampusSelected(true);
+      setSelectedAddressId(null);
+
+      const { latitude, longitude } = PRE_BOOKING_CONFIG.bietCoordinates;
+      const newLoc = { latitude, longitude };
+      setLocation(newLoc);
+      setSelectedLocation(newLoc);
+
+      setValue("city", PRE_BOOKING_CONFIG.city, { shouldValidate: true });
+      setValue("state", PRE_BOOKING_CONFIG.state, { shouldValidate: true });
+      setValue("pincode", PRE_BOOKING_CONFIG.campusPincode, { shouldValidate: true });
+      setValue("landmark", "BIET Jhansi Campus / Hostels", { shouldValidate: true });
+      setValue("fullAddress", PRE_BOOKING_CONFIG.campusFullAddress, { shouldValidate: true });
+      setCity(PRE_BOOKING_CONFIG.city);
+
+      const isServ = await calculateDeliveryEstimate(latitude, longitude);
+      if (isServ) {
+        setAddressVerified(true);
+        toast.success("BIET Jhansi campus selected! Please specify your hostel & room number below.");
+      }
+    } catch (err) {
+      console.error("BIET LOCATION ERROR:", err);
+    } finally {
+      setLocationLoading(false);
     }
   };
 
@@ -717,6 +781,7 @@ export default function Checkout() {
       return;
     }
 
+    setIsBietCampusSelected(false);
     setSelectedAddressId(address._id);
     setLocation({
       latitude,
@@ -844,6 +909,7 @@ export default function Checkout() {
   }) => {
     setLocationError("");
     setSelectedAddressId(null);
+    setIsBietCampusSelected(false);
 
     setLocation({
       latitude,
@@ -909,16 +975,55 @@ export default function Checkout() {
   };
 
   const onSubmit = async (data) => {
-    const activeAddress = savedAddresses.find((a) => a._id === selectedAddressId);
-    const resolvedFullAddress = (
-      data.fullAddress ||
-      [activeAddress?.line1, activeAddress?.line2].filter(Boolean).join(", ") ||
-      activeAddress?.fullAddress ||
-      ""
-    ).trim();
-    const resolvedPincode = data.pincode || activeAddress?.pincode;
+    let resolvedFullAddress = "";
+    let resolvedLandmark = "";
+    let resolvedPincode = "";
+    let resolvedCity = "Jhansi";
+    let resolvedState = "Uttar Pradesh";
+    let resolvedLocation = location;
 
-    if (!selectedAddressId && !resolvedFullAddress) {
+    if (isBietCampusSelected) {
+      const activeHostelName =
+        bietHostel === "Other Campus Hostel / Block"
+          ? (bietCustomHostel.trim() || "Campus Hostel")
+          : bietHostel;
+
+      if (!bietRoomNo.trim()) {
+        toast.error("Please enter your Room / Unit number in BIET Campus.");
+        const element = document.getElementById("biet-location-section");
+        element?.scrollIntoView({ behavior: "smooth" });
+        return;
+      }
+
+      resolvedFullAddress = `BIET Jhansi Campus, ${activeHostelName}, Room: ${bietRoomNo.trim()}${
+        bietNotes.trim() ? `, Note: ${bietNotes.trim()}` : ""
+      }, Kanpur Road, Jhansi - 284128`;
+      resolvedLandmark = `${activeHostelName}${
+        bietNotes.trim() ? ` (${bietNotes.trim()})` : ""
+      }, BIET Jhansi`;
+      resolvedPincode = PRE_BOOKING_CONFIG.campusPincode;
+      resolvedCity = PRE_BOOKING_CONFIG.city;
+      resolvedState = PRE_BOOKING_CONFIG.state;
+      resolvedLocation = {
+        latitude: PRE_BOOKING_CONFIG.bietCoordinates.latitude,
+        longitude: PRE_BOOKING_CONFIG.bietCoordinates.longitude,
+      };
+    } else {
+      const activeAddress = savedAddresses.find((a) => a._id === selectedAddressId);
+      resolvedFullAddress = (
+        data.fullAddress ||
+        [activeAddress?.line1, activeAddress?.line2].filter(Boolean).join(", ") ||
+        activeAddress?.fullAddress ||
+        ""
+      ).trim();
+      resolvedLandmark = (data.landmark || activeAddress?.landmark || "").trim();
+      resolvedPincode = data.pincode || activeAddress?.pincode;
+      resolvedCity = city || activeAddress?.city || "Jhansi";
+      resolvedState = (data.state || activeAddress?.state || "Uttar Pradesh").trim();
+      resolvedLocation = location;
+    }
+
+    if (!selectedAddressId && !isBietCampusSelected && !resolvedFullAddress) {
       toast.error("Please select or add a delivery address.");
       return;
     }
@@ -928,13 +1033,13 @@ export default function Checkout() {
       return;
     }
 
-    if (!location) {
+    if (!resolvedLocation) {
       toast.error("Please select a valid delivery address with GPS location.");
       return;
     }
 
     // Location selected but outside Zusko service area
-    if (location && !serviceable) {
+    if (resolvedLocation && !serviceable) {
       navigate("/out-of-area");
       return;
     }
@@ -969,8 +1074,8 @@ export default function Checkout() {
               phone: data.pickupContactPhone,
             }
           : {
-              name: selectedAddress?.fullName || user.name,
-              phone: selectedAddress?.phone || user.phone,
+              name: (isBietCampusSelected ? user?.name : selectedAddress?.fullName) || user.name,
+              phone: (isBietCampusSelected ? user?.phone : selectedAddress?.phone) || user.phone,
             };
 
       const orderData = {
@@ -989,14 +1094,14 @@ export default function Checkout() {
 
         address: {
           fullAddress: resolvedFullAddress,
-          landmark: (data.landmark || activeAddress?.landmark || "").trim(),
-          city: city || activeAddress?.city || "Jhansi",
-          state: (data.state || activeAddress?.state || "Uttar Pradesh").trim(),
+          landmark: resolvedLandmark,
+          city: resolvedCity,
+          state: resolvedState,
           pincode: resolvedPincode,
 
           location: {
-            latitude: location.latitude,
-            longitude: location.longitude,
+            latitude: resolvedLocation.latitude,
+            longitude: resolvedLocation.longitude,
           },
         },
 
@@ -1143,350 +1248,627 @@ export default function Checkout() {
                   : "Required"
               }
             >
-              {/* SAVED ADDRESSES SECTION (HORIZONTAL SCROLL + VIEW ALL POPUP) */}
-              <div>
-                <div className="flex items-center justify-between mb-2.5">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-xs font-extrabold text-gray-900 uppercase tracking-wider">
-                        Saved Addresses
-                      </p>
-                      {savedAddresses.length > 0 && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900">
-                          {savedAddresses.length}
-                        </span>
+              {/* ADDRESS SELECTION TABS: BIET Campus (Pre-Booking Launch) vs Other Address */}
+              {PRE_BOOKING_CONFIG.isEnabled ? (
+                <div className="grid grid-cols-2 p-1 bg-gray-100 rounded-2xl mb-4 gap-1">
+                  <button
+                    type="button"
+                    onClick={applyBietLocation}
+                    className={`py-2.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+                      isBietCampusSelected
+                        ? "bg-amber-400 text-black shadow-xs ring-1 ring-amber-400/50"
+                        : "text-gray-600 hover:text-black hover:bg-gray-200/50"
+                    }`}
+                  >
+                    <Building2 size={14} className={isBietCampusSelected ? "text-black" : "text-gray-500"} />
+                    <span>BIET Campus</span>
+                    <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-black text-[#FFD700] ml-1">
+                      Launch
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsBietCampusSelected(false);
+                      if (savedAddresses.length > 0 && !selectedAddressId) {
+                        const def = savedAddresses.find((a) => a.isDefault) || savedAddresses[0];
+                        selectSavedAddress(def);
+                      }
+                    }}
+                    className={`py-2.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+                      !isBietCampusSelected
+                        ? "bg-white text-black shadow-xs ring-1 ring-gray-200"
+                        : "text-gray-600 hover:text-black hover:bg-gray-200/50"
+                    }`}
+                  >
+                    <MapPin size={14} className={!isBietCampusSelected ? "text-black" : "text-gray-500"} />
+                    <span>Other Address</span>
+                    {savedAddresses.length > 0 && (
+                      <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-gray-200 text-gray-700">
+                        {savedAddresses.length}
+                      </span>
+                    )}
+                  </button>
+                </div>
+              ) : null}
+
+              {/* VIEW 1: UNIFIED BIET CAMPUS DOORSTEP PICKUP (NO DUPLICATION, MOBILE-FIRST) */}
+              {isBietCampusSelected ? (
+                <motion.div
+                  id="biet-location-section"
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-4"
+                >
+                  {/* Campus Header Card */}
+                  <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-yellow-400/10 to-emerald-500/10 border border-amber-300 shadow-xs flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-9 h-9 rounded-xl bg-amber-400 text-black flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs">
+                        <Building2 size={18} />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h4 className="text-xs font-black text-gray-900 uppercase tracking-wide">
+                            {PRE_BOOKING_CONFIG.campusName} Campus
+                          </h4>
+                          <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            ✓ Verified
+                          </span>
+                          <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-md bg-amber-200 text-amber-950">
+                            Official Launch
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-gray-500 truncate mt-0.5">
+                          Kanpur Road, Jhansi - 284128 • Doorstep Pickup
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Form fields: Hostel, Room, Notes */}
+                  <div className="p-3.5 sm:p-4 rounded-2xl bg-[#FBFBFC] border border-gray-200/80 space-y-3.5 shadow-2xs">
+                    {/* Hostel Dropdown & Quick Chips */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-[11px] font-black text-gray-800 uppercase tracking-wider">
+                          Hostel / Building <span className="text-red-500">*</span>
+                        </label>
+                        <span className="text-[10px] text-gray-400 font-medium">Select your hostel</span>
+                      </div>
+
+                      <div className="relative">
+                        <select
+                          value={bietHostel}
+                          onChange={(e) => setBietHostel(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-xl text-xs font-bold bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-400 text-gray-900 appearance-none shadow-2xs cursor-pointer pr-9"
+                        >
+                          {PRE_BOOKING_CONFIG.hostels.map((h) => (
+                            <option key={h} value={h}>
+                              {h}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronRight size={14} className="rotate-90 absolute right-3 top-3.5 text-gray-400 pointer-events-none" />
+                      </div>
+
+                      {/* Quick Select Chips */}
+                      <div className="flex gap-1.5 overflow-x-auto pb-1 pt-2 scrollbar-none -mx-0.5 px-0.5">
+                        {PRE_BOOKING_CONFIG.hostels.slice(0, 5).map((h) => (
+                          <button
+                            key={h}
+                            type="button"
+                            onClick={() => setBietHostel(h)}
+                            className={`px-2.5 py-1 rounded-lg text-[10px] font-bold shrink-0 transition-all border ${
+                              bietHostel === h
+                                ? "bg-amber-400 text-black border-amber-400 shadow-2xs"
+                                : "bg-white text-gray-600 hover:bg-gray-50 border-gray-200"
+                            }`}
+                          >
+                            {h.split(" (")?.[0] || h}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Custom Hostel Input if "Other" */}
+                      {bietHostel === "Other Campus Hostel / Block" && (
+                        <div className="mt-2.5">
+                          <label className="block text-[10px] font-bold text-gray-600 uppercase mb-1">
+                            Specify Hostel / Department / Staff Block Name <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={bietCustomHostel}
+                            onChange={(e) => setBietCustomHostel(e.target.value)}
+                            placeholder="e.g. New PG Block, Staff Quarter B-4, Admin Office"
+                            className="w-full px-3 py-2 rounded-xl text-xs bg-white border border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-400 font-medium text-gray-800"
+                          />
+                        </div>
                       )}
                     </div>
-                    <p className="text-[11px] text-gray-400 mt-0.5">
-                      Swipe horizontally or tap View All
-                    </p>
+
+                    {/* Room Number & Notes in a 2-col responsive grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-black text-gray-800 uppercase tracking-wider mb-1">
+                          Room / Unit Number <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={bietRoomNo}
+                          onChange={(e) => setBietRoomNo(e.target.value)}
+                          placeholder="e.g. Room 214, 2nd Floor"
+                          className="w-full px-3.5 py-2.5 rounded-xl text-xs bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-400 font-bold text-gray-900 shadow-2xs"
+                        />
+                        {!bietRoomNo && (
+                          <span className="text-[10px] text-amber-600 font-semibold mt-1 block">
+                            ⚠️ Enter room number for doorstep delivery
+                          </span>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1">
+                          Landmark / Notes (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={bietNotes}
+                          onChange={(e) => setBietNotes(e.target.value)}
+                          placeholder="e.g. Near main stairs / Warden office"
+                          className="w-full px-3.5 py-2.5 rounded-xl text-xs bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-400 font-medium text-gray-700 shadow-2xs"
+                        />
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    {savedAddresses.length > 2 && (
+                  {/* Integrated Pickup Contact */}
+                  <div className="p-3.5 rounded-2xl bg-[#FBFBFC] border border-gray-200/80 shadow-2xs">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-xl bg-amber-400 text-black flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+                          <Phone size={14} />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-xs font-bold text-gray-900 truncate">
+                              {alternateContact && watch("pickupContactName")
+                                ? watch("pickupContactName")
+                                : (user?.name || "Pickup Contact")}
+                            </span>
+                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${
+                              alternateContact
+                                ? "bg-amber-100 text-amber-900 border border-amber-200"
+                                : "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                            }`}>
+                              {alternateContact ? "Alternate Contact" : "Account Contact"}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-gray-500 font-medium mt-0.5 truncate">
+                            {alternateContact && watch("pickupContactPhone")
+                              ? watch("pickupContactPhone")
+                              : (user?.phone || "No phone added")}
+                          </p>
+                        </div>
+                      </div>
+
                       <button
                         type="button"
-                        onClick={() => setIsAllAddressesModalOpen(true)}
-                        className="text-xs font-bold text-amber-800 hover:text-amber-950 flex items-center gap-0.5 px-2.5 py-1 rounded-xl bg-amber-50 hover:bg-amber-100/80 transition-all"
+                        onClick={() => {
+                          if (alternateContact) {
+                            setValue("pickupContactName", "");
+                            setValue("pickupContactPhone", "");
+                          }
+                          setAlternateContact(!alternateContact);
+                        }}
+                        className={`shrink-0 px-2.5 py-1 rounded-lg text-xs font-bold transition-all border ${
+                          alternateContact
+                            ? "bg-amber-400 text-black border-amber-400 shadow-2xs"
+                            : "bg-white text-gray-700 hover:text-black border-gray-200 hover:border-gray-300 shadow-2xs"
+                        }`}
                       >
-                        <span>View All ({savedAddresses.length})</span>
-                        <ChevronRight size={13} />
+                        {alternateContact ? "Using Alternate" : "Someone Else?"}
                       </button>
-                    )}
+                    </div>
 
-                    <button
-                      type="button"
-                      onClick={handleOpenAddAddress}
-                      className="flex items-center gap-1 px-2.5 sm:px-3 py-1 rounded-xl font-bold text-xs bg-[#101010] text-[#FFD700] hover:bg-black transition-all shadow-xs"
-                    >
-                      <Plus size={13} />
-                      <span>Add</span>
-                    </button>
-                  </div>
-                </div>
-
-                {savedAddressLoading ? (
-                  <div className="flex items-center justify-center gap-2.5 py-6 rounded-2xl bg-gray-50/70 border border-gray-100 text-xs font-semibold text-gray-500">
-                    <Loader2 size={15} className="animate-spin text-amber-500" />
-                    Loading saved addresses...
-                  </div>
-                ) : savedAddresses.length > 0 ? (
-                  <div
-                    className="flex gap-3 overflow-x-auto pb-2.5 pt-1 snap-x scrollbar-none -mx-1 px-1"
-                    style={{ WebkitOverflowScrolling: "touch" }}
-                  >
-                    {savedAddresses.map((address) => {
-                      const selected = selectedAddressId === address._id;
-                      const label = address.label || "Home";
-                      const lowerLabel = label.toLowerCase();
-                      const isWork = lowerLabel === "work" || lowerLabel === "office";
-                      const isOther = !isWork && lowerLabel !== "home";
-
-                      const Icon = isWork ? Briefcase : isOther ? MapPin : Home;
-                      const iconBg = isWork
-                        ? "bg-indigo-50 text-indigo-600"
-                        : isOther
-                        ? "bg-purple-50 text-purple-600"
-                        : "bg-amber-50 text-amber-600";
-
-                      const fullStreetAddress =
-                        [address.line1, address.line2].filter(Boolean).join(", ") ||
-                        address.fullAddress ||
-                        "Saved address";
-
-                      return (
-                        <div
-                          key={address._id}
-                          onClick={() => selectSavedAddress(address)}
-                          className={`w-[260px] sm:w-[280px] shrink-0 snap-start rounded-2xl p-3.5 transition-all duration-200 cursor-pointer flex flex-col justify-between ${
-                            selected
-                              ? "bg-[#FFFDF5] border-2 border-[#FFD700] shadow-[0_4px_16px_rgba(255,215,0,0.18)]"
-                              : "bg-white border border-gray-200 hover:border-gray-300 hover:shadow-xs"
-                          }`}
+                    {/* Collapsible Alternate Contact Input Form */}
+                    <AnimatePresence initial={false}>
+                      {alternateContact && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="pt-3 overflow-hidden"
                         >
-                          {/* Top: Tag + Default + Selected Checkmark */}
-                          <div>
-                            <div className="flex items-start justify-between gap-1.5 mb-1.5">
-                              <div className="flex items-center gap-1.5 min-w-0">
-                                <div
-                                  className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${iconBg}`}
-                                >
-                                  <Icon size={14} />
-                                </div>
-                                <span className="text-xs font-black text-gray-900 tracking-wide uppercase truncate">
-                                  {label}
-                                </span>
-                                {address.isDefault && (
-                                  <span className="px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase bg-emerald-100 text-emerald-800 tracking-wider shrink-0">
-                                    DEFAULT
+                          <div className="p-3 rounded-xl bg-amber-50/50 border border-amber-200/80 space-y-3">
+                            <p className="text-xs font-bold text-gray-800">
+                              Enter alternate contact person for pickup:
+                            </p>
+                            <div className="grid sm:grid-cols-2 gap-3">
+                              <PremiumInput
+                                label="Contact Name"
+                                icon={User}
+                                placeholder="Full name"
+                                error={errors.pickupContactName?.message}
+                                {...register("pickupContactName", {
+                                  required: alternateContact
+                                    ? "Contact name is required"
+                                    : false,
+                                })}
+                              />
+
+                              <PremiumInput
+                                label="Mobile Number"
+                                icon={Phone}
+                                placeholder="10-digit mobile number"
+                                maxLength={10}
+                                inputMode="numeric"
+                                error={errors.pickupContactPhone?.message}
+                                {...register("pickupContactPhone", {
+                                  required: alternateContact
+                                    ? "Contact number is required"
+                                    : false,
+                                  pattern: {
+                                    value: /^[6-9]\d{9}$/,
+                                    message: "Enter a valid 10-digit mobile number",
+                                  },
+                                })}
+                              />
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Live Address Confirmation Bar */}
+                  <div className="p-3 rounded-xl bg-emerald-50/80 border border-emerald-200 text-[11px] text-emerald-950 flex items-start gap-2">
+                    <CheckCircle size={14} className="text-emerald-700 shrink-0 mt-0.5" />
+                    <div className="min-w-0">
+                      <p className="font-bold">
+                        Pickup Location:
+                      </p>
+                      <p className="text-emerald-900 mt-0.5 leading-snug">
+                        BIET Jhansi Campus, {bietHostel === "Other Campus Hostel / Block" ? (bietCustomHostel.trim() || "Campus Hostel") : bietHostel}
+                        {bietRoomNo ? `, Room: ${bietRoomNo}` : " (Please enter room no.)"}
+                        {bietNotes.trim() ? `, Note: ${bietNotes.trim()}` : ""}, Jhansi - 284128
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              ) : (
+                /* VIEW 2: SAVED & CUSTOM ADDRESSES (WHEN USER SELECTS "OTHER ADDRESS") */
+                <div className="space-y-4">
+                  {/* Saved Addresses Toolbar */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs font-extrabold text-gray-900 uppercase tracking-wider">
+                          Saved Addresses
+                        </p>
+                        {savedAddresses.length > 0 && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900">
+                            {savedAddresses.length}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-gray-400 mt-0.5">
+                        Select a saved address or add a new one
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={traceCurrentLocation}
+                        disabled={locationLoading}
+                        className="flex items-center gap-1 px-2.5 py-1 rounded-xl font-bold text-xs bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all"
+                        title="Use GPS"
+                      >
+                        {locationLoading ? (
+                          <Loader2 size={12} className="animate-spin text-amber-600" />
+                        ) : (
+                          <Navigation size={12} />
+                        )}
+                        <span className="hidden sm:inline">GPS</span>
+                      </button>
+
+                      {savedAddresses.length > 2 && (
+                        <button
+                          type="button"
+                          onClick={() => setIsAllAddressesModalOpen(true)}
+                          className="text-xs font-bold text-amber-800 hover:text-amber-950 flex items-center gap-0.5 px-2.5 py-1 rounded-xl bg-amber-50 hover:bg-amber-100/80 transition-all"
+                        >
+                          <span>View All ({savedAddresses.length})</span>
+                          <ChevronRight size={13} />
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={handleOpenAddAddress}
+                        className="flex items-center gap-1 px-2.5 sm:px-3 py-1 rounded-xl font-bold text-xs bg-[#101010] text-[#FFD700] hover:bg-black transition-all shadow-xs"
+                      >
+                        <Plus size={13} />
+                        <span>Add</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {savedAddressLoading ? (
+                    <div className="flex items-center justify-center gap-2.5 py-6 rounded-2xl bg-gray-50/70 border border-gray-100 text-xs font-semibold text-gray-500">
+                      <Loader2 size={15} className="animate-spin text-amber-500" />
+                      Loading saved addresses...
+                    </div>
+                  ) : savedAddresses.length > 0 ? (
+                    <div
+                      className="flex gap-3 overflow-x-auto pb-2.5 pt-1 snap-x scrollbar-none -mx-1 px-1"
+                      style={{ WebkitOverflowScrolling: "touch" }}
+                    >
+                      {savedAddresses.map((address) => {
+                        const selected = selectedAddressId === address._id;
+                        const label = address.label || "Home";
+                        const lowerLabel = label.toLowerCase();
+                        const isWork = lowerLabel === "work" || lowerLabel === "office";
+                        const isOther = !isWork && lowerLabel !== "home";
+
+                        const Icon = isWork ? Briefcase : isOther ? MapPin : Home;
+                        const iconBg = isWork
+                          ? "bg-indigo-50 text-indigo-600"
+                          : isOther
+                          ? "bg-purple-50 text-purple-600"
+                          : "bg-amber-50 text-amber-600";
+
+                        const fullStreetAddress =
+                          [address.line1, address.line2].filter(Boolean).join(", ") ||
+                          address.fullAddress ||
+                          "Saved address";
+
+                        return (
+                          <div
+                            key={address._id}
+                            onClick={() => selectSavedAddress(address)}
+                            className={`w-[260px] sm:w-[280px] shrink-0 snap-start rounded-2xl p-3.5 transition-all duration-200 cursor-pointer flex flex-col justify-between ${
+                              selected
+                                ? "bg-[#FFFDF5] border-2 border-[#FFD700] shadow-[0_4px_16px_rgba(255,215,0,0.18)]"
+                                : "bg-white border border-gray-200 hover:border-gray-300 hover:shadow-xs"
+                            }`}
+                          >
+                            {/* Top: Tag + Default + Selected Checkmark */}
+                            <div>
+                              <div className="flex items-start justify-between gap-1.5 mb-1.5">
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <div
+                                    className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${iconBg}`}
+                                  >
+                                    <Icon size={14} />
+                                  </div>
+                                  <span className="text-xs font-black text-gray-900 tracking-wide uppercase truncate">
+                                    {label}
                                   </span>
+                                  {address.isDefault && (
+                                    <span className="px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase bg-emerald-100 text-emerald-800 tracking-wider shrink-0">
+                                      DEFAULT
+                                    </span>
+                                  )}
+                                </div>
+
+                                {selected ? (
+                                  <div className="flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-emerald-500 text-white shadow-xs shrink-0">
+                                    <Check size={10} strokeWidth={3} />
+                                    <span className="text-[9px] font-extrabold uppercase">
+                                      DELIVER
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <div className="w-4 h-4 rounded-full border border-gray-300 shrink-0" />
                                 )}
                               </div>
 
-                              {selected ? (
-                                <div className="flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-emerald-500 text-white shadow-xs shrink-0">
-                                  <Check size={10} strokeWidth={3} />
-                                  <span className="text-[9px] font-extrabold uppercase">
-                                    DELIVER
-                                  </span>
-                                </div>
+                              {/* Receiver Info */}
+                              {(address.fullName || address.phone) && (
+                                <p className="text-[10px] font-bold text-gray-700 truncate mb-0.5">
+                                  {address.fullName}
+                                  {address.fullName && address.phone && " • "}
+                                  {address.phone}
+                                </p>
+                              )}
+
+                              {/* Street Address */}
+                              <p className="text-[11px] text-gray-700 font-medium line-clamp-2 leading-snug">
+                                {fullStreetAddress}
+                              </p>
+
+                              {/* Landmark & City */}
+                              <p className="text-[10px] text-gray-400 mt-1 truncate">
+                                {address.landmark ? `${address.landmark} • ` : ""}
+                                {address.city || "Jhansi"}
+                                {address.pincode ? ` - ${address.pincode}` : ""}
+                              </p>
+                            </div>
+
+                            {/* Action Toolbar */}
+                            <div
+                              className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between gap-1 text-[11px]"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {!address.isDefault ? (
+                                <button
+                                  type="button"
+                                  onClick={(e) =>
+                                    handleSetDefaultAddress(address._id, e)
+                                  }
+                                  disabled={settingDefaultId === address._id}
+                                  className="text-[10px] font-bold text-gray-500 hover:text-amber-800 flex items-center gap-1 transition-colors"
+                                >
+                                  {settingDefaultId === address._id ? (
+                                    <Loader2
+                                      size={11}
+                                      className="animate-spin text-amber-500"
+                                    />
+                                  ) : (
+                                    <Star size={11} className="text-gray-400" />
+                                  )}
+                                  <span>Default</span>
+                                </button>
                               ) : (
-                                <div className="w-4 h-4 rounded-full border border-gray-300 shrink-0" />
+                                <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-0.5">
+                                  <Check size={10} /> Default
+                                </span>
+                              )}
+
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={(e) =>
+                                    handleOpenEditAddress(address, e)
+                                  }
+                                  className="px-2 py-1 rounded-lg font-bold text-gray-700 hover:text-black hover:bg-gray-100 transition-all flex items-center gap-1 text-[11px]"
+                                >
+                                  <Pencil size={11} className="text-gray-500" />
+                                  <span>Edit</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setAddressToDelete(address);
+                                  }}
+                                  className="p-1 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      {/* Add New Address Card */}
+                      <button
+                        type="button"
+                        onClick={handleOpenAddAddress}
+                        className="w-[130px] shrink-0 snap-start rounded-2xl border-2 border-dashed border-gray-200 hover:border-amber-400 bg-gray-50/60 hover:bg-amber-50/20 p-3.5 flex flex-col items-center justify-center text-center gap-1.5 group transition-all"
+                      >
+                        <div className="w-8 h-8 rounded-xl bg-white group-hover:bg-amber-100 text-gray-400 group-hover:text-amber-700 flex items-center justify-center shadow-xs transition-colors">
+                          <Plus size={16} />
+                        </div>
+                        <p className="text-xs font-bold text-gray-800 group-hover:text-black">
+                          Add New
+                        </p>
+                        <p className="text-[10px] text-gray-400">
+                          New address
+                        </p>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="p-5 rounded-2xl bg-gradient-to-b from-gray-50 to-amber-50/20 border-2 border-dashed border-gray-200 text-center">
+                      <div className="w-10 h-10 mx-auto rounded-xl bg-white shadow-xs flex items-center justify-center mb-2">
+                        <MapPin size={20} className="text-amber-500" />
+                      </div>
+                      <h4 className="text-xs font-bold text-gray-800 mb-0.5">
+                        No Saved Addresses Yet
+                      </h4>
+                      <p className="text-[11px] text-gray-400 max-w-xs mx-auto mb-3">
+                        Save your address for faster doorstep pickup.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleOpenAddAddress}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-[#101010] text-[#FFD700] hover:bg-black transition-all shadow-sm"
+                      >
+                        <Plus size={13} />
+                        Add Address
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Selected Address Summary & Serviceability */}
+                  {selectedAddress ? (
+                    <div className="space-y-3 pt-2 border-t border-gray-100">
+                      <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-50/70 via-white to-emerald-50/40 border border-amber-200/90 shadow-xs flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-2.5 min-w-0">
+                          <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                            <CheckCircle size={16} />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-xs font-black text-gray-900 uppercase">
+                                {selectedAddress.label || "Home"}
+                              </span>
+                              <span className="text-[9px] font-extrabold uppercase tracking-wide bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md">
+                                Delivering Here
+                              </span>
+                              {roadDistanceKm > 0 && (
+                                <span className="text-[10px] text-gray-400 font-semibold">
+                                  • {roadDistanceKm} km
+                                </span>
                               )}
                             </div>
 
-                            {/* Receiver Info */}
-                            {(address.fullName || address.phone) && (
-                              <p className="text-[10px] font-bold text-gray-700 truncate mb-0.5">
-                                {address.fullName}
-                                {address.fullName && address.phone && " • "}
-                                {address.phone}
+                            {(selectedAddress.fullName || selectedAddress.phone) && (
+                              <p className="text-[10px] font-bold text-gray-700 mt-1 truncate">
+                                {selectedAddress.fullName}
+                                {selectedAddress.fullName && selectedAddress.phone && " • "}
+                                {selectedAddress.phone}
                               </p>
                             )}
 
-                            {/* Street Address */}
-                            <p className="text-[11px] text-gray-700 font-medium line-clamp-2 leading-snug">
-                              {fullStreetAddress}
+                            <p className="text-xs text-gray-600 font-medium mt-0.5 leading-relaxed">
+                              {[selectedAddress.line1, selectedAddress.line2].filter(Boolean).join(", ") || selectedAddress.fullAddress}
                             </p>
 
-                            {/* Landmark & City */}
-                            <p className="text-[10px] text-gray-400 mt-1 truncate">
-                              {address.landmark ? `${address.landmark} • ` : ""}
-                              {address.city || "Jhansi"}
-                              {address.pincode ? ` - ${address.pincode}` : ""}
+                            <p className="text-[11px] text-gray-400 mt-0.5">
+                              {selectedAddress.landmark ? `${selectedAddress.landmark} • ` : ""}
+                              {selectedAddress.city || "Jhansi"}
+                              {selectedAddress.pincode ? ` - ${selectedAddress.pincode}` : ""}
                             </p>
                           </div>
-
-                          {/* Action Toolbar */}
-                          <div
-                            className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between gap-1 text-[11px]"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {!address.isDefault ? (
-                              <button
-                                type="button"
-                                onClick={(e) =>
-                                  handleSetDefaultAddress(address._id, e)
-                                }
-                                disabled={settingDefaultId === address._id}
-                                className="text-[10px] font-bold text-gray-500 hover:text-amber-800 flex items-center gap-1 transition-colors"
-                              >
-                                {settingDefaultId === address._id ? (
-                                  <Loader2
-                                    size={11}
-                                    className="animate-spin text-amber-500"
-                                  />
-                                ) : (
-                                  <Star size={11} className="text-gray-400" />
-                                )}
-                                <span>Default</span>
-                              </button>
-                            ) : (
-                              <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-0.5">
-                                <Check size={10} /> Default
-                              </span>
-                            )}
-
-                            <div className="flex items-center gap-1">
-                              <button
-                                type="button"
-                                onClick={(e) =>
-                                  handleOpenEditAddress(address, e)
-                                }
-                                className="px-2 py-1 rounded-lg font-bold text-gray-700 hover:text-black hover:bg-gray-100 transition-all flex items-center gap-1 text-[11px]"
-                              >
-                                <Pencil size={11} className="text-gray-500" />
-                                <span>Edit</span>
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setAddressToDelete(address);
-                                }}
-                                className="p-1 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all"
-                              >
-                                <Trash2 size={12} />
-                              </button>
-                            </div>
-                          </div>
                         </div>
-                      );
-                    })}
 
-                    {/* End Card 1: + Add New Address */}
-                    <button
-                      type="button"
-                      onClick={handleOpenAddAddress}
-                      className="w-[130px] shrink-0 snap-start rounded-2xl border-2 border-dashed border-gray-200 hover:border-amber-400 bg-gray-50/60 hover:bg-amber-50/20 p-3.5 flex flex-col items-center justify-center text-center gap-1.5 group transition-all"
-                    >
-                      <div className="w-8 h-8 rounded-xl bg-white group-hover:bg-amber-100 text-gray-400 group-hover:text-amber-700 flex items-center justify-center shadow-xs transition-colors">
-                        <Plus size={16} />
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEditAddress(selectedAddress)}
+                          className="shrink-0 px-2.5 py-1 rounded-lg text-xs font-bold text-gray-700 hover:text-black bg-white border border-gray-200 hover:border-amber-300 transition-all flex items-center gap-1 shadow-2xs"
+                        >
+                          <Pencil size={11} className="text-gray-500" />
+                          <span>Edit</span>
+                        </button>
                       </div>
-                      <p className="text-xs font-bold text-gray-800 group-hover:text-black">
-                        Add New
-                      </p>
-                      <p className="text-[10px] text-gray-400">
-                        New address
-                      </p>
-                    </button>
 
-                    {/* End Card 2: View All (if > 2 addresses) */}
-                    {savedAddresses.length > 2 && (
-                      <button
-                        type="button"
-                        onClick={() => setIsAllAddressesModalOpen(true)}
-                        className="w-[130px] shrink-0 snap-start rounded-2xl border border-gray-200 bg-white hover:bg-amber-50/40 p-3.5 flex flex-col items-center justify-center text-center gap-1.5 group transition-all shadow-xs"
-                      >
-                        <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shadow-xs">
-                          <ChevronRight size={16} />
+                      {/* Delivery Verification Status */}
+                      {addressLoading && (
+                        <div className="flex items-center gap-2 p-3 rounded-2xl bg-gray-50 border border-gray-100 text-xs text-gray-500">
+                          <Loader2 size={14} className="animate-spin text-amber-500" />
+                          <span>Verifying delivery distance & charges...</span>
                         </div>
-                        <p className="text-xs font-bold text-gray-800">
-                          View All
-                        </p>
-                        <p className="text-[10px] text-gray-400">
-                          {savedAddresses.length} saved
-                        </p>
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  <div className="p-5 rounded-2xl bg-gradient-to-b from-gray-50 to-amber-50/20 border-2 border-dashed border-gray-200 text-center">
-                    <div className="w-10 h-10 mx-auto rounded-xl bg-white shadow-xs flex items-center justify-center mb-2">
-                      <MapPin size={20} className="text-amber-500" />
-                    </div>
-                    <h4 className="text-xs font-bold text-gray-800 mb-0.5">
-                      No Saved Addresses Yet
-                    </h4>
-                    <p className="text-[11px] text-gray-400 max-w-xs mx-auto mb-3">
-                      Save your address for faster checkout.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={handleOpenAddAddress}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-[#101010] text-[#FFD700] hover:bg-black transition-all shadow-sm"
-                    >
-                      <Plus size={13} />
-                      Add Address
-                    </button>
-                  </div>
-                )}
-              </div>
+                      )}
 
-              {/* SELECTED ADDRESS SUMMARY CARD & SERVICEABILITY STATUS */}
-              <div className="mt-3.5 pt-3 border-t border-gray-100">
-                {selectedAddress ? (
-                  <div className="space-y-2">
-                    <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-50/70 via-white to-emerald-50/40 border border-amber-200/90 shadow-xs flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-2.5 min-w-0">
-                        <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
-                          <CheckCircle size={16} />
-                        </div>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xs font-black text-gray-900 uppercase">
-                              {selectedAddress.label || "Home"}
-                            </span>
-                            <span className="text-[9px] font-extrabold uppercase tracking-wide bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md">
-                              Delivering Here
-                            </span>
-                            {roadDistanceKm > 0 && (
-                              <span className="text-[10px] text-gray-400 font-semibold">
-                                • {roadDistanceKm} km
-                              </span>
-                            )}
-                          </div>
-
-                          {(selectedAddress.fullName || selectedAddress.phone) && (
-                            <p className="text-[10px] font-bold text-gray-700 mt-1 truncate">
-                              {selectedAddress.fullName}
-                              {selectedAddress.fullName && selectedAddress.phone && " • "}
-                              {selectedAddress.phone}
+                      {locationError && !addressLoading && (
+                        <div className="flex items-start gap-2.5 p-3 rounded-2xl bg-red-50 border border-red-200">
+                          <AlertCircle size={15} className="text-red-600 mt-0.5 shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-red-700">
+                              Location Outside Service Area
                             </p>
-                          )}
-
-                          <p className="text-xs text-gray-600 font-medium mt-0.5 leading-relaxed">
-                            {[selectedAddress.line1, selectedAddress.line2].filter(Boolean).join(", ") || selectedAddress.fullAddress}
-                          </p>
-
-                          <p className="text-[11px] text-gray-400 mt-0.5">
-                            {selectedAddress.landmark ? `${selectedAddress.landmark} • ` : ""}
-                            {selectedAddress.city || "Jhansi"}
-                            {selectedAddress.pincode ? ` - ${selectedAddress.pincode}` : ""}
-                          </p>
+                            <p className="text-[11px] text-red-600 mt-0.5 leading-relaxed">
+                              {locationError}
+                            </p>
+                          </div>
                         </div>
-                      </div>
+                      )}
 
-                      <button
-                        type="button"
-                        onClick={() => handleOpenEditAddress(selectedAddress)}
-                        className="shrink-0 px-2.5 py-1 rounded-lg text-xs font-bold text-gray-700 hover:text-black bg-white border border-gray-200 hover:border-amber-300 transition-all flex items-center gap-1 shadow-2xs"
-                      >
-                        <Pencil size={11} className="text-gray-500" />
-                        <span>Edit</span>
-                      </button>
-                    </div>
-
-                    {/* Delivery Calculation / Verification Status */}
-                    {addressLoading && (
-                      <div className="flex items-center gap-2 p-3 rounded-2xl bg-gray-50 border border-gray-100 text-xs text-gray-500">
-                        <Loader2 size={14} className="animate-spin text-amber-500" />
-                        <span>Verifying delivery distance & charges...</span>
-                      </div>
-                    )}
-
-                    {locationError && !addressLoading && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="flex items-start gap-2.5 p-3 rounded-2xl bg-red-50 border border-red-200"
-                      >
-                        <AlertCircle size={15} className="text-red-600 mt-0.5 shrink-0" />
-                        <div className="min-w-0">
-                          <p className="text-xs font-bold text-red-700">
-                            Location Outside Service Area
-                          </p>
-                          <p className="text-[11px] text-red-600 mt-0.5 leading-relaxed">
-                            {locationError}
-                          </p>
-                        </div>
-                      </motion.div>
-                    )}
-
-                    {addressVerified && serviceable && !addressLoading && (
-                      <div className="flex items-center justify-between gap-3 p-2.5 px-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200 text-emerald-800 text-xs">
-                        <div className="flex items-center gap-2">
+                      {addressVerified && serviceable && !addressLoading && (
+                        <div className="flex items-center gap-2 p-2.5 px-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200 text-emerald-800 text-xs font-bold">
                           <CheckCircle size={14} className="text-emerald-600 shrink-0" />
-                          <span className="font-bold text-[11px]">
+                          <span className="text-[11px]">
                             Location verified for pickup & delivery
                           </span>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {/* INTEGRATED PICKUP CONTACT */}
-                    <div className="pt-2 border-t border-gray-100">
+                      {/* Pickup Contact for Selected Address */}
                       <div className="p-3 sm:p-3.5 rounded-2xl bg-[#FBFBFC] border border-gray-200/70 flex items-center justify-between gap-3 shadow-2xs">
                         <div className="flex items-center gap-2.5 min-w-0">
                           <div className="w-8 h-8 rounded-xl bg-amber-400 text-black flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
@@ -1543,27 +1925,12 @@ export default function Checkout() {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="pt-2.5 overflow-hidden"
+                            className="pt-1 overflow-hidden"
                           >
-                            <div className="p-3.5 rounded-2xl bg-amber-50/40 border border-amber-200/80 space-y-3">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-1.5 text-xs font-bold text-gray-800">
-                                  <User size={13} className="text-amber-600" />
-                                  <span>Someone else will hand over the laundry:</span>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setAlternateContact(false);
-                                    setValue("pickupContactName", "");
-                                    setValue("pickupContactPhone", "");
-                                  }}
-                                  className="text-[10px] font-bold text-gray-400 hover:text-red-500 transition-colors"
-                                >
-                                  Reset to my details
-                                </button>
-                              </div>
-
+                            <div className="p-3 rounded-xl bg-amber-50/50 border border-amber-200/80 space-y-3">
+                              <p className="text-xs font-bold text-gray-800">
+                                Enter alternate contact person for pickup:
+                              </p>
                               <div className="grid sm:grid-cols-2 gap-3">
                                 <PremiumInput
                                   label="Contact Name"
@@ -1600,25 +1967,25 @@ export default function Checkout() {
                         )}
                       </AnimatePresence>
                     </div>
-                  </div>
-                ) : (
-                  <div className="p-3.5 rounded-2xl bg-amber-50/50 border border-dashed border-amber-300 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <AlertCircle size={16} className="text-amber-600 shrink-0" />
-                      <p className="text-xs font-semibold text-gray-700 truncate">
-                        Select a saved address above or add a new one.
-                      </p>
+                  ) : (
+                    <div className="p-3.5 rounded-2xl bg-amber-50/50 border border-dashed border-amber-300 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <AlertCircle size={16} className="text-amber-600 shrink-0" />
+                        <p className="text-xs font-semibold text-gray-700 truncate">
+                          Select a saved address above or tap + Add Address.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleOpenAddAddress}
+                        className="shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold bg-[#101010] text-[#FFD700] hover:bg-black transition-all shadow-xs"
+                      >
+                        + Add Address
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={handleOpenAddAddress}
-                      className="shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold bg-[#101010] text-[#FFD700] hover:bg-black transition-all shadow-xs"
-                    >
-                      + Add Address
-                    </button>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
             </SectionCard>
 
             {serviceable && addressVerified && location && (
@@ -1626,132 +1993,222 @@ export default function Checkout() {
             {/* SCHEDULE */}
             <SectionCard
               icon={Calendar}
-              iconColor="#3B82F6"
-              iconBg="#EFF6FF"
+              iconColor="#EAB308"
+              iconBg="#FEFCE8"
               title="Pickup Schedule"
+              badge={PRE_BOOKING_CONFIG.isEnabled ? "Pre-Booking Fixed" : undefined}
             >
-              <div className="grid sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">
-                    Date
-                  </label>
-
-                  <div
-                    className="flex items-center rounded-2xl overflow-hidden"
-                    style={{
-                      border:
-                        errors.date
-                          ? "1.5px solid #FCA5A5"
-                          : "1.5px solid #EFEFEF",
-                      background: "white",
-                    }}
-                  >
-                    <div className="pl-4">
-                      <Calendar
-                        size={16}
-                        color="#9CA3AF"
-                      />
+              {PRE_BOOKING_CONFIG.isEnabled ? (
+                <div className="space-y-3">
+                  {/* Pre-Booking Mode Header */}
+                  <div className="flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-amber-500/10 via-yellow-400/10 to-amber-500/5 border border-amber-300/70">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                      <span className="text-xs font-black text-amber-950 tracking-wide uppercase">
+                        {PRE_BOOKING_CONFIG.campusName} Campus Launch Slot
+                      </span>
                     </div>
-
-                    <input
-                      type="date"
-                      min={
-                        new Date()
-                          .toISOString()
-                          .split("T")[0]
-                      }
-                      {...register("date", {
-                        required:
-                          "Select a pickup date",
-                      })}
-                      className="flex-1 px-4 py-3.5 bg-transparent outline-none text-sm font-medium text-gray-800 min-w-0"
-                    />
+                    <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-200/90 text-amber-950 border border-amber-300">
+                      <Lock size={10} /> Fixed Slot
+                    </span>
                   </div>
 
-                  {errors.date && (
-                    <p className="flex items-center gap-1 mt-1.5 text-[11px] font-medium text-red-500">
-                      <AlertCircle size={11} />
-                      {errors.date.message}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">
-                    Time Slot
-                  </label>
-
-                  <div
-                    className="flex items-center rounded-2xl overflow-hidden"
-                    style={{
-                      border:
-                        errors.time
-                          ? "1.5px solid #FCA5A5"
-                          : "1.5px solid #EFEFEF",
-                      background: "white",
-                    }}
-                  >
-                    <div className="pl-4">
-                      <Clock
-                        size={16}
-                        color="#9CA3AF"
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {/* Fixed Date Card */}
+                    <div className="p-3.5 rounded-2xl bg-white border border-amber-200 shadow-xs relative overflow-hidden">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">
+                          Pickup Date
+                        </label>
+                        <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md flex items-center gap-1">
+                          <Lock size={10} /> Fixed
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2.5 mt-1">
+                        <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                          <Calendar size={18} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-black text-gray-900 leading-tight">
+                            {PRE_BOOKING_CONFIG.dateDisplay}
+                          </p>
+                          <p className="text-[11px] text-gray-500 mt-0.5">
+                            Launch Day Pickup Run
+                          </p>
+                        </div>
+                      </div>
+                      {/* Hidden registered field so form validation and submit passes cleanly */}
+                      <input
+                        type="hidden"
+                        value={PRE_BOOKING_CONFIG.date}
+                        {...register("date", { required: true })}
                       />
                     </div>
 
-                    <select
-                      {...register("time", {
-                        required:
-                          "Select a time slot",
-                      })}
-                      className="flex-1 px-4 py-3.5 bg-transparent outline-none text-sm font-medium text-gray-800 appearance-none cursor-pointer min-w-0"
-                    >
-                      <option value="">
-                        Choose a time slot
-                      </option>
-                      {availableSlots.map(
-                        (slot) => (
-                          <option
-                            key={slot.label}
-                            value={slot.label}
-                          >
-                            {slot.label}
-                          </option>
-                        )
+                    {/* Fixed Time Slot Card */}
+                    <div className="p-3.5 rounded-2xl bg-white border border-amber-200 shadow-xs relative overflow-hidden">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">
+                          Pickup Slot Window
+                        </label>
+                        <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md flex items-center gap-1">
+                          <Lock size={10} /> Fixed
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2.5 mt-1">
+                        <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                          <Clock size={18} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-black text-gray-900 leading-tight">
+                            {PRE_BOOKING_CONFIG.timeSlot}
+                          </p>
+                          <p className="text-[11px] text-gray-500 mt-0.5">
+                            Campus Doorstep Collection
+                          </p>
+                        </div>
+                      </div>
+                      {/* Hidden registered field so form validation and submit passes cleanly */}
+                      <input
+                        type="hidden"
+                        value={PRE_BOOKING_CONFIG.timeSlot}
+                        {...register("time", { required: true })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-xl bg-amber-50/70 border border-amber-200/60">
+                    <span className="text-base shrink-0">⚡</span>
+                    <p className="text-[11px] text-gray-600 leading-relaxed">
+                      <strong>Why is this slot fixed?</strong> Zusko is launching exclusively for <strong>{PRE_BOOKING_CONFIG.campusName}</strong> campus. All orders placed right now are reserved for our launch batch pickup on <strong>{PRE_BOOKING_CONFIG.shortDateDisplay}</strong> between <strong>{PRE_BOOKING_CONFIG.timeSlot}</strong>.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">
+                        Date
+                      </label>
+
+                      <div
+                        className="flex items-center rounded-2xl overflow-hidden"
+                        style={{
+                          border:
+                            errors.date
+                              ? "1.5px solid #FCA5A5"
+                              : "1.5px solid #EFEFEF",
+                          background: "white",
+                        }}
+                      >
+                        <div className="pl-4">
+                          <Calendar
+                            size={16}
+                            color="#9CA3AF"
+                          />
+                        </div>
+
+                        <input
+                          type="date"
+                          min={
+                            new Date()
+                              .toISOString()
+                              .split("T")[0]
+                          }
+                          {...register("date", {
+                            required:
+                              "Select a pickup date",
+                          })}
+                          className="flex-1 px-4 py-3.5 bg-transparent outline-none text-sm font-medium text-gray-800 min-w-0"
+                        />
+                      </div>
+
+                      {errors.date && (
+                        <p className="flex items-center gap-1 mt-1.5 text-[11px] font-medium text-red-500">
+                          <AlertCircle size={11} />
+                          {errors.date.message}
+                        </p>
                       )}
-                    </select>
+                    </div>
 
-                    <div className="pr-4">
-                      <ChevronRight
-                        size={14}
-                        color="#9CA3AF"
-                        className="rotate-90"
-                      />
+                    <div>
+                      <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">
+                        Time Slot
+                      </label>
+
+                      <div
+                        className="flex items-center rounded-2xl overflow-hidden"
+                        style={{
+                          border:
+                            errors.time
+                              ? "1.5px solid #FCA5A5"
+                              : "1.5px solid #EFEFEF",
+                          background: "white",
+                        }}
+                      >
+                        <div className="pl-4">
+                          <Clock
+                            size={16}
+                            color="#9CA3AF"
+                          />
+                        </div>
+
+                        <select
+                          {...register("time", {
+                            required:
+                              "Select a time slot",
+                          })}
+                          className="flex-1 px-4 py-3.5 bg-transparent outline-none text-sm font-medium text-gray-800 appearance-none cursor-pointer min-w-0"
+                        >
+                          <option value="">
+                            Choose a time slot
+                          </option>
+                          {availableSlots.map(
+                            (slot) => (
+                              <option
+                                key={slot.label}
+                                value={slot.label}
+                              >
+                                {slot.label}
+                              </option>
+                            )
+                          )}
+                        </select>
+
+                        <div className="pr-4">
+                          <ChevronRight
+                            size={14}
+                            color="#9CA3AF"
+                            className="rotate-90"
+                          />
+                        </div>
+                      </div>
+
+                      {errors.time && (
+                        <p className="flex items-center gap-1 mt-1.5 text-[11px] font-medium text-red-500">
+                          <AlertCircle size={11} />
+                          {errors.time.message}
+                        </p>
+                      )}
                     </div>
                   </div>
 
-                  {errors.time && (
-                    
-                    <p className="flex items-center gap-1 mt-1.5 text-[11px] font-medium text-red-500">
-                      <AlertCircle size={11} />
-                      {errors.time.message}
+                  <div
+                    className="flex items-start gap-2.5 px-3 py-2.5 rounded-xl"
+                    style={{
+                      background: "#F8F9FB",
+                    }}
+                  >
+                    <span className="text-base shrink-0">
+                      ⚡
+                    </span>
+                    <p className="text-[11px] text-gray-500 leading-relaxed">
+                      Our team will arrive within your selected slot. You'll get an email confirmation once your order is placed.
                     </p>
-                  )}
-                </div>
-              </div>
-                  
-              <div
-                className="flex items-start gap-2.5 px-3 py-2.5 rounded-xl"
-                style={{
-                  background: "#F8F9FB",
-                }}
-              >
-                <span className="text-base shrink-0">
-                  ⚡
-                </span>
-                <p className="text-[11px] text-gray-500 leading-relaxed">
-                  Our team will arrive within your selected slot. You'll get an email confirmation once your order is placed.
-                </p>
-              </div>
+                  </div>
+                </>
+              )}
             </SectionCard>
               </>
             )}
@@ -2006,6 +2463,14 @@ export default function Checkout() {
               </div>
 
               <div className="px-5 pb-5">
+                {/* Fabric Care Agreement Notice */}
+                {/* <div className="mb-3.5 p-3 rounded-xl bg-amber-50/90 border border-amber-200/90 flex items-start gap-2 text-[11px] text-gray-700 leading-snug">
+                  <span className="text-sm shrink-0 mt-0.5">⚠️</span>
+                  <div>
+                    <strong className="text-gray-950 font-bold">Fabric Care Policy:</strong> Please select services strictly in accordance with your garment's care label. Zusko will not be liable for garment damage, shrinkage, or color bleeding caused by incorrect service selection.
+                  </div>
+                </div> */}
+
                 <motion.button
                   whileHover={{
                     scale: 1.01,

@@ -1,27 +1,31 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import logo from "../assets/zusko.png"; // adjust path if needed
+import { useNavigate } from "react-router-dom";
+import { Calendar, Clock, MapPin, Sparkles, ArrowRight, ShieldCheck, CheckCircle2 } from "lucide-react";
+import logo from "../assets/zusko.png";
+import { PRE_BOOKING_CONFIG } from "../config/preBookingConfig";
 
 const UnderDevelopmentPopup = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [hasShown, setHasShown] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if popup has been shown before
-    const popupShown = localStorage.getItem("zusko-popup-shown");
+    // Show popup once per session/browser or on pre-booking launch
+    const popupShown = localStorage.getItem("zusko-prebooking-modal-seen-v1");
 
     if (!popupShown) {
-      // Show popup only on first visit
       setIsOpen(true);
-      setHasShown(false);
     }
   }, []);
 
   const handleClose = () => {
     setIsOpen(false);
-    // Store in localStorage so popup doesn't show again
-    localStorage.setItem("zusko-popup-shown", "true");
-    setHasShown(true);
+    localStorage.setItem("zusko-prebooking-modal-seen-v1", "true");
+  };
+
+  const handlePreBookNow = () => {
+    handleClose();
+    navigate("/place-order");
   };
 
   return (
@@ -32,146 +36,164 @@ const UnderDevelopmentPopup = () => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm px-4"
           onClick={handleClose}
         >
-          {/* Modal */}
+          {/* Modal Container */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            initial={{ opacity: 0, scale: 0.92, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="relative w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl"
+            exit={{ opacity: 0, scale: 0.92, y: 20 }}
+            transition={{ type: "spring", stiffness: 320, damping: 28 }}
+            className="relative w-full max-w-md rounded-3xl bg-white p-6 sm:p-7 shadow-2xl overflow-hidden border border-yellow-200/80"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Top decorative gradient glow */}
+            <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-yellow-400 via-amber-300 to-yellow-500" />
+            <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full bg-yellow-400/15 blur-2xl pointer-events-none" />
+
             {/* Close Button */}
             <motion.button
               onClick={handleClose}
               aria-label="Close popup"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
-              className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 transition-colors"
+              className="absolute right-4 top-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-800 flex items-center justify-center transition-colors text-sm"
             >
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
+              ✕
             </motion.button>
 
-            {/* Logo with animation */}
+            {/* Logo */}
             <motion.div
               className="flex justify-center"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.6 }}
+              transition={{ delay: 0.1, duration: 0.4 }}
             >
               <img
                 src={logo}
                 alt="Zusko Logo"
-                className="h-14 object-contain"
+                className="h-12 object-contain"
               />
+            </motion.div>
+
+            {/* Hype Pill Badge */}
+            <motion.div
+              className="flex justify-center mt-4"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-500 to-yellow-400 text-black shadow-xs">
+                <Sparkles size={12} className="animate-spin text-black" />
+                Official Campus Launch • BIET Jhansi
+              </span>
             </motion.div>
 
             {/* Heading */}
             <motion.h2
-              className="mt-6 text-center text-3xl font-bold text-gray-900"
+              className="mt-3 text-center text-2xl sm:text-3xl font-black text-gray-900 tracking-tight"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.6 }}
+              transition={{ delay: 0.25, duration: 0.4 }}
             >
-              We're Almost Ready! 🚀
+              Pre-Booking is Now LIVE! 🚀
             </motion.h2>
 
-            {/* Description */}
+            {/* Subtext */}
             <motion.p
-              className="mt-4 text-center text-sm text-gray-600 leading-relaxed"
+              className="mt-2 text-center text-xs sm:text-sm text-gray-600 leading-relaxed max-w-xs mx-auto"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.3, duration: 0.6 }}
+              transition={{ delay: 0.3, duration: 0.4 }}
             >
-              Our premium laundry service is currently under development.
-              We're working hard to deliver a fast, reliable, and exceptional experience.
+              Zusko is officially launching at <strong className="text-gray-900 font-bold">BIET Jhansi</strong>! Reserve your laundry slot now for our first launch batch pickup on 7th November.
             </motion.p>
 
-            {/* Info Box with animation */}
+            {/* Fixed Slot Info Box */}
             <motion.div
-              className="mt-6 rounded-xl bg-linear-to-r from-yellow-50 to-yellow-100/50 p-5 border border-yellow-200/50"
+              className="mt-5 rounded-2xl bg-gradient-to-br from-amber-50/80 via-yellow-50/40 to-white p-4 border border-amber-200/80 shadow-xs"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.6 }}
+              transition={{ delay: 0.35, duration: 0.4 }}
             >
-              <ul className="space-y-3 text-sm text-gray-700">
-                <motion.li
-                  className="flex items-center gap-2"
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.5 }}
-                >
-                  <span className="text-yellow-600 font-bold">✓</span>
-                  Core features being finalized
-                </motion.li>
-                <motion.li
-                  className="flex items-center gap-2"
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.6 }}
-                >
-                  <span className="text-yellow-600 font-bold">✓</span>
-                  Testing & quality improvements ongoing
-                </motion.li>
-                <motion.li
-                  className="flex items-center gap-2"
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.7 }}
-                >
-                  <span className="text-yellow-600 font-bold">✓</span>
-                  Some features may be temporarily unavailable
-                </motion.li>
-              </ul>
+              <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-amber-200/60">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-900">
+                  Fixed Launch Schedule
+                </span>
+                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-200/60 text-amber-900">
+                  Batch #1
+                </span>
+              </div>
+
+              <div className="space-y-2.5 text-xs">
+                <div className="flex items-center gap-2.5 text-gray-800">
+                  <div className="w-7 h-7 rounded-lg bg-yellow-400/20 text-amber-800 flex items-center justify-center shrink-0">
+                    <Calendar size={14} className="text-amber-800" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-gray-500 block">Pickup Date</span>
+                    <strong className="text-gray-900 font-bold">{PRE_BOOKING_CONFIG.dateDisplay}</strong>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2.5 text-gray-800">
+                  <div className="w-7 h-7 rounded-lg bg-yellow-400/20 text-amber-800 flex items-center justify-center shrink-0">
+                    <Clock size={14} className="text-amber-800" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-gray-500 block">Pickup Slot Window</span>
+                    <strong className="text-gray-900 font-bold">{PRE_BOOKING_CONFIG.timeSlot}</strong>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2.5 text-gray-800">
+                  <div className="w-7 h-7 rounded-lg bg-yellow-400/20 text-amber-800 flex items-center justify-center shrink-0">
+                    <MapPin size={14} className="text-amber-800" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-gray-500 block">Service Area</span>
+                    <strong className="text-gray-900 font-bold">{PRE_BOOKING_CONFIG.campusName} (Hostels & Campus)</strong>
+                  </div>
+                </div>
+              </div>
             </motion.div>
 
-            {/* Footer Text */}
-            <motion.p
-              className="mt-6 text-center text-xs text-gray-500"
+            {/* Highlights List */}
+            <motion.div
+              className="mt-3.5 px-1"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.8, duration: 0.6 }}
+              transition={{ delay: 0.45 }}
             >
-              Thank you for your patience 💛  
-              <br />
-              We'll be live very soon.
-            </motion.p>
+              <div className="flex items-center gap-2 text-[11px] text-gray-600">
+                <CheckCircle2 size={13} className="text-emerald-600 shrink-0" />
+                <span>Doorstep pickup with sanitary laundry bags</span>
+              </div>
+              <div className="flex items-center gap-2 text-[11px] text-gray-600 mt-1.5">
+                <CheckCircle2 size={13} className="text-emerald-600 shrink-0" />
+                <span>Limited slots per hostel to maintain quality</span>
+              </div>
+            </motion.div>
 
-            {/* Divider */}
-            <motion.div
-              className="my-6 h-px bg-linear-to-r from-transparent via-gray-200 to-transparent"
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ delay: 0.9, duration: 0.6 }}
-            />
+            {/* Actions */}
+            <div className="mt-5 space-y-2">
+              <motion.button
+                onClick={handlePreBookNow}
+                className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-yellow-400 via-amber-300 to-yellow-400 py-3.5 text-sm font-black text-black shadow-lg shadow-yellow-500/20 hover:shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
+                whileTap={{ scale: 0.98 }}
+              >
+                <span>Pre-Book Laundry Slot Now</span>
+                <ArrowRight size={15} />
+              </motion.button>
 
-            {/* CTA Button */}
-            <motion.button
-              onClick={handleClose}
-              className="w-full rounded-xl bg-linear-to-r from-yellow-400 to-yellow-300 py-3 text-sm font-semibold text-black shadow-lg transition-all duration-300 hover:from-yellow-300 hover:to-yellow-200 hover:shadow-xl"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1, duration: 0.6 }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              Continue to Website
-            </motion.button>
+              <button
+                onClick={handleClose}
+                className="w-full py-2 text-xs font-semibold text-gray-500 hover:text-gray-800 transition-colors"
+              >
+                Explore Website First
+              </button>
+            </div>
           </motion.div>
         </motion.div>
       )}

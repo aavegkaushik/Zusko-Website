@@ -4,11 +4,13 @@ import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import logo from '../assets/Zusko White Logo.png'
 import { prefetchRoute } from "../utils/prefetch";
+import { HangingSideKandils } from "./DiwaliLanterns";
 
 export default function Hero({
   videoSrc = "/videos/hero.mp4",
   poster = "/images/hero-poster.jpg",
   logoSrc = logo,
+  isDiwaliMode = false,
 }) {
   const videoRef = useRef(null);
   const headerRef = useRef(null);
@@ -90,7 +92,8 @@ export default function Hero({
         transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
       />
 
-
+      {/* Side Hanging Diwali Kandils */}
+      {isDiwaliMode && <HangingSideKandils />}
 
       {/* Hero content */}
       <div className="relative z-30 flex items-center justify-center h-full">
@@ -99,17 +102,7 @@ export default function Hero({
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-        >
-          {/* Badge */}
-          {/* <motion.div
-            variants={itemVariants}
-            className="mt-5"
-          >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/80 text-sm font-medium">
-              <span className="w-2 h-2 bg-yellow-400 rounded-full"></span>
-              Welcome to Premium Laundry Service
-            </div>
-          </motion.div> */}
+        > 
 
           {/* Main heading with elegant styling */}
           <motion.h1
@@ -126,23 +119,23 @@ export default function Hero({
           {/* Subheading */}
           <motion.p
             variants={itemVariants}
-            className="mt-8 text-xl sm:text-2xl text-white/80 max-w-2xl mx-auto font-light leading-relaxed"
+            className="mt-6 text-xl sm:text-2xl text-white/80 max-w-2xl mx-auto font-light leading-relaxed"
           >
-            Schedule pickup, we handle the rest. Premium laundry care delivered to your door.
+            Pre-book your doorstep laundry pickup for 7th November. Exclusive launch batch for BIET Jhansi campus.
           </motion.p>
 
           {/* CTA Buttons */}
           <motion.div
             variants={itemVariants}
-            className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4"
+            className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
           >
             <Link
               to="/place-order"
               onMouseEnter={() => prefetchRoute("/place-order")}
               onTouchStart={() => prefetchRoute("/place-order")}
-              className="px-8 py-4 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-300 hover:from-yellow-300 hover:to-yellow-200 text-black font-bold text-lg uppercase tracking-widest shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95"
+              className="px-8 py-4 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-300 hover:from-yellow-300 hover:to-yellow-200 text-black font-black text-base sm:text-lg uppercase tracking-wider shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95"
             >
-              Get Started
+              Pre-Book Laundry Slot
             </Link>
 
             <Link

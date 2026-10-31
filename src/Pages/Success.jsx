@@ -18,7 +18,9 @@ import {
   MessageCircle,
   ShieldCheck,
   CheckCheck,
+  Calendar,
 } from "lucide-react";
+import { PRE_BOOKING_CONFIG } from "../config/preBookingConfig";
 
 // ============================================================
 // PREMIUM SUCCESS MARK
@@ -577,6 +579,24 @@ export default function Success() {
                 <Copy size={12} />
               </button>
             </motion.div>
+
+            {/* Exclusive Pre-Booking Confirmation Tag */}
+            {PRE_BOOKING_CONFIG.isEnabled && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.6 }}
+                className="mt-3.5 mx-auto max-w-[340px] rounded-2xl p-3 bg-gradient-to-r from-yellow-400/15 via-amber-300/10 to-yellow-400/15 border border-yellow-400/30 text-center"
+              >
+                <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-[#FFD700]">
+                  <Calendar size={13} />
+                  <span>Pre-Booking Locked • {PRE_BOOKING_CONFIG.campusName}</span>
+                </div>
+                <p className="text-[11px] text-white/90 mt-1 font-semibold">
+                  Pickup: {PRE_BOOKING_CONFIG.dateDisplay} ({PRE_BOOKING_CONFIG.timeSlot})
+                </p>
+              </motion.div>
+            )}
 
             {/* Quick Reassurance Strip */}
             <motion.div

@@ -115,11 +115,11 @@ const App = () => {
 
       <ScrollToTop />
 
-          {location.pathname.startsWith("/career") ? (
-            <CareerNavbar />
-          ) : (
-            <Navbar />
-          )}
+      {location.pathname.startsWith("/career") ? (
+        <CareerNavbar />
+      ) : (
+        <Navbar />
+      )}
 
           <ErrorBoundary>
             <Suspense fallback={<RouteLoader />}>

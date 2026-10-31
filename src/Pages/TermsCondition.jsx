@@ -99,13 +99,16 @@ const TermsAndConditions = () => {
 
         <section>
           <h2 className="text-2xl font-semibold mb-3">
-            8. Liability & Limitations
+            8. Garment Fabric Care & Liability Limitations
           </h2>
+          <p className="mb-2">
+            <strong>Customer Responsibility for Service Selection:</strong> Customers are solely responsible for reviewing the wash care and fabric instruction labels on all garments prior to placing an order. You must choose the appropriate service category (Wash & Fold, Wash & Iron, Steam Ironing, or Dry Cleaning) that strictly aligns with the garment manufacturer's guidelines.
+          </p>
+          <p className="mb-2">
+            <strong>Disclaimer of Damage / Shrinkage:</strong> Zusko shall not be held liable or responsible for any damage, fabric degradation, shrinkage, color bleeding, melting, or texture distortion resulting from a service requested by the customer that contradicts the garment's wash care label (for example, selecting normal water wash or ironing for dry-clean-only, pure silk, zari, or wool garments).
+          </p>
           <p>
-            Zusko shall not be liable for damages caused by pre-existing
-            conditions, colour fading, or weak fabrics. Maximum liability for any
-            claim will be limited to five times the cleaning cost of the affected
-            item.
+            Zusko shall also not be liable for damages caused by pre-existing conditions, manufacturer defects, normal wear and tear, or weak fabrics. Any verified claim under our direct operational control will be limited to a maximum of five times the service cost of the individual affected item.
           </p>
         </section>
 

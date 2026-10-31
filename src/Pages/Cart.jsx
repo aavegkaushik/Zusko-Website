@@ -9,8 +9,12 @@ import {
   ArrowLeft,
   Truck,
   Sparkles,
+  Calendar,
+  Clock,
+  AlertTriangle,
 } from "lucide-react";
 import CouponSection from "../components/CouponSection.jsx";
+import { PRE_BOOKING_CONFIG } from "../config/preBookingConfig";
 
 // Emoji map — same as BookLaundry
 const itemEmoji = {
@@ -88,7 +92,7 @@ export default function Cart() {
     return (
       <div
         className="min-h-screen flex flex-col"
-        style={{ background: "#F8F9FB", paddingTop: "80px" }}
+        style={{ background: "#F8F9FB", paddingTop: PRE_BOOKING_CONFIG.isEnabled ? "116px" : "80px" }}
       >
         {/* Header */}
         <div
@@ -175,7 +179,7 @@ export default function Cart() {
       className="min-h-screen"
       style={{
         background: "#F8F9FB",
-        paddingTop: "80px",
+        paddingTop: PRE_BOOKING_CONFIG.isEnabled ? "116px" : "80px",
         paddingBottom: "110px",
       }}
     >
@@ -280,6 +284,24 @@ export default function Cart() {
                 </p>
               </motion.div>
             )}
+
+            {/* Fabric Care Advisory Notice */}
+            <div className="mb-4 p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-50 to-orange-50 border border-amber-300 flex items-start gap-3 shadow-xs">
+              <div className="w-8 h-8 rounded-xl bg-amber-400 text-black flex items-center justify-center shrink-0 mt-0.5 shadow-2xs font-bold">
+                <AlertTriangle size={16} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-black text-amber-950 uppercase tracking-wide">
+                  Fabric Care & Service Advisory
+                </p>
+                <p className="text-xs font-semibold text-gray-900 mt-1 leading-relaxed">
+                  Please verify that laundry services are chosen strictly according to your garment's <strong>Fabric Care Tag</strong>.
+                </p>
+                <p className="text-[11px] text-gray-600 mt-1 leading-relaxed">
+                  Zusko assumes no liability or responsibility for fabric damage, shrinkage, or color bleeding resulting from selecting an incompatible service (such as normal wash for dry-clean-only or delicate garments).
+                </p>
+              </div>
+            </div>
 
             {/* Section label */}
             <p className="text-[12px] font-bold text-gray-400 uppercase tracking-widest mb-3 px-0.5">
@@ -547,6 +569,23 @@ export default function Cart() {
       </div>
 
     </div>
+
+    {PRE_BOOKING_CONFIG.isEnabled && (
+      <div className="mx-5 mb-4 p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200/80 text-xs">
+        <div className="flex items-center gap-1.5 font-bold text-amber-900 mb-1">
+          <Sparkles size={13} className="text-amber-600" />
+          <span>Pre-Booking Launch Slot</span>
+        </div>
+        <p className="text-[11px] text-amber-800 leading-relaxed">
+          Doorstep pickup locked for <strong>{PRE_BOOKING_CONFIG.shortDateDisplay}</strong> ({PRE_BOOKING_CONFIG.timeSlot}) at {PRE_BOOKING_CONFIG.campusName}.
+        </p>
+      </div>
+    )}
+
+    {/* Fabric Care Policy Reminder */}
+    {/* <div className="mx-5 mb-4 p-3 rounded-xl bg-amber-50/90 border border-amber-200/90 text-[11px] text-gray-700 leading-snug">
+      ⚠️ <strong>Fabric Care Reminder:</strong> Ensure selected services match garment care tags. Zusko is not liable for damage or shrinkage caused by incorrect service selection.
+    </div> */}
 
     {/* Total */}
     <div className="px-5 pb-5">
