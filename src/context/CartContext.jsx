@@ -327,11 +327,24 @@ const fetchAvailableCoupons = useCallback(async () => {
       response.data
     );
 
-    setAvailableCoupons(
-      Array.isArray(response.data?.coupons)
-        ? response.data.coupons
-        : []
-    );
+    const rawCoupons = Array.isArray(response.data?.coupons)
+      ? response.data.coupons
+      : [];
+
+    const activeCoupons = rawCoupons.filter((c) => {
+      if (!c) return false;
+      if (c.reason === "EXPIRED" || c.reason === "COUPON_EXPIRED") return false;
+      if (typeof c.message === "string" && c.message.toLowerCase().includes("expired")) return false;
+      if (c.isExpired === true || c.status === "expired") return false;
+      if (c.validUntil) {
+        const expiry = new Date(c.validUntil).getTime();
+        if (!isNaN(expiry) && expiry <= Date.now()) return false;
+      }
+      if (c.isActive === false || c.reason === "INACTIVE") return false;
+      return true;
+    });
+
+    setAvailableCoupons(activeCoupons);
 
   } catch (error) {
     console.error(

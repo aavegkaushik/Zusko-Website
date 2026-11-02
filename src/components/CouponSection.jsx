@@ -49,11 +49,59 @@ export default function CouponSection({ showAllCoupons, setShowAllCoupons }) {
   };
 
   // =========================================================
+  // COUPON EXPIRATION HELPER
+  // =========================================================
+
+  const isCouponExpired = (item) => {
+    if (!item) return true;
+
+    // 1. Explicit reason check from backend
+    if (item.reason === "EXPIRED" || item.reason === "COUPON_EXPIRED") {
+      return true;
+    }
+
+    // 2. Explicit message check
+    if (
+      typeof item.message === "string" &&
+      item.message.toLowerCase().includes("expired")
+    ) {
+      return true;
+    }
+
+    // 3. Status or boolean flags
+    if (item.isExpired === true || item.status === "expired") {
+      return true;
+    }
+
+    // 4. Expiration date check (validUntil)
+    if (item.validUntil) {
+      const expiryDate = new Date(item.validUntil);
+      if (!isNaN(expiryDate.getTime()) && expiryDate.getTime() <= Date.now()) {
+        return true;
+      }
+    }
+
+    // 5. Inactive / Not started
+    if (item.isActive === false || item.reason === "INACTIVE") {
+      return true;
+    }
+
+    return false;
+  };
+
+  // =========================================================
   // COUPON FILTER + SORT
   // =========================================================
 
   const visibleCoupons = availableCoupons
     .filter((item) => {
+      /*
+       * Expired coupons should NEVER appear in the coupon section.
+       */
+      if (isCouponExpired(item)) {
+        return false;
+      }
+
       /*
        * First-order / new-user coupons
        * should ONLY appear when eligible.

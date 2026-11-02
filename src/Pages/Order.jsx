@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import API from "../config/api";
 import { useAuth } from "../context/AuthContext";
 import { PRE_BOOKING_CONFIG } from "../config/preBookingConfig";
+import mercuryLogo from "../assets/mercury-cleaners-logo.png";
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
 
@@ -672,7 +673,43 @@ export default function BookLaundry() {
                       {selectedCareLevel === "premium" && <Check size={12} />}
                     </div>
                     <p className="text-[10px] text-gray-800">Extra care & finishing</p>
+
+                    <div className="mt-2 bg-white rounded-lg p-1.5 border border-amber-200 shadow-2xs flex flex-col items-center justify-center">
+                      <span className="text-[8.5px] font-extrabold uppercase tracking-wider text-amber-900/90 leading-tight">
+                        Powered by
+                      </span>
+                      <img
+                        src={mercuryLogo}
+                        alt="Mercury Cleaners"
+                        className="h-5 sm:h-5.5 w-auto max-w-full object-contain mt-0.5"
+                      />
+                    </div>
                   </button>
+                </div>
+
+                {/* Desktop: Powered by Mercury Cleaners responsive badge */}
+                <div className="mt-3 p-2.5 sm:p-3 rounded-xl bg-white/95 border border-amber-200 shadow-2xs flex items-center justify-between gap-2.5">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <Sparkles size={13} className="text-amber-500 shrink-0" />
+                      <span className="text-xs font-black text-gray-900">
+                        Premium Dry Clean
+                      </span>
+                      <span className="text-[9px] font-extrabold px-1.5 py-0.5 bg-amber-100 text-amber-900 rounded-full shrink-0">
+                        50+ Yrs Trust
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-gray-500 font-medium mt-0.5 truncate">
+                      Powered by Mercury Cleaners
+                    </p>
+                  </div>
+                  <div className="bg-amber-50/60 px-2.5 py-1.5 rounded-lg border border-amber-200/80 shrink-0 flex items-center justify-center">
+                    <img
+                      src={mercuryLogo}
+                      alt="Mercury Cleaners"
+                      className="h-6 sm:h-7.5 w-auto max-w-[130px] sm:max-w-[160px] object-contain"
+                    />
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -964,6 +1001,17 @@ export default function BookLaundry() {
                     <p className={`text-[10px] mt-0.5 ${selectedCareLevel === "premium" ? "text-black/80 font-medium" : "text-gray-400"}`}>
                       Extra finishing
                     </p>
+
+                    <div className="mt-2 bg-white rounded-lg p-1.5 border border-amber-200 shadow-2xs flex flex-col items-center justify-center">
+                      <span className="text-[8.5px] font-extrabold uppercase tracking-wider text-amber-900/90 leading-tight">
+                        Powered by
+                      </span>
+                      <img
+                        src={mercuryLogo}
+                        alt="Mercury Cleaners"
+                        className="h-5 sm:h-5.5 w-auto max-w-full object-contain mt-0.5"
+                      />
+                    </div>
                   </button>
                 </div>
               </motion.div>
