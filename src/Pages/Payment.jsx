@@ -1010,9 +1010,23 @@ export default function Payment() {
                             </div>
                           </div>
                         </div>
-                        <span className="text-xs font-black text-gray-900 flex-shrink-0 pl-2">
-                          ₹{item.qty * item.price}
-                        </span>
+                        <div className="text-right flex-shrink-0 pl-2">
+                          <div className="flex items-center gap-1.5 justify-end">
+                            {item.isDiscounted && item.originalPrice > item.finalPrice && (
+                              <span className="text-[10px] text-gray-400 line-through">
+                                ₹{item.qty * item.originalPrice}
+                              </span>
+                            )}
+                            <span className="text-xs font-black text-gray-900">
+                              ₹{item.qty * item.price}
+                            </span>
+                          </div>
+                          {item.isDiscounted && (
+                            <span className="inline-block text-[8px] font-bold text-amber-900 bg-amber-100 px-1 py-0.2 rounded">
+                              {item.discountPercentage}% OFF
+                            </span>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
@@ -1056,11 +1070,19 @@ export default function Payment() {
               {/* Bill Details */}
               <div className="px-5 py-3 border-t border-gray-100 space-y-2 text-xs">
                 <div className="flex justify-between text-gray-600">
-                  <span>Item Subtotal</span>
+                  <span>Items Total (MRP)</span>
                   <span className="font-bold text-gray-900">
                     ₹{orderData.originalTotal ?? orderData.total}
                   </span>
                 </div>
+                {orderData.promotionalDiscount > 0 && (
+                  <div className="flex justify-between text-amber-700 font-bold">
+                    <span className="flex items-center gap-1">
+                      <Sparkles size={11} className="text-amber-500" /> Promotional Discount
+                    </span>
+                    <span>−₹{orderData.promotionalDiscount}</span>
+                  </div>
+                )}
                 {orderData.discount > 0 && (
                   <div className="flex justify-between text-emerald-600 font-bold">
                     <span className="flex items-center gap-1">

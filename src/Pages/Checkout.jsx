@@ -279,6 +279,9 @@ export default function Checkout() {
   const {
     cart,
     total,
+    originalTotal,
+    promotionalDiscount,
+    totalSavings,
     finalTotal,
     handlingCharge,
     discount,
@@ -1106,9 +1109,18 @@ export default function Checkout() {
         },
 
         items: cart.map((item) => ({
+          pricingId: item.pricingId || null,
+          clothId: item.clothId || item.pricingId || null,
           name: item.name,
           qty: item.qty,
           price: item.price,
+          originalPrice: item.originalPrice !== undefined ? item.originalPrice : item.price,
+          finalPrice: item.finalPrice !== undefined ? item.finalPrice : item.price,
+          discountAmount: item.discountAmount || 0,
+          discountPercentage: item.discountPercentage || 0,
+          isDiscounted: !!item.isDiscounted,
+          appliedPromotion: item.appliedPromotion || null,
+          appliedPromotionName: item.appliedPromotionName || null,
           service: item.service,
           careLevel:
             item.service === "Dry Clean"
@@ -1116,7 +1128,8 @@ export default function Checkout() {
               : null,
         })),
 
-        originalTotal: total,
+        originalTotal: originalTotal || total,
+        promotionalDiscount: promotionalDiscount || 0,
         deliveryFee,
         handlingFee: handlingCharge,
         total: finalAmount,
@@ -2356,11 +2369,23 @@ export default function Checkout() {
                         </div>
                       </div>
 
-                      <span className="text-[13px] font-black text-gray-900 shrink-0">
-                        ₹
-                        {item.qty *
-                          item.price}
-                      </span>
+                      <div className="text-right shrink-0">
+                        <div className="flex items-center gap-1.5 justify-end">
+                          {item.isDiscounted && item.originalPrice > item.finalPrice && (
+                            <span className="text-[11px] text-gray-400 line-through">
+                              ₹{item.qty * item.originalPrice}
+                            </span>
+                          )}
+                          <span className="text-[13px] font-black text-gray-900">
+                            ₹{item.qty * item.price}
+                          </span>
+                        </div>
+                        {item.isDiscounted && (
+                          <span className="inline-block text-[9px] font-bold text-amber-900 bg-amber-100 px-1.5 py-0.2 rounded mt-0.5">
+                            {item.discountPercentage}% OFF
+                          </span>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
@@ -2369,12 +2394,35 @@ export default function Checkout() {
               <div className="px-5 py-3 space-y-2 border-t border-gray-100">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-500">
-                    Item Total
+                    Items Total (MRP)
                   </span>
                   <span className="font-semibold text-gray-800">
-                    ₹{total}
+                    ₹{originalTotal || total}
                   </span>
                 </div>
+
+                {promotionalDiscount > 0 && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-1 text-amber-700 font-medium">
+                      <Sparkles size={12} className="text-amber-500" />
+                      Promotional Discount
+                    </span>
+                    <span className="font-bold text-amber-700">
+                      −₹{promotionalDiscount}
+                    </span>
+                  </div>
+                )}
+
+                {promotionalDiscount > 0 && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">
+                      Subtotal
+                    </span>
+                    <span className="font-semibold text-gray-800">
+                      ₹{total}
+                    </span>
+                  </div>
+                )}
 
                 {discount > 0 && (
                   <div className="flex items-center justify-between text-sm">
@@ -2422,6 +2470,18 @@ export default function Checkout() {
                     ₹{handlingCharge}
                   </span>
                 </div>
+
+                {totalSavings > 0 && (
+                  <div className="pt-1.5 border-t border-dashed border-gray-200">
+                    <div className="flex items-center justify-between text-xs text-amber-900 bg-amber-50 px-2.5 py-1.5 rounded-xl font-bold border border-amber-200/60">
+                      <span className="flex items-center gap-1">
+                        <Sparkles size={11} className="text-amber-600" />
+                        Total Savings
+                      </span>
+                      <span>₹{totalSavings}</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="px-5 pb-4">

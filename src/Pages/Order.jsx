@@ -1068,6 +1068,28 @@ export default function BookLaundry() {
                 </div>
               </div>
 
+              {/* Dynamic Promotion Banner */}
+              {pricing.some((item) => item.isDiscounted) && (
+                <div className="mb-3 px-4 py-3 rounded-2xl bg-gradient-to-r from-yellow-400/20 via-amber-300/15 to-yellow-500/20 border-2 border-[#FFD700] flex items-center justify-between gap-3 shadow-xs">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-black text-[#FFD700] text-sm font-black shadow-xs shrink-0">
+                      ⚡
+                    </span>
+                    <div>
+                      <p className="text-xs font-black text-gray-950 uppercase tracking-wide">
+                        Special Promotional Pricing Active!
+                      </p>
+                      <p className="text-[11px] text-gray-700 font-medium mt-0.5">
+                        Discounted prices are applied directly to eligible clothes below.
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-black text-[#FFD700] shrink-0 shadow-xs">
+                    Limited Offer
+                  </span>
+                </div>
+              )}
+
               {/* Fabric Care Policy Banner above Items Grid */}
               <div className="mb-3 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-amber-50 via-white to-amber-50 border border-amber-200/90 flex items-center justify-between gap-2.5 text-[11px] shadow-2xs">
                 <div className="flex items-center gap-2">
@@ -1419,13 +1441,40 @@ function ItemCard({
                 Premium
               </span>
             )}
+
+            {/* Dynamic Promotional Badge */}
+            {item.isDiscounted && (
+              <span
+                className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-black px-2 py-0.5 rounded-full shadow-2xs"
+                style={{
+                  background: "linear-gradient(135deg, #FFD700, #F59E0B)",
+                  color: "#0A0A0A",
+                }}
+              >
+                ⚡ {item.appliedPromotion?.badgeText || `${item.discountPercentage}% OFF`}
+              </span>
+            )}
           </div>
 
           {/* Price */}
-          <div className="flex items-baseline gap-1 mt-1">
-            <span className="font-black text-gray-950 text-base sm:text-lg leading-none">
-              ₹{price}
-            </span>
+          <div className="flex items-baseline gap-1.5 mt-1.5 flex-wrap">
+            {item.isDiscounted ? (
+              <>
+                <span className="font-black text-gray-950 text-base sm:text-lg leading-none">
+                  ₹{item.finalPrice !== undefined ? item.finalPrice : price}
+                </span>
+                <span className="line-through text-gray-400 text-xs sm:text-sm font-semibold">
+                  ₹{item.originalPrice}
+                </span>
+                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                  Save ₹{item.discountAmount}
+                </span>
+              </>
+            ) : (
+              <span className="font-black text-gray-950 text-base sm:text-lg leading-none">
+                ₹{price}
+              </span>
+            )}
             <span className="text-[10px] text-gray-400 font-medium">/ piece</span>
           </div>
         </div>
@@ -1445,7 +1494,14 @@ function ItemCard({
                   addItem({
                     ...item,
                     pricingId: item._id,
-                    price,
+                    price: item.finalPrice !== undefined ? item.finalPrice : price,
+                    finalPrice: item.finalPrice !== undefined ? item.finalPrice : price,
+                    originalPrice: item.originalPrice !== undefined ? item.originalPrice : price,
+                    discountAmount: item.discountAmount || 0,
+                    discountPercentage: item.discountPercentage || 0,
+                    isDiscounted: Boolean(item.isDiscounted),
+                    appliedPromotion: item.appliedPromotion || null,
+                    appliedPromotionName: item.appliedPromotionName || "",
                     service: selectedService,
                     careLevel:
                       selectedService === "Dry Clean"

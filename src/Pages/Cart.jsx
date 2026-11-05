@@ -74,6 +74,9 @@ export default function Cart() {
   const {
     cart,
     total,
+    originalTotal,
+    promotionalDiscount,
+    totalSavings,
     finalTotal,
     handlingCharge,
     discount,
@@ -387,10 +390,24 @@ export default function Cart() {
     )
   )}
 
-  {/* Price */}
-  <span className="text-[11px] text-gray-400 font-medium">
-    ₹{item.price} each
-  </span>
+  {/* Price: Discounted vs Regular */}
+  {item.isDiscounted || (item.originalPrice && item.originalPrice > (item.finalPrice || item.price)) ? (
+    <div className="flex items-center gap-1.5 flex-wrap">
+      <span className="text-[11px] text-gray-950 font-bold">
+        ₹{item.finalPrice || item.price}
+      </span>
+      <span className="text-[10px] text-gray-400 line-through">
+        ₹{item.originalPrice}
+      </span>
+      <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-[#FFD700] text-black">
+        {item.discountPercentage}% OFF
+      </span>
+    </div>
+  ) : (
+    <span className="text-[11px] text-gray-400 font-medium">
+      ₹{item.price} each
+    </span>
+  )}
 </div>
                         </div>
                       </div>
@@ -438,8 +455,13 @@ export default function Cart() {
                             Subtotal
                           </p>
                           <p className="font-black text-gray-900 text-[17px] leading-none">
-                            ₹{item.qty * item.price}
+                            ₹{item.qty * (item.finalPrice || item.price)}
                           </p>
+                          {(item.isDiscounted || (item.originalPrice && item.originalPrice > (item.finalPrice || item.price))) && (
+                            <p className="text-[10px] text-gray-400 line-through mt-0.5">
+                              ₹{item.qty * (item.originalPrice || item.price)}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </motion.div>
@@ -535,15 +557,35 @@ export default function Cart() {
     {/* Bill rows */}
     <div className="px-5 py-4 space-y-3">
 
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-gray-500">
-          Item Total
-        </span>
+      {promotionalDiscount > 0 ? (
+        <>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-500">Items Total (MRP)</span>
+            <span className="font-semibold text-gray-400 line-through">₹{originalTotal}</span>
+          </div>
+          <div className="flex items-center justify-between text-sm text-emerald-600">
+            <span className="flex items-center gap-1 font-semibold">
+              <Sparkles size={12} />
+              Promotional Discount
+            </span>
+            <span className="font-bold">−₹{promotionalDiscount}</span>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-700 font-medium">Subtotal</span>
+            <span className="font-bold text-gray-900">₹{total}</span>
+          </div>
+        </>
+      ) : (
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-gray-500">
+            Item Total
+          </span>
 
-        <span className="font-semibold text-gray-800">
-          ₹{total}
-        </span>
-      </div>
+          <span className="font-semibold text-gray-800">
+            ₹{total}
+          </span>
+        </div>
+      )}
 
       {discount > 0 && (
         <div className="flex items-center justify-between text-sm">
@@ -604,6 +646,11 @@ export default function Cart() {
           <p className="text-xl font-black text-gray-900 mt-1">
             ₹{finalTotal}
           </p>
+          {totalSavings > 0 && (
+            <p className="text-[10px] font-extrabold text-emerald-600 mt-0.5">
+              🎉 Saving ₹{totalSavings}
+            </p>
+          )}
         </div>
 
         <button

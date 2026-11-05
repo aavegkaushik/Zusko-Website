@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Sparkles } from "lucide-react";
 import logo from '../assets/Zusko White Logo.png'
 import { prefetchRoute } from "../utils/prefetch";
 import { HangingSideKandils } from "./DiwaliLanterns";
+import API from "../config/api";
 
 export default function Hero({
   videoSrc = "/videos/hero.mp4",
@@ -34,6 +35,26 @@ export default function Hero({
     }
 
     return () => observer.disconnect();
+  }, []);
+
+  const [promotion, setPromotion] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchPromotion = async () => {
+      try {
+        const res = await API.get("/customer/pricing");
+        if (isMounted && res.data?.promotion) {
+          setPromotion(res.data.promotion);
+        }
+      } catch {
+        // Fallback silently if offline or endpoint unavailable
+      }
+    };
+    fetchPromotion();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const containerVariants = {
@@ -103,6 +124,19 @@ export default function Hero({
           initial="hidden"
           animate="visible"
         > 
+
+          {/* Active Promotion Badge */}
+          {promotion && (
+            <motion.div
+              variants={itemVariants}
+              className="mb-6 inline-flex items-center gap-2 rounded-full border border-yellow-400/50 bg-black/75 px-4 py-1.5 text-xs font-black uppercase tracking-wider text-[#FFD700] shadow-xl backdrop-blur-md"
+            >
+              <Sparkles size={14} className="text-[#FFD700] animate-pulse" />
+              <span>
+                Special Offer: {promotion.discountPercentage || promotion.discountValue}% OFF ACTIVE NOW!
+              </span>
+            </motion.div>
+          )}
 
           {/* Main heading with elegant styling */}
           <motion.h1

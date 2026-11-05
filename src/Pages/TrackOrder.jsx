@@ -291,10 +291,22 @@ export default function EnhancedTrackOrder() {
       ? Math.max(5, ((currentStep + 1) / STEPS.length) * 100)
       : 0;
 
-  const subtotal =
+  const itemsSubtotal =
+    order.items?.reduce((acc, item) => acc + (item.price || 0) * (item.qty || 1), 0) || 0;
+  const originalSubtotal =
     order.originalTotal ||
-    order.items?.reduce((acc, item) => acc + item.price * item.qty, 0) ||
-    0;
+    order.items?.reduce(
+      (acc, item) =>
+        acc +
+        (item.originalPrice !== undefined ? item.originalPrice : item.price || 0) *
+          (item.qty || 1),
+      0
+    ) ||
+    itemsSubtotal;
+  const promoDiscount =
+    order.promotionalDiscount !== undefined
+      ? Number(order.promotionalDiscount)
+      : Math.max(0, originalSubtotal - itemsSubtotal);
 
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-gradient-to-br from-gray-50 via-white to-gray-100 pb-16 pt-24 sm:pb-20 sm:pt-28 lg:pb-24 lg:pt-32">
@@ -556,25 +568,63 @@ export default function EnhancedTrackOrder() {
         </span>
       )
     )}
+
+    {item.discountPercentage > 0 && (
+      <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-900">
+        {item.discountPercentage}% OFF
+      </span>
+    )}
   </div>
 
-  <p className="mt-1 text-[11px] text-gray-400">
-    ₹{item.price} × {item.qty}
-  </p>
+  <div className="mt-1 flex items-center gap-2 text-[11px]">
+    {item.originalPrice && item.originalPrice > (item.finalPrice || item.price) ? (
+      <>
+        <span className="text-gray-400 line-through">₹{item.originalPrice}</span>
+        <span className="font-bold text-gray-800">₹{item.finalPrice || item.price} × {item.qty}</span>
+      </>
+    ) : (
+      <span className="text-gray-400">₹{item.price} × {item.qty}</span>
+    )}
+  </div>
 </div>
-                    <p className="shrink-0 text-base font-black text-gray-900 sm:text-lg">
-                      ₹{item.price * item.qty}
-                    </p>
+                    <div className="text-right shrink-0">
+                      {item.originalPrice && item.originalPrice > (item.finalPrice || item.price) && (
+                        <p className="text-xs text-gray-400 line-through">
+                          ₹{item.originalPrice * item.qty}
+                        </p>
+                      )}
+                      <p className="text-base font-black text-gray-900 sm:text-lg">
+                        ₹{(item.finalPrice || item.price) * item.qty}
+                      </p>
+                    </div>
                   </motion.div>
                 ))}
               </div>
 
               <div className="mt-6 rounded-2xl border border-purple-100 bg-gradient-to-br from-purple-50 to-pink-50 p-5 sm:p-6">
                 <div className="space-y-3 text-sm">
-                  <div className="flex justify-between gap-4 text-gray-600">
-                    <span>Subtotal</span>
-                    <span className="font-bold text-gray-900">₹{subtotal}</span>
-                  </div>
+                  {promoDiscount > 0 ? (
+                    <>
+                      <div className="flex justify-between gap-4 text-gray-600">
+                        <span>Items Total (MRP)</span>
+                        <span className="font-bold text-gray-900">₹{originalSubtotal}</span>
+                      </div>
+                      <div className="flex justify-between gap-4 font-bold text-amber-700">
+                        <span>Promotional Discount</span>
+                        <span>-₹{promoDiscount}</span>
+                      </div>
+                      <div className="flex justify-between gap-4 text-gray-600">
+                        <span>Subtotal</span>
+                        <span className="font-bold text-gray-900">₹{itemsSubtotal}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex justify-between gap-4 text-gray-600">
+                      <span>Subtotal</span>
+                      <span className="font-bold text-gray-900">₹{itemsSubtotal}</span>
+                    </div>
+                  )}
+
                   <div className="flex justify-between gap-4 text-gray-600">
                     <span>Handling Charges</span>
                     <span className="font-bold text-gray-900">₹{order.handlingFee || 0}</span>
@@ -587,7 +637,7 @@ export default function EnhancedTrackOrder() {
                   </div>
                   {order.discount > 0 && (
                     <div className="flex justify-between gap-4 font-bold text-green-600">
-                      <span>Discount</span>
+                      <span>Coupon Discount</span>
                       <span>-₹{order.discount}</span>
                     </div>
                   )}

@@ -605,6 +605,12 @@ export default function MyOrders() {
                             );
 
                             const price = Number(item.price || 0);
+                            const originalPrice =
+                              item.originalPrice !== undefined
+                                ? Number(item.originalPrice)
+                                : price;
+                            const isDiscounted =
+                              item.isDiscounted || originalPrice > price;
 
                             const itemTotal = price * quantity;
 
@@ -643,9 +649,27 @@ export default function MyOrders() {
                                       </p>
                                     )}
 
-                                    <p className="text-sm text-gray-500">
-                                      ₹{price.toFixed(2)} × {quantity}
-                                    </p>
+                                    <div className="flex items-center gap-2 mt-1">
+                                      {isDiscounted ? (
+                                        <>
+                                          <span className="text-xs text-gray-400 line-through">
+                                            ₹{originalPrice.toFixed(2)}
+                                          </span>
+                                          <span className="text-sm font-semibold text-gray-800">
+                                            ₹{price.toFixed(2)} × {quantity}
+                                          </span>
+                                          {item.discountPercentage > 0 && (
+                                            <span className="text-[10px] font-bold text-amber-900 bg-amber-100 px-1.5 py-0.2 rounded">
+                                              {item.discountPercentage}% OFF
+                                            </span>
+                                          )}
+                                        </>
+                                      ) : (
+                                        <p className="text-sm text-gray-500">
+                                          ₹{price.toFixed(2)} × {quantity}
+                                        </p>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
 
@@ -753,19 +777,46 @@ export default function MyOrders() {
 
                         <div className="bg-white rounded-2xl p-5">
                           <div className="space-y-3 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Item Total</span>
+                            {Number(order.promotionalDiscount || 0) > 0 || (order.originalTotal && Number(order.originalTotal) > subtotal) ? (
+                              <>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-500">Items Total (MRP)</span>
+                                  <span className="font-medium">
+                                    ₹{(Number(order.originalTotal || (subtotal + Number(order.promotionalDiscount || 0)))).toFixed(2)}
+                                  </span>
+                                </div>
 
-                              <span className="font-medium">
-                                ₹{subtotal.toFixed(2)}
-                              </span>
-                            </div>
+                                <div className="flex justify-between text-amber-700">
+                                  <span className="flex items-center gap-1.5 font-medium">
+                                    <Sparkles size={14} className="text-amber-500" />
+                                    Promotional Discount
+                                  </span>
+                                  <span className="font-semibold">
+                                    -₹{Number(order.promotionalDiscount || (Number(order.originalTotal) - subtotal)).toFixed(2)}
+                                  </span>
+                                </div>
+
+                                <div className="flex justify-between">
+                                  <span className="text-gray-500">Subtotal</span>
+                                  <span className="font-medium">
+                                    ₹{subtotal.toFixed(2)}
+                                  </span>
+                                </div>
+                              </>
+                            ) : (
+                              <div className="flex justify-between">
+                                <span className="text-gray-500">Item Total</span>
+                                <span className="font-medium">
+                                  ₹{subtotal.toFixed(2)}
+                                </span>
+                              </div>
+                            )}
 
                             {discount > 0 && (
                               <div className="flex justify-between text-green-600">
                                 <span className="flex items-center gap-2">
                                   <Tag size={16} />
-                                  Discount
+                                  Coupon Discount
                                 </span>
 
                                 <span className="font-medium">

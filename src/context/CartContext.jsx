@@ -119,8 +119,13 @@ export const CartProvider = ({ children }) => {
    */
 
   const isSameItem = (a, b) => {
+    const sameIdentity =
+      a.pricingId && b.pricingId
+        ? String(a.pricingId) === String(b.pricingId)
+        : a.name === b.name && (a.variant || "") === (b.variant || "");
+
     return (
-      a.name === b.name &&
+      sameIdentity &&
       a.service === b.service &&
       (a.service === "Dry Clean"
         ? (a.careLevel || "regular") === (b.careLevel || "regular")
@@ -133,8 +138,36 @@ export const CartProvider = ({ children }) => {
   // =========================================================
 
   const addItem = (item) => {
+    const originalPrice = Number(
+      item.originalPrice !== undefined ? item.originalPrice : item.price || 0
+    );
+    const finalPrice = Number(
+      item.finalPrice !== undefined ? item.finalPrice : item.price || 0
+    );
+    const discountAmount = Number(
+      item.discountAmount !== undefined
+        ? item.discountAmount
+        : Math.max(0, originalPrice - finalPrice)
+    );
+    const discountPercentage = Number(
+      item.discountPercentage !== undefined
+        ? item.discountPercentage
+        : originalPrice > 0
+        ? Math.round((discountAmount / originalPrice) * 100)
+        : 0
+    );
+
     const normalizedItem = {
       ...item,
+      pricingId: item.pricingId || item._id,
+      originalPrice,
+      finalPrice,
+      price: finalPrice, // Unit price is always the discounted/final price
+      discountAmount,
+      discountPercentage,
+      isDiscounted: Boolean(item.isDiscounted || discountAmount > 0),
+      appliedPromotion: item.appliedPromotion || null,
+      appliedPromotionName: item.appliedPromotionName || item.appliedPromotion?.name || "",
 
       careLevel:
         item.service === "Dry Clean"
@@ -267,12 +300,25 @@ export const CartProvider = ({ children }) => {
   // CART TOTAL
   // =========================================================
 
+  const originalTotal = cart.reduce(
+    (acc, item) =>
+      acc +
+      Number(item.qty || 0) *
+        Number(item.originalPrice !== undefined ? item.originalPrice : item.price || 0),
+    0
+  );
+
   const total = cart.reduce(
     (acc, item) =>
       acc +
       Number(item.qty || 0) *
-        Number(item.price || 0),
+        Number(item.finalPrice !== undefined ? item.finalPrice : item.price || 0),
     0
+  );
+
+  const promotionalDiscount = Math.max(
+    0,
+    Math.round((originalTotal - total) * 100) / 100
   );
 
   // =========================================================
@@ -287,10 +333,19 @@ export const CartProvider = ({ children }) => {
 
 const getCouponItems = useCallback(() => {
   return cart.map((item) => ({
+    pricingId: item.pricingId || item._id,
     name: item.name,
     service: item.service,
+    category: item.category,
     qty: item.qty,
-    price: item.price,
+    price: item.finalPrice !== undefined ? item.finalPrice : item.price,
+    originalPrice: item.originalPrice !== undefined ? item.originalPrice : item.price,
+    finalPrice: item.finalPrice !== undefined ? item.finalPrice : item.price,
+    discountAmount: item.discountAmount || 0,
+    discountPercentage: item.discountPercentage || 0,
+    isDiscounted: Boolean(item.isDiscounted || (item.discountAmount > 0)),
+    appliedPromotion: item.appliedPromotion || null,
+    appliedPromotionName: item.appliedPromotionName || "",
   }));
 }, [cart]);
 
@@ -887,6 +942,12 @@ useEffect(() => {
         // ---------------------------------------------------
         // AMOUNTS
         // ---------------------------------------------------
+
+        originalTotal,
+
+        promotionalDiscount,
+
+        totalSavings: Math.round((promotionalDiscount + discount) * 100) / 100,
 
         total,
 

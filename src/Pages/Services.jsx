@@ -5,7 +5,9 @@ import {
   useTransform,
   useSpring,
 } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
+import { Sparkles } from "lucide-react";
+import API from "../config/api";
 
 import delivery from "../assets/delivery.png";
 import {
@@ -110,6 +112,57 @@ const services = [
 
 const Services = () => {
   const navigate = useNavigate();
+  const [pricingList, setPricingList] = useState([]);
+  const [promotion, setPromotion] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchPricing = async () => {
+      try {
+        const res = await API.get("/customer/pricing");
+        if (isMounted) {
+          setPricingList(res.data?.data || []);
+          setPromotion(res.data?.promotion || null);
+        }
+      } catch {
+        // Fallback gracefully
+      }
+    };
+    fetchPricing();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const getServicePricing = (serviceType) => {
+    if (!Array.isArray(pricingList) || !pricingList.length) return null;
+    const items = pricingList.filter((item) => item.service === serviceType);
+    if (!items.length) return null;
+
+    const minFinalPrice = Math.min(...items.map((i) => i.finalPrice ?? i.price));
+    const minOriginalPrice = Math.min(...items.map((i) => i.originalPrice ?? i.price));
+    const hasDiscount = items.some(
+      (i) => i.isDiscounted && (i.originalPrice > i.finalPrice)
+    );
+    const maxDiscountPercentage = Math.max(
+      ...items.map((i) => i.discountPercentage || 0)
+    );
+
+    return {
+      minFinalPrice,
+      minOriginalPrice,
+      hasDiscount,
+      maxDiscountPercentage,
+    };
+  };
+
+  const servicePriceMap = {
+    "Wash & Fold": getServicePricing("Wash & Fold"),
+    "Dry Cleaning": getServicePricing("Dry Clean"),
+    "Wash & Iron": getServicePricing("Wash & Iron"),
+    "Iron Only": getServicePricing("Steam Iron"),
+    "Steam Ironing": getServicePricing("Steam Iron"),
+  };
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#FAFAF8] text-[#111]">
 
@@ -395,6 +448,36 @@ const Services = () => {
 
           </div>
 
+          {/* Active Promotion Banner */}
+          {promotion && (
+            <div className="mb-12 p-5 rounded-3xl bg-black text-white border border-[#FFD700]/40 shadow-xl flex items-center justify-between flex-wrap gap-4">
+              <div className="flex items-center gap-3.5">
+                <div className="h-11 w-11 rounded-2xl bg-[#FFD700] text-black font-black flex items-center justify-center text-lg shadow-sm shrink-0">
+                  <Sparkles size={22} className="text-black" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-base font-black text-[#FFD700]">
+                      {promotion.name || "Special Promotional Discount"}
+                    </p>
+                    <span className="px-2 py-0.5 rounded-full bg-[#FFD700] text-black text-[10px] font-black uppercase">
+                      {promotion.discountPercentage || promotion.discountValue}% OFF ACTIVE
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-300 mt-0.5">
+                    Live dynamic savings applied directly to all eligible items below.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => navigate("/place-order")}
+                className="px-5 py-2.5 rounded-xl bg-[#FFD700] text-black font-black text-xs uppercase tracking-wider hover:bg-yellow-300 transition"
+              >
+                Book with Discount →
+              </button>
+            </div>
+          )}
+
           {/* Fabric Care & Selection Advisory Card */}
           <div className="mb-16 p-6 md:p-8 rounded-3xl bg-gradient-to-r from-amber-500/10 via-yellow-400/10 to-orange-500/10 border-2 border-amber-300 shadow-sm">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4 border-b border-amber-200">
@@ -456,6 +539,7 @@ const Services = () => {
                 key={service.title}
                 service={service}
                 index={index}
+                pricingInfo={servicePriceMap[service.title]}
               />
 
             ))}
@@ -629,6 +713,7 @@ export default Services;
 const ServiceBlock = ({
   service,
   index,
+  pricingInfo,
 }) => {
   const navigate = useNavigate();
   const ref = useRef(null);
@@ -935,6 +1020,32 @@ const ServiceBlock = ({
         ">
           {service.desc}
         </p>
+
+        {/* Dynamic Pricing display */}
+        {pricingInfo && (
+          <div className="mt-6 flex items-center gap-3 flex-wrap">
+            <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
+              Starts from
+            </span>
+            {pricingInfo.hasDiscount ? (
+              <>
+                <span className="text-2xl md:text-3xl font-black text-gray-950">
+                  ₹{pricingInfo.minFinalPrice}
+                </span>
+                <span className="text-sm font-semibold text-gray-400 line-through">
+                  ₹{pricingInfo.minOriginalPrice}
+                </span>
+                <span className="rounded-full bg-black px-2.5 py-0.5 text-xs font-black text-[#FFD700]">
+                  {pricingInfo.maxDiscountPercentage}% OFF
+                </span>
+              </>
+            ) : (
+              <span className="text-2xl md:text-3xl font-black text-gray-950">
+                ₹{pricingInfo.minOriginalPrice}
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Features */}
 
