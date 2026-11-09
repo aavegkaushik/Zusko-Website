@@ -300,7 +300,16 @@ export default function Success() {
     ? `#${orderCode}`
     : orderId
     ? `#ZK-${orderId.slice(-6).toUpperCase()}`
-    : `#ZK-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    : "";
+
+  // Direct entry guard: if user lands on /success without placing an order, redirect safely
+  useEffect(() => {
+    const hasOrder = orderId || orderCode || location.state?.order;
+    const isOrderSuccess = sessionStorage.getItem("orderSuccess") === "true";
+    if (!hasOrder && !isOrderSuccess) {
+      navigate("/my-orders", { replace: true });
+    }
+  }, [orderId, orderCode, location.state, navigate]);
 
 
   // ==========================================================

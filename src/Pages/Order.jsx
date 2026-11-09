@@ -4,8 +4,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, X, Sparkles,
   ChevronRight, Clock, Zap, Wind, Droplets, Layers,
-  Check, ArrowUp, AlertTriangle
+  Check, ArrowUp, AlertTriangle, Trash2, Plus, Minus,
+  ShoppingBag, ChevronUp, ChevronDown
 } from "lucide-react";
+import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import API from "../config/api";
 import { useAuth } from "../context/AuthContext";
@@ -82,6 +84,8 @@ export default function BookLaundry() {
   const [pricingError, setPricingError] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
+  const [showMobileClearConfirm, setShowMobileClearConfirm] = useState(false);
 
   // Mobile service carousel ref
   const serviceScrollRef = useRef(null);
@@ -118,7 +122,23 @@ export default function BookLaundry() {
   };
   const placeholders = getSmartPlaceholders();
 
-  const { cart, addItem, increaseQty, decreaseQty } = useContext(CartContext);
+  const {
+    cart,
+    addItem,
+    removeItem,
+    increaseQty,
+    decreaseQty,
+    clearCart,
+    promotionalDiscount,
+    handlingCharge = 15,
+  } = useContext(CartContext);
+
+  useEffect(() => {
+    if (cart.length === 0 && isMobileCartOpen) {
+      setIsMobileCartOpen(false);
+      setShowMobileClearConfirm(false);
+    }
+  }, [cart.length, isMobileCartOpen]);
 
   const getItemQty = (item) => {
     return (
@@ -1228,7 +1248,18 @@ export default function BookLaundry() {
           {/* ── RIGHT PANEL: Cart summary (desktop, xl+) ── */}
           {cartCount > 0 && (
             <aside className="hidden xl:block xl:w-[340px] flex-shrink-0 xl:sticky xl:top-24">
-              <CartSummaryPanel cart={cart} cartCount={cartCount} cartTotal={cartTotal} navigate={navigate} />
+              <CartSummaryPanel
+                cart={cart}
+                cartCount={cartCount}
+                cartTotal={cartTotal}
+                handlingCharge={handlingCharge ?? 15}
+                increaseQty={increaseQty}
+                decreaseQty={decreaseQty}
+                removeItem={removeItem}
+                clearCart={clearCart}
+                promotionalDiscount={promotionalDiscount}
+                navigate={navigate}
+              />
             </aside>
           )}
 
@@ -1255,15 +1286,257 @@ export default function BookLaundry() {
         )}
       </AnimatePresence>
 
+      {/* ── MOBILE QUICK CART DRAWER / BOTTOM SHEET ── */}
+      <AnimatePresence>
+        {isMobileCartOpen && cartCount > 0 && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => {
+                setIsMobileCartOpen(false);
+                setShowMobileClearConfirm(false);
+              }}
+              className="xl:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs"
+            />
+
+            {/* Bottom Sheet Modal */}
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 320, damping: 30 }}
+              className="xl:hidden fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl max-h-[85vh] flex flex-col shadow-2xl border-t border-gray-100 overflow-hidden pb-[max(16px,env(safe-area-inset-bottom))]"
+            >
+              {/* Drag Handle */}
+              <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mt-3 mb-1" />
+
+              {/* Header */}
+              <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center">
+                    <ShoppingBag size={16} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900 text-sm">Your Laundry Bag</h3>
+                    <p className="text-[11px] text-gray-500 font-medium">
+                      {cartCount} {cartCount === 1 ? "item" : "items"} added
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {/* Empty Cart Button */}
+                  <button
+                    type="button"
+                    onClick={() => setShowMobileClearConfirm((prev) => !prev)}
+                    className="text-xs font-bold text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+                  >
+                    <Trash2 size={13} />
+                    <span>Empty Cart</span>
+                  </button>
+
+                  {/* Close Sheet */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMobileCartOpen(false);
+                      setShowMobileClearConfirm(false);
+                    }}
+                    className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 transition-colors cursor-pointer"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Clear Confirmation Prompt */}
+              <AnimatePresence>
+                {showMobileClearConfirm && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="bg-red-50 border-b border-red-100 px-5 py-3 flex items-center justify-between text-xs"
+                  >
+                    <span className="text-red-700 font-bold">
+                      Empty all {cartCount} items?
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          clearCart();
+                          setShowMobileClearConfirm(false);
+                          setIsMobileCartOpen(false);
+                          toast.success("Cart cleared");
+                        }}
+                        className="bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+                      >
+                        Yes, Empty
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowMobileClearConfirm(false)}
+                        className="text-gray-600 hover:text-gray-900 font-semibold px-2 py-1.5 cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Items List with Quantity Controls */}
+              <div className="flex-1 overflow-y-auto px-5 py-2 divide-y divide-gray-100" style={{ scrollbarWidth: "thin" }}>
+                <AnimatePresence>
+                  {cart.map((item) => {
+                    const itemKey = `${item.pricingId || item._id || item.name}-${item.service}-${item.careLevel || "regular"}`;
+                    const unitPrice = item.finalPrice !== undefined ? item.finalPrice : item.price;
+                    const lineTotal = unitPrice * item.qty;
+
+                    return (
+                      <motion.div
+                        key={itemKey}
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="py-3 flex items-center justify-between gap-3"
+                      >
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <span className="text-2xl flex-shrink-0">
+                            {itemEmoji[item.name] || "🧺"}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-bold text-gray-900 leading-snug truncate">
+                              {item.variant ? `${item.name} (${item.variant})` : item.name}
+                            </p>
+                            <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                              <span className="text-[10px] text-gray-500 font-medium">
+                                {item.service}
+                              </span>
+                              {item.service === "Dry Clean" && (
+                                <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                                  {item.careLevel === "premium" ? "Premium" : "Regular"}
+                                </span>
+                              )}
+                              {item.isDiscounted && (
+                                <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded">
+                                  {item.discountPercentage}% OFF
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-baseline gap-1.5 mt-1">
+                              <span className="text-xs font-black text-gray-900">
+                                ₹{lineTotal}
+                              </span>
+                              {item.isDiscounted && item.originalPrice && item.originalPrice > unitPrice && (
+                                <span className="text-[10px] text-gray-400 line-through">
+                                  ₹{item.originalPrice * item.qty}
+                                </span>
+                              )}
+                              <span className="text-[10px] text-gray-400">
+                                (₹{unitPrice} ea)
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Quantity Stepper & Remove */}
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <div className="flex items-center rounded-lg border border-gray-200 bg-gray-50 overflow-hidden shadow-2xs">
+                            <motion.button
+                              whileTap={{ scale: 0.85 }}
+                              onClick={() => decreaseQty(item)}
+                              className="w-7 h-7 flex items-center justify-center text-gray-700 hover:bg-gray-200 font-bold cursor-pointer"
+                              aria-label="Decrease quantity"
+                            >
+                              <Minus size={13} strokeWidth={2.5} />
+                            </motion.button>
+                            <span className="w-7 text-center text-xs font-black text-gray-900 select-none">
+                              {item.qty}
+                            </span>
+                            <motion.button
+                              whileTap={{ scale: 0.85 }}
+                              onClick={() => increaseQty(item)}
+                              className="w-7 h-7 flex items-center justify-center text-gray-700 hover:bg-gray-200 font-bold cursor-pointer"
+                              aria-label="Increase quantity"
+                            >
+                              <Plus size={13} strokeWidth={2.5} />
+                            </motion.button>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              removeItem(item);
+                              toast.success(`Removed ${item.name}`);
+                            }}
+                            className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+                            title="Remove item"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              </div>
+
+              {/* Sheet Footer */}
+              <div className="px-5 pt-3 border-t border-gray-100 bg-gray-50/50 space-y-2">
+                {promotionalDiscount > 0 && (
+                  <div className="flex items-center justify-between text-xs text-amber-700 font-bold">
+                    <span className="flex items-center gap-1">
+                      <Sparkles size={12} className="text-amber-500" />
+                      Promotional Savings
+                    </span>
+                    <span>−₹{promotionalDiscount}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <span>Items Subtotal</span>
+                  <span className="font-semibold text-gray-800">₹{cartTotal}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <span>Handling Charges</span>
+                  <span className="font-semibold text-gray-800">₹{handlingCharge}</span>
+                </div>
+                <div className="flex items-center justify-between pt-1.5 border-t border-gray-200">
+                  <span className="text-sm font-bold text-gray-900">Total</span>
+                  <span className="font-black text-gray-950 text-base">₹{cartTotal + handlingCharge}</span>
+                </div>
+
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    setIsMobileCartOpen(false);
+                    navigate("/cart");
+                  }}
+                  className="w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg cursor-pointer mt-1"
+                  style={{ background: "linear-gradient(135deg,#0f0f0f 0%,#1e1700 100%)", color: "white" }}
+                >
+                  <span>Proceed to Laundry Bag</span>
+                  <ChevronRight size={16} className="text-[#FFD700]" />
+                </motion.button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* ── STICKY CART BAR (mobile + non-xl desktop) ── */}
       <AnimatePresence>
-        {cartCount > 0 && (
+        {cartCount > 0 && !isMobileCartOpen && (
           <motion.div
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 26 }}
-            className="xl:hidden fixed bottom-0 left-0 right-0 z-50 px-3 sm:px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-2 pointer-events-none"
+            className="xl:hidden fixed bottom-0 left-0 right-0 z-40 px-3 sm:px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-2 pointer-events-none"
           >
             <div className="max-w-[700px] mx-auto pointer-events-auto">
               <div
@@ -1274,37 +1547,61 @@ export default function BookLaundry() {
                   WebkitBackdropFilter: "blur(20px)",
                 }}
               >
-                <motion.button
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => navigate("/cart")}
-                  className="w-full flex items-center justify-between px-4 sm:px-5 py-3 rounded-xl transition-transform"
+                <div
+                  className="w-full flex items-center justify-between px-3 sm:px-4 py-2.5 rounded-xl gap-2 text-white"
                   style={{
                     background: "linear-gradient(135deg, #0f0f0f 0%, #1e1700 100%)",
                   }}
                 >
-                  <div className="flex items-center gap-2.5 sm:gap-3">
+                  {/* Left: Cart Info & Tap to expand */}
+                  <button
+                    type="button"
+                    onClick={() => setIsMobileCartOpen(true)}
+                    className="flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0 text-left cursor-pointer"
+                  >
                     <div
-                      className="w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs sm:text-sm text-gray-950 shadow-sm"
+                      className="w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs sm:text-sm text-gray-950 shadow-sm flex-shrink-0"
                       style={{
                         background: "linear-gradient(135deg, #FFD700, #FFA500)",
                       }}
                     >
                       {cartCount}
                     </div>
-                    <div className="text-left">
-                      <p className="text-white font-extrabold text-xs sm:text-sm leading-tight flex items-center gap-1.5">
-                        <span>View Laundry Bag</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-extrabold text-xs sm:text-sm leading-tight flex items-center gap-1 truncate text-white">
+                        <span>Laundry Bag</span>
+                        <ChevronUp size={14} className="text-[#FFD700] flex-shrink-0" />
                       </p>
-                      <p className="text-[10px] text-gray-400 font-medium">
-                        {cartCount} {cartCount === 1 ? "item" : "items"} added
+                      <p className="text-[10px] text-gray-400 font-medium truncate">
+                        {cartCount} {cartCount === 1 ? "item" : "items"} · Tap to edit
                       </p>
                     </div>
-                  </div>
+                  </button>
 
-                  <div className="flex items-center gap-2 sm:gap-3">
+                  {/* Center: Empty Cart Button */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowMobileClearConfirm(true);
+                      setIsMobileCartOpen(true);
+                    }}
+                    className="h-8 px-2.5 rounded-lg bg-white/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 font-semibold text-[11px] flex items-center gap-1 transition-colors flex-shrink-0 cursor-pointer"
+                    title="Empty Cart"
+                  >
+                    <Trash2 size={13} />
+                    <span className="hidden xs:inline">Empty</span>
+                  </button>
+
+                  {/* Right: Total Price & Proceed */}
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => navigate("/cart")}
+                    className="flex items-center gap-2 pl-2 border-l border-white/15 flex-shrink-0 cursor-pointer"
+                  >
                     <div className="text-right">
                       <p className="text-white font-black text-sm sm:text-base leading-tight">
-                        ₹{cartTotal}
+                        ₹{cartTotal + handlingCharge}
                       </p>
                       <p className="text-[9px] text-[#FFD700] uppercase font-bold tracking-wider">
                         Proceed →
@@ -1313,8 +1610,8 @@ export default function BookLaundry() {
                     <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-[#FFD700]">
                       <ChevronRight size={14} />
                     </div>
-                  </div>
-                </motion.button>
+                  </motion.button>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -1326,100 +1623,241 @@ export default function BookLaundry() {
 
 // ─── CART SUMMARY PANEL (desktop right rail) ─────────────────────────────────
 
-function CartSummaryPanel({ cart, cartCount, cartTotal, navigate }) {
+function CartSummaryPanel({
+  cart,
+  cartCount,
+  cartTotal,
+  handlingCharge = 15,
+  increaseQty,
+  decreaseQty,
+  removeItem,
+  clearCart,
+  promotionalDiscount,
+  navigate,
+}) {
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+
+  const handleClearCart = () => {
+    clearCart();
+    setShowClearConfirm(false);
+    toast.success("Cart cleared");
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ type: "spring", stiffness: 200, damping: 22 }}
-      className="rounded-2xl overflow-hidden"
-      style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.08)", border: "1px solid #F0F0F0", background: "white" }}
+      className="rounded-2xl overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.08)] border border-gray-100 bg-white"
     >
       {/* Header */}
       <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-        <h3 className="font-bold text-gray-900 text-sm">Your Cart</h3>
-        <span
-          className="text-xs font-bold px-2.5 py-1 rounded-full"
-          style={{ background: "#FFF9E6", color: "#D97706" }}
-        >
-          {cartCount} {cartCount === 1 ? "item" : "items"}
-        </span>
+        <div className="flex items-center gap-2">
+          <h3 className="font-bold text-gray-900 text-sm">Your Cart</h3>
+          <span
+            className="text-xs font-bold px-2 py-0.5 rounded-full"
+            style={{ background: "#FFF9E6", color: "#D97706" }}
+          >
+            {cartCount} {cartCount === 1 ? "item" : "items"}
+          </span>
+        </div>
+
+        {/* Empty Cart Button */}
+        {cartCount > 0 && (
+          <button
+            type="button"
+            onClick={() => setShowClearConfirm((prev) => !prev)}
+            className="text-xs font-bold text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+            title="Empty all items from cart"
+          >
+            <Trash2 size={13} />
+            <span>Empty Cart</span>
+          </button>
+        )}
       </div>
 
-      {/* Items — stacked layout */}
+      {/* Confirmation prompt */}
+      <AnimatePresence>
+        {showClearConfirm && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="bg-red-50 border-b border-red-100 px-4 py-2.5 flex items-center justify-between text-xs"
+          >
+            <span className="text-red-700 font-semibold">
+              Empty all {cartCount} items?
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleClearCart}
+                className="bg-red-600 hover:bg-red-700 text-white font-bold px-2.5 py-1 rounded-md transition-colors cursor-pointer"
+              >
+                Yes, Empty
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowClearConfirm(false)}
+                className="text-gray-600 hover:text-gray-900 font-semibold px-2 py-1 cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Items list with Quantity Controls */}
       <div className="py-2 max-h-80 overflow-y-auto" style={{ scrollbarWidth: "thin" }}>
         <AnimatePresence>
-          {cart.map((item) => (
-            <motion.div
-              key={`${item.pricingId || item._id || item.name}-${item.service}-${item.careLevel || "regular"}`}
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="px-5 py-3 border-b border-gray-50 last:border-0"
-            >
-              <div className="flex items-start gap-2.5 mb-2">
-                <span className="text-lg leading-none flex-shrink-0 mt-0.5">
-                  {itemEmoji[item.name] || "🧺"}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[13px] font-bold text-gray-800 leading-snug break-words">
-                    {item.variant ? `${item.name} (${item.variant})` : item.name}
-                  </p>
-                  <p className="text-[11px] text-gray-400 mt-0.5">{item.service}</p>
-                  {item.service === "Dry Clean" && (
-                    item.careLevel === "premium" ? (
-                      <span
-                        className="inline-flex items-center gap-1 mt-1 text-[9px] font-extrabold px-2 py-0.5 rounded-full"
-                        style={{
-                          background: "#FFF4BF",
-                          color: "#92400E",
-                          border: "1px solid #FDE68A",
-                        }}
-                      >
-                        <Sparkles size={9} />
-                        Premium Care
-                      </span>
-                    ) : (
-                      <span
-                        className="inline-flex items-center mt-1 text-[9px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 border border-gray-200"
-                      >
-                        Regular Care
-                      </span>
-                    )
-                  )}
-                </div>
-              </div>
+          {cart.map((item) => {
+            const itemKey = `${item.pricingId || item._id || item.name}-${item.service}-${item.careLevel || "regular"}`;
+            const unitPrice = item.finalPrice !== undefined ? item.finalPrice : item.price;
+            const lineTotal = unitPrice * item.qty;
 
-              <div className="flex items-center justify-between pl-8">
-                <span className="text-xs text-gray-400 font-medium">
-                  ₹{item.price} × {item.qty}
-                </span>
-                <span className="text-sm font-black text-gray-900">
-                  ₹{item.price * item.qty}
-                </span>
-              </div>
-            </motion.div>
-          ))}
+            return (
+              <motion.div
+                key={itemKey}
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="px-5 py-3 border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                    <span className="text-lg leading-none flex-shrink-0 mt-0.5">
+                      {itemEmoji[item.name] || "🧺"}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[13px] font-bold text-gray-800 leading-snug truncate">
+                        {item.variant ? `${item.name} (${item.variant})` : item.name}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                        <span className="text-[10px] text-gray-500 font-medium">
+                          {item.service}
+                        </span>
+                        {item.service === "Dry Clean" && (
+                          item.careLevel === "premium" ? (
+                            <span
+                              className="inline-flex items-center gap-0.5 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full"
+                              style={{
+                                background: "#FFF4BF",
+                                color: "#92400E",
+                                border: "1px solid #FDE68A",
+                              }}
+                            >
+                              <Sparkles size={8} /> Premium
+                            </span>
+                          ) : (
+                            <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                              Regular
+                            </span>
+                          )
+                        )}
+                        {item.isDiscounted && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800">
+                            {item.discountPercentage}% OFF
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Remove Single Item */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      removeItem(item);
+                      toast.success(`Removed ${item.name}`);
+                    }}
+                    className="text-gray-300 hover:text-red-500 transition-colors p-1 cursor-pointer"
+                    title="Remove item"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+
+                {/* Pricing & Quantity Controls */}
+                <div className="flex items-center justify-between mt-2.5 pl-7">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-xs font-black text-gray-900">
+                      ₹{lineTotal}
+                    </span>
+                    {item.isDiscounted && item.originalPrice && item.originalPrice > unitPrice && (
+                      <span className="text-[10px] text-gray-400 line-through">
+                        ₹{item.originalPrice * item.qty}
+                      </span>
+                    )}
+                    <span className="text-[10px] text-gray-400">
+                      (₹{unitPrice} ea)
+                    </span>
+                  </div>
+
+                  {/* Quantity Stepper */}
+                  <div className="flex items-center rounded-lg border border-gray-200 bg-white shadow-2xs overflow-hidden">
+                    <motion.button
+                      whileTap={{ scale: 0.85 }}
+                      onClick={() => decreaseQty(item)}
+                      className="w-6 h-6 flex items-center justify-center text-gray-600 hover:text-black hover:bg-gray-100 transition-colors cursor-pointer"
+                      aria-label="Decrease quantity"
+                    >
+                      <Minus size={11} strokeWidth={2.5} />
+                    </motion.button>
+                    <span className="w-6 text-center text-xs font-black text-gray-900 select-none">
+                      {item.qty}
+                    </span>
+                    <motion.button
+                      whileTap={{ scale: 0.85 }}
+                      onClick={() => increaseQty(item)}
+                      className="w-6 h-6 flex items-center justify-center text-gray-600 hover:text-black hover:bg-gray-100 transition-colors cursor-pointer"
+                      aria-label="Increase quantity"
+                    >
+                      <Plus size={11} strokeWidth={2.5} />
+                    </motion.button>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
         </AnimatePresence>
       </div>
 
       {/* Footer */}
-      <div className="px-5 py-4 border-t border-gray-100">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-sm text-gray-500 font-medium">Subtotal</span>
-          <span className="font-extrabold text-gray-900 text-base">₹{cartTotal}</span>
+      <div className="px-5 py-4 border-t border-gray-100 bg-gray-50/50 space-y-2.5">
+        {promotionalDiscount > 0 && (
+          <div className="flex items-center justify-between text-xs text-amber-700 font-bold">
+            <span className="flex items-center gap-1">
+              <Sparkles size={12} className="text-amber-500" />
+              Promotional Savings
+            </span>
+            <span>−₹{promotionalDiscount}</span>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between text-xs text-gray-500">
+          <span>Items Subtotal</span>
+          <span className="font-semibold text-gray-800">₹{cartTotal}</span>
         </div>
 
-        {/* Fabric Care Disclaimer */}
-        {/* <div className="p-2.5 mb-3 rounded-xl bg-amber-50 border border-amber-200/80 text-[10px] text-gray-700 leading-snug">
-          ⚠️ <strong>Fabric Care Note:</strong> Please verify services match garment care tags. Zusko is not liable for damage due to incorrect service selection.
-        </div> */}
+        <div className="flex items-center justify-between text-xs text-gray-500">
+          <span>Handling Charges</span>
+          <span className="font-semibold text-gray-800">₹{handlingCharge}</span>
+        </div>
+
+        <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+          <div>
+            <span className="text-sm font-bold text-gray-900">Total</span>
+            <span className="block text-[10px] text-gray-400">Taxes & fees included</span>
+          </div>
+          <span className="font-black text-gray-950 text-base">₹{cartTotal + handlingCharge}</span>
+        </div>
 
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.97 }}
           onClick={() => navigate("/cart")}
-          className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2"
+          className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 cursor-pointer shadow-md mt-1"
           style={{ background: "linear-gradient(135deg,#101010,#1e1700)", color: "white" }}
         >
           View Cart

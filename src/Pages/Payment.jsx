@@ -1,5 +1,5 @@
 import { useLocation, useNavigate, Navigate } from "react-router-dom";
-import { useContext, useState } from "react";
+import { useContext, useState, useMemo } from "react";
 import { CartContext } from "../context/CartContext";
 import { AuthContext } from "../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -116,8 +116,22 @@ export default function Payment() {
   const [verificationError, setVerificationError] = useState("");
   const [showAllItems, setShowAllItems] = useState(false);
 
-  if (!state) return <Navigate to="/place-order" replace />;
-  const { orderData } = state;
+  // Safe orderData caching to prevent blank screen or redirect on page refresh
+  const cachedOrderData = useMemo(() => {
+    if (state?.orderData) {
+      sessionStorage.setItem("currentCheckoutOrderData", JSON.stringify(state.orderData));
+      return state.orderData;
+    }
+    try {
+      const saved = sessionStorage.getItem("currentCheckoutOrderData");
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  }, [state]);
+
+  if (!cachedOrderData) return <Navigate to="/place-order" replace />;
+  const orderData = cachedOrderData;
 
   // ── TEMPORARY LAUNCHING SOON MODE ─────────────────────────────────────────
   // Set to false when ready to go live. All backend APIs remain 100% intact!
@@ -164,6 +178,7 @@ export default function Payment() {
       if (oId) sessionStorage.setItem("latestOrderId", String(oId));
       if (oCode) sessionStorage.setItem("latestOrderCode", String(oCode));
       sessionStorage.setItem("orderSuccess", "true");
+      sessionStorage.removeItem("currentCheckoutOrderData");
 
       clearCart();
       toast.success("Order confirmed successfully! Pickup scheduled.");
@@ -179,15 +194,29 @@ export default function Payment() {
       });
     } catch (err) {
       console.error("ORDER ERROR (COD):", err.response?.data || err);
-      toast.error(
-        err.response?.data?.message || "Failed to create order. Please try again."
-      );
+      if (err.response?.data?.code === "PRICE_CHANGED") {
+        const latestTotal = err.response.data.latestTotal;
+        toast(`Pricing updated: Your order total is now ₹${latestTotal}`, {
+          icon: "ℹ️",
+          duration: 5000,
+        });
+        if (latestTotal !== undefined) {
+          orderData.total = latestTotal;
+          sessionStorage.setItem("currentCheckoutOrderData", JSON.stringify(orderData));
+        }
+      } else {
+        toast.error(
+          err.response?.data?.message || "Failed to create order. Please try again."
+        );
+      }
     } finally {
       setProcessingMethod(null);
     }
   };
 
   // ── ONLINE RAZORPAY PAYMENT & VALIDATION ──────────────────────────────────
+  // Order is created in MongoDB ONLY AFTER payment is successfully verified.
+  // If user closes or exits the Razorpay window, NO order is created in database.
   const handleOnlinePayment = async () => {
     setProcessingMethod("online");
 
@@ -209,9 +238,13 @@ export default function Payment() {
         return;
       }
 
-      // 2. Create Razorpay order on backend
+      // 2. Create Razorpay order on backend WITHOUT creating MongoDB order
       const { data } = await API.post("/payment/create-order", {
         amount: orderData.total,
+        orderData: {
+          ...orderData,
+          couponCode: orderData.couponCode || null,
+        },
       });
 
       const razorpayOrder = data.data || data.order || data;
@@ -224,6 +257,7 @@ export default function Payment() {
         console.error("Razorpay Key ID is not configured.");
         toast.error("Payment configuration missing. Please contact support.");
         setProcessingMethod(null);
+        setVerificationStep(null);
         return;
       }
 
@@ -234,7 +268,7 @@ export default function Payment() {
         currency: razorpayOrder.currency || "INR",
         order_id: razorpayOrder.id,
         name: "Zusko Laundry",
-        description: "Doorstep Laundry & Dry Clean Order",
+        description: "Laundry & Dry Clean Booking",
         image: "https://www.zusko.in/src/assets/zusko%20favicon.png",
         prefill: {
           name:
@@ -252,19 +286,17 @@ export default function Payment() {
         handler: async function (response) {
           try {
             console.log("PAYMENT AUTHORIZED BY RAZORPAY. VERIFYING...", response);
-            // Launch validation screen to reassure the user
+            // Reassure user during verification
             setVerificationStep("verifying");
 
             // Step A: Validate payment signature on backend
-            const verifyRes = await API.post("/payment/verify", {
+            await API.post("/payment/verify", {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
             });
 
-            console.log("PAYMENT SIGNATURE VERIFIED:", verifyRes.data);
-
-            // Step B: Create confirmed order on backend
+            // Step B: Create confirmed order on backend ONLY after payment is completed & verified
             setVerificationStep("creating_order");
             const orderRes = await API.post("/orders/create", {
               ...orderData,
@@ -275,29 +307,31 @@ export default function Payment() {
                 amount: orderData.total,
                 razorpayPaymentId: response.razorpay_payment_id,
                 razorpayOrderId: response.razorpay_order_id,
+                razorpaySignature: response.razorpay_signature,
               },
             });
 
-            console.log("ORDER CREATION CONFIRMED:", orderRes.data);
+            console.log("ORDER CONFIRMED & CREATED ON BACKEND:", orderRes.data);
 
             // Step C: Success state & Storage sync
             setVerificationStep("success");
-            const createdOrder =
+            const confirmedOrder =
               orderRes.data?.data || orderRes.data?.order || orderRes.data;
 
             const oId =
-              createdOrder?._id ||
-              createdOrder?.id ||
-              (typeof createdOrder === "string" ? createdOrder : null);
+              confirmedOrder?._id ||
+              confirmedOrder?.id ||
+              (typeof confirmedOrder === "string" ? confirmedOrder : null);
             const oCode =
-              createdOrder?.orderId ||
-              createdOrder?.orderCode ||
-              createdOrder?.code ||
+              confirmedOrder?.orderId ||
+              confirmedOrder?.orderCode ||
+              confirmedOrder?.code ||
               null;
 
             if (oId) sessionStorage.setItem("latestOrderId", String(oId));
             if (oCode) sessionStorage.setItem("latestOrderCode", String(oCode));
             sessionStorage.setItem("orderSuccess", "true");
+            sessionStorage.removeItem("currentCheckoutOrderData");
 
             clearCart();
             toast.success("Payment verified! Booking confirmed.");
@@ -309,7 +343,7 @@ export default function Payment() {
                 state: {
                   orderId: oId,
                   orderCode: oCode,
-                  order: createdOrder,
+                  order: confirmedOrder,
                   paymentMethod: "ONLINE",
                 },
               });
@@ -320,16 +354,17 @@ export default function Payment() {
             setVerificationError(
               err.response?.data?.message ||
                 err.message ||
-                "Payment verification could not be completed. If amount was debited, your order will still be processed by our team."
+                "Payment was received, but order confirmation encountered an issue. Please contact support with Payment ID: " +
+                  (response.razorpay_payment_id || "N/A")
             );
           }
         },
         modal: {
           ondismiss: () => {
-            console.log("Razorpay checkout modal closed by user.");
+            console.log("Razorpay checkout modal closed by user without paying.");
             setProcessingMethod(null);
             setVerificationStep(null);
-            toast("Payment window closed. You can retry when ready.", {
+            toast("Payment window closed. Order was not created. You can retry when ready.", {
               icon: "ℹ️",
             });
           },
@@ -352,11 +387,26 @@ export default function Payment() {
 
       rzp.open();
     } catch (err) {
-      console.error("ONLINE PAYMENT ERROR:", err);
-      toast.error(
-        err.response?.data?.message || "Failed to initialize payment gateway. Please try again."
-      );
+      console.error("ONLINE PAYMENT ERROR:", err.response?.data || err);
+      if (err.response?.data?.code === "PRICE_CHANGED") {
+        const latestTotal = err.response.data.latestTotal;
+        toast(`Pricing updated: Your order total is now ₹${latestTotal}`, {
+          icon: "ℹ️",
+          duration: 5000,
+        });
+        if (latestTotal !== undefined) {
+          orderData.total = latestTotal;
+          sessionStorage.setItem("currentCheckoutOrderData", JSON.stringify(orderData));
+        }
+      } else {
+        toast.error(
+          err.response?.data?.message ||
+            err.message ||
+            "Failed to initialize payment gateway. Please try again."
+        );
+      }
       setProcessingMethod(null);
+      setVerificationStep(null);
     }
   };
 

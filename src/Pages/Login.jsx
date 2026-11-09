@@ -119,7 +119,10 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = location.state?.from || "/place-order";
+  const from =
+    location.state?.from ||
+    sessionStorage.getItem("authRedirectPath") ||
+    "/place-order";
 
   /* ============================================================
      STATE
@@ -374,6 +377,7 @@ export default function Login() {
         );
 
         login(data.user, data.token);
+        sessionStorage.removeItem("authRedirectPath");
 
         setTimeout(() => {
           navigate(from, { replace: true });

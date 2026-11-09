@@ -59,8 +59,14 @@ export const AuthProvider = ({ children }) => {
     window.addEventListener("focus", verifyToken);
 
     const handleSessionExpired = () => {
+      if (
+        window.location.pathname === "/place-order" ||
+        window.location.pathname === "/payment"
+      ) {
+        sessionStorage.setItem("authRedirectPath", window.location.pathname);
+      }
       logout();
-      toast.error("Session expired. Please log in again.");
+      toast.error("Session expired. Please log in again to complete your booking.");
     };
 
     window.addEventListener("auth:session-expired", handleSessionExpired);

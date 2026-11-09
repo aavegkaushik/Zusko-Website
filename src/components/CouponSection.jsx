@@ -13,6 +13,7 @@ export default function CouponSection({ showAllCoupons, setShowAllCoupons }) {
     availableCoupons = [],
     couponLoading,
     total,
+    hasDiscountedItems,
   } = useContext(CartContext);
 
   const [code, setCode] = useState("");
@@ -271,6 +272,33 @@ export default function CouponSection({ showAllCoupons, setShowAllCoupons }) {
         <div className="animate-pulse rounded-2xl p-4 bg-gray-50">
           <div className="h-4 bg-gray-200 rounded w-28 mb-2" />
           <div className="h-3 bg-gray-200 rounded w-48" />
+        </div>
+      </div>
+    );
+  }
+
+  // =========================================================
+  // DISCOUNTED ITEMS ACTIVE - NO COUPONS ALLOWED
+  // =========================================================
+
+  if (hasDiscountedItems) {
+    return (
+      <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-amber-100">
+        <div className="flex items-start gap-3 p-3.5 bg-amber-50/90 border border-amber-200/60 rounded-xl">
+          <div
+            className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
+            style={{ background: "#FEF3C7" }}
+          >
+            <Tag size={15} color="#D97706" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
+              <span>Promotional Discount Active</span>
+            </p>
+            <p className="text-[11px] text-amber-800 mt-1 leading-relaxed">
+              Items in your cart already have promotional discounts applied. Additional coupons cannot be combined with discounted items.
+            </p>
+          </div>
         </div>
       </div>
     );

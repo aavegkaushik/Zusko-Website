@@ -4,6 +4,7 @@ import {
   useEffect,
   useCallback,
   useRef,
+  useMemo
 } from "react";
 
 import API from "../config/api";
@@ -321,6 +322,22 @@ export const CartProvider = ({ children }) => {
     Math.round((originalTotal - total) * 100) / 100
   );
 
+  // Check if ANY item in cart is already discounted (promotional discount or item-level discount)
+  const hasDiscountedItems = useMemo(() => {
+    return (
+      promotionalDiscount > 0 ||
+      cart.some(
+        (item) =>
+          item.isDiscounted === true ||
+          Number(item.discountAmount) > 0 ||
+          Number(item.discountPercentage) > 0 ||
+          Boolean(item.appliedPromotion) ||
+          (item.originalPrice && item.finalPrice && Number(item.finalPrice) < Number(item.originalPrice)) ||
+          (item.originalPrice && item.price && Number(item.price) < Number(item.originalPrice))
+      )
+    );
+  }, [promotionalDiscount, cart]);
+
   // =========================================================
   // HANDLING CHARGE
   // =========================================================
@@ -343,7 +360,11 @@ const getCouponItems = useCallback(() => {
     finalPrice: item.finalPrice !== undefined ? item.finalPrice : item.price,
     discountAmount: item.discountAmount || 0,
     discountPercentage: item.discountPercentage || 0,
-    isDiscounted: Boolean(item.isDiscounted || (item.discountAmount > 0)),
+    isDiscounted: Boolean(
+      item.isDiscounted ||
+      Number(item.discountAmount) > 0 ||
+      (item.originalPrice && Number(item.finalPrice || item.price) < Number(item.originalPrice))
+    ),
     appliedPromotion: item.appliedPromotion || null,
     appliedPromotionName: item.appliedPromotionName || "",
   }));
@@ -355,9 +376,16 @@ const getCouponItems = useCallback(() => {
 
 const fetchAvailableCoupons = useCallback(async () => {
   try {
-    // Don't check coupons for an empty cart
-    if (!cart.length || Number(total) <= 0) {
+    // If cart is empty or has already discounted items, coupons are not eligible
+    if (!cart.length || Number(total) <= 0 || hasDiscountedItems) {
       setAvailableCoupons([]);
+      if (hasDiscountedItems && coupon) {
+        setCoupon(null);
+        setDiscount(0);
+        setCouponMessage("Coupons cannot be applied to already discounted items");
+        localStorage.removeItem("coupon");
+        localStorage.removeItem("discount");
+      }
       return;
     }
 
@@ -411,7 +439,7 @@ const fetchAvailableCoupons = useCallback(async () => {
   } finally {
     setCouponLoading(false);
   }
-}, [cart, total, getCouponItems]);
+}, [cart, total, getCouponItems, hasDiscountedItems, coupon]);
 
   // =========================================================
   // REVALIDATE APPLIED COUPON
@@ -423,6 +451,27 @@ const fetchAvailableCoupons = useCallback(async () => {
        * No coupon currently applied.
        */
       if (!coupon) {
+        return;
+      }
+
+      /*
+       * If cart contains already discounted items,
+       * coupons must immediately disappear.
+       */
+      if (hasDiscountedItems) {
+        console.log(
+          "🏷️ DISCOUNTED ITEMS IN CART → REMOVING COUPON"
+        );
+
+        setCoupon(null);
+        setDiscount(0);
+        setCouponMessage(
+          "Coupons cannot be applied to already discounted items."
+        );
+
+        localStorage.removeItem("coupon");
+        localStorage.removeItem("discount");
+
         return;
       }
 
@@ -684,6 +733,13 @@ useEffect(() => {
       };
     }
 
+    if (hasDiscountedItems) {
+      return {
+        success: false,
+        message: "Coupons cannot be applied to already discounted items",
+      };
+    }
+
     if (coupon) {
       return {
         success: false,
@@ -699,18 +755,8 @@ useEffect(() => {
         "/coupons/validate",
         {
           code: formattedCode,
-
           total: Number(total || 0),
-
-          items: cart.map((item) => ({
-            name: item.name,
-            qty: Number(item.qty || 0),
-            price: Number(item.price || 0),
-            service:
-              item.service || "Wash & Fold",
-            careLevel:
-              item.careLevel || "regular",
-          })),
+          items: getCouponItems(),
         }
       );
 
@@ -946,6 +992,8 @@ useEffect(() => {
         originalTotal,
 
         promotionalDiscount,
+
+        hasDiscountedItems,
 
         totalSavings: Math.round((promotionalDiscount + discount) * 100) / 100,
 
