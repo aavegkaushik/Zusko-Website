@@ -155,7 +155,7 @@ export default function Hero({
             variants={itemVariants}
             className="mt-6 text-xl sm:text-2xl text-white/80 max-w-2xl mx-auto font-light leading-relaxed"
           >
-            Pre-book your doorstep laundry pickup for 7th November. Exclusive launch batch for BIET Jhansi campus.
+            Doorstep laundry and dry cleaning with professional fabric care and fast turnaround in Jhansi.
           </motion.p>
 
           {/* CTA Buttons */}
@@ -169,7 +169,7 @@ export default function Hero({
               onTouchStart={() => prefetchRoute("/place-order")}
               className="px-8 py-4 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-300 hover:from-yellow-300 hover:to-yellow-200 text-black font-black text-base sm:text-lg uppercase tracking-wider shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95"
             >
-              Pre-Book Laundry Slot
+              Book Laundry Now
             </Link>
 
             <Link

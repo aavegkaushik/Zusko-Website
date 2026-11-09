@@ -6,6 +6,8 @@ import logo from "../assets/zusko.png";
 import { PRE_BOOKING_CONFIG } from "../config/preBookingConfig";
 
 const UnderDevelopmentPopup = () => {
+  if (!PRE_BOOKING_CONFIG.isEnabled) return null;
+
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -97,7 +99,7 @@ const UnderDevelopmentPopup = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25, duration: 0.4 }}
             >
-              Pre-Booking is Now LIVE! 🚀
+              Zusko Doorstep Laundry is LIVE! 🚀
             </motion.h2>
 
             {/* Subtext */}
@@ -107,7 +109,7 @@ const UnderDevelopmentPopup = () => {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.4 }}
             >
-              Zusko is officially launching at <strong className="text-gray-900 font-bold">BIET Jhansi</strong>! Reserve your laundry slot now for our first launch batch pickup on 7th November.
+              Zusko is officially live in <strong className="text-gray-900 font-bold">Jhansi</strong>! Schedule your doorstep pickup today for fast, professional fabric care.
             </motion.p>
 
             {/* Fixed Slot Info Box */}

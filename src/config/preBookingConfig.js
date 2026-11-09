@@ -1,21 +1,20 @@
 // Configuration for Pre-Booking Mode
-// When isEnabled is true, Zusko runs in exclusive Pre-Booking mode for BIET Jhansi Launch
-// All orders are locked to the fixed 7th November pickup date & fixed time slot.
+// When isEnabled is false, Zusko runs in regular on-demand booking mode with dynamic pickup dates and time slots.
 
 export const PRE_BOOKING_CONFIG = {
-  isEnabled: true,
+  isEnabled: false,
 
-  // Fixed Pickup Date & Time for BIET Pre-Booking
-  date: "2026-11-07", // YYYY-MM-DD
-  dateDisplay: "Saturday, 7 Nov 2026",
-  shortDateDisplay: "7 Nov 2026",
-  dayDisplay: "Saturday",
+  // Default values
+  date: "",
+  dateDisplay: "Scheduled Pickup",
+  shortDateDisplay: "Scheduled",
+  dayDisplay: "",
 
-  // Fixed Time Slot
+  // Standard Time Slot
   timeSlot: "10:00 AM - 01:00 PM",
-  timeSlotDisplay: "10:00 AM - 01:00 PM (Campus Slot)",
+  timeSlotDisplay: "10:00 AM - 01:00 PM",
 
-  // Target Launch Campus
+  // Target Campus
   campusName: "BIET Jhansi",
   campusFullAddress: "BIET Jhansi Campus, Kanpur Road, Jhansi, Uttar Pradesh",
   campusPincode: "284128",
@@ -40,10 +39,9 @@ export const PRE_BOOKING_CONFIG = {
     longitude: 78.5830,
   },
 
-  // Launch messaging (Strictly no 'testing' phrasing)
-  tagline: "Official Campus Launch for BIET Jhansi",
-  bannerText: "🚀 Pre-Booking is LIVE for BIET Jhansi Launch! First pickup batch runs on 7th Nov (10 AM - 1 PM) • Reserve your slot now!",
-  ctaText: "Pre-Book Laundry Slot",
+  tagline: "Doorstep Laundry & Dry Cleaning",
+  bannerText: "",
+  ctaText: "Book Laundry Now",
 };
 
 export default PRE_BOOKING_CONFIG;

@@ -310,67 +310,135 @@ export default function BookLaundry() {
 
             {/* Left: headline copy */}
             <div className="lg:max-w-xl">
-              <motion.div
-                initial={{ opacity: 0, y: -6 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full mb-3 sm:mb-4 text-[11px] sm:text-xs font-bold"
-                style={{
-                  background: "rgba(255,215,0,0.12)",
-                  border: "1px solid rgba(255,215,0,0.3)",
-                  color: "#FFD700",
-                }}
-              >
-                <Sparkles size={12} />
-                <span>Pre-Booking Live • {PRE_BOOKING_CONFIG.campusName} Launch</span>
-              </motion.div>
-
-              <motion.h1
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1, duration: 0.5 }}
-                className="font-black leading-[1.1] text-white text-2xl sm:text-4xl md:text-5xl lg:text-[54px] tracking-tight"
-              >
-                Pre-Book Laundry.<br />
-                <span style={{ color: "#FFD700" }}>Pickup on {PRE_BOOKING_CONFIG.shortDateDisplay}.</span>
-              </motion.h1>
-
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.2 }}
-                className="mt-2.5 sm:mt-4 text-xs sm:text-sm lg:text-base leading-relaxed"
-                style={{ color: "rgba(255,255,255,0.7)" }}
-              >
-                Official launch for BIET Jhansi campus. Fixed pickup on <strong>{PRE_BOOKING_CONFIG.dateDisplay}</strong> ({PRE_BOOKING_CONFIG.timeSlot}).
-              </motion.p>
-
-              {/* Quick Trust Badges */}
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="flex flex-wrap items-center gap-2 mt-4 sm:mt-6"
-              >
-                {[
-                  { icon: "📅", label: "Fixed Slot: 7 Nov (10 AM - 1 PM)" },
-                  { icon: "🏫", label: "BIET Campus Launch" },
-                  { icon: "🧺", label: "Doorstep Care" },
-                ].map((chip) => (
-                  <span
-                    key={chip.label}
-                    className="flex items-center gap-1 text-[11px] sm:text-xs font-semibold px-2.5 py-1 rounded-full"
+              {PRE_BOOKING_CONFIG.isEnabled ? (
+                <>
+                  <motion.div
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full mb-3 sm:mb-4 text-[11px] sm:text-xs font-bold"
                     style={{
-                      background: "rgba(255,255,255,0.08)",
-                      color: "rgba(255,255,255,0.9)",
-                      border: "1px solid rgba(255,215,0,0.25)",
-                      backdropFilter: "blur(12px)",
+                      background: "rgba(255,215,0,0.12)",
+                      border: "1px solid rgba(255,215,0,0.3)",
+                      color: "#FFD700",
                     }}
                   >
-                    <span>{chip.icon}</span>
-                    <span>{chip.label}</span>
-                  </span>
-                ))}
-              </motion.div>
+                    <Sparkles size={12} />
+                    <span>Pre-Booking Live • {PRE_BOOKING_CONFIG.campusName} Launch</span>
+                  </motion.div>
+
+                  <motion.h1
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1, duration: 0.5 }}
+                    className="font-black leading-[1.1] text-white text-2xl sm:text-4xl md:text-5xl lg:text-[54px] tracking-tight"
+                  >
+                    Pre-Book Laundry.<br />
+                    <span style={{ color: "#FFD700" }}>Pickup on {PRE_BOOKING_CONFIG.shortDateDisplay}.</span>
+                  </motion.h1>
+
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="mt-2.5 sm:mt-4 text-xs sm:text-sm lg:text-base leading-relaxed"
+                    style={{ color: "rgba(255,255,255,0.7)" }}
+                  >
+                    Official launch for BIET Jhansi campus. Fixed pickup on <strong>{PRE_BOOKING_CONFIG.dateDisplay}</strong> ({PRE_BOOKING_CONFIG.timeSlot}).
+                  </motion.p>
+
+                  {/* Quick Trust Badges */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="flex flex-wrap items-center gap-2 mt-4 sm:mt-6"
+                  >
+                    {[
+                      { icon: "📅", label: `Fixed Slot: ${PRE_BOOKING_CONFIG.shortDateDisplay}` },
+                      { icon: "🏫", label: `${PRE_BOOKING_CONFIG.campusName} Launch` },
+                      { icon: "🧺", label: "Doorstep Care" },
+                    ].map((chip) => (
+                      <span
+                        key={chip.label}
+                        className="flex items-center gap-1 text-[11px] sm:text-xs font-semibold px-2.5 py-1 rounded-full"
+                        style={{
+                          background: "rgba(255,255,255,0.08)",
+                          color: "rgba(255,255,255,0.9)",
+                          border: "1px solid rgba(255,215,0,0.25)",
+                          backdropFilter: "blur(12px)",
+                        }}
+                      >
+                        <span>{chip.icon}</span>
+                        <span>{chip.label}</span>
+                      </span>
+                    ))}
+                  </motion.div>
+                </>
+              ) : (
+                <>
+                  <motion.div
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full mb-3 sm:mb-4 text-[11px] sm:text-xs font-bold"
+                    style={{
+                      background: "rgba(255,215,0,0.12)",
+                      border: "1px solid rgba(255,215,0,0.3)",
+                      color: "#FFD700",
+                    }}
+                  >
+                    <Sparkles size={12} />
+                    <span>Doorstep Laundry & Dry Clean</span>
+                  </motion.div>
+
+                  <motion.h1
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1, duration: 0.5 }}
+                    className="font-black leading-[1.1] text-white text-2xl sm:text-4xl md:text-5xl lg:text-[54px] tracking-tight"
+                  >
+                    Fresh Clothes.<br />
+                    <span style={{ color: "#FFD700" }}>Zero Effort.</span>
+                  </motion.h1>
+
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="mt-2.5 sm:mt-4 text-xs sm:text-sm lg:text-base leading-relaxed"
+                    style={{ color: "rgba(255,255,255,0.7)" }}
+                  >
+                    Choose your garments, select a convenient pickup slot, and relax while we take care of the rest.
+                  </motion.p>
+
+                  {/* Quick Trust Badges */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="flex flex-wrap items-center gap-2 mt-4 sm:mt-6"
+                  >
+                    {[
+                      { icon: "⚡", label: "24-48h Delivery" },
+                      { icon: "🛡️", label: "Fabric Care Guarantee" },
+                      { icon: "🧺", label: "Doorstep Pickup" },
+                    ].map((chip) => (
+                      <span
+                        key={chip.label}
+                        className="flex items-center gap-1 text-[11px] sm:text-xs font-semibold px-2.5 py-1 rounded-full"
+                        style={{
+                          background: "rgba(255,255,255,0.08)",
+                          color: "rgba(255,255,255,0.9)",
+                          border: "1px solid rgba(255,215,0,0.25)",
+                          backdropFilter: "blur(12px)",
+                        }}
+                      >
+                        <span>{chip.icon}</span>
+                        <span>{chip.label}</span>
+                      </span>
+                    ))}
+                  </motion.div>
+                </>
+              )}
             </div>
 
             {/* Right: stats strip — desktop only */}
@@ -383,8 +451,8 @@ export default function BookLaundry() {
               {(PRE_BOOKING_CONFIG.isEnabled
                 ? [
                     { val: "Batch 1", label: "Campus Launch", highlight: true },
-                    { val: "7 Nov", label: "Fixed Pickup", highlight: true },
-                    { val: "BIET", label: "Launch Campus", highlight: false },
+                    { val: "Scheduled", label: "Doorstep Pickup", highlight: true },
+                    { val: "BIET", label: "Campus Area", highlight: false },
                   ]
                 : [
                     { val: "1K+", label: "Happy Customers", highlight: false },
