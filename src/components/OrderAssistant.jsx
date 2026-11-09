@@ -788,7 +788,7 @@ Answer politely, concisely and helpfully in easy-to-understand Hinglish or Engli
       // 9. FABRIC SAFETY & GUARANTEE
       case "fabric_safety":
         return {
-          text: `🛡️ **Zusko Pure Fabric Care Guarantee**:\n\n1. **Individual Batches**: We never mix clothes from different customers.\n2. **Eco Detergents**: Gentle bio-enzymes that preserve fabric fibers & colors.\n3. **Anti-Bacterial Rinse**: 99.9% germ sanitization on every cycle.\n4. **Temperature Control**: Steam pressing tailored to delicate silks, woolens & linens.\n\nYour clothes are 100% safe with us! ✨`,
+          text: `🛡️ **Zusko Pure Fabric Care & Quality**:\n\n1. **Individual Batches**: We never mix clothes from different customers.\n2. **Eco Detergents**: Gentle bio-enzymes that preserve fabric fibers & colors.\n3. **Anti-Bacterial Rinse**: 99.9% germ sanitization on every cycle.\n4. **Temperature Control**: Steam pressing tailored to delicate silks, woolens & linens.\n\n⚠️ *Stain Notice: While we make every professional effort to treat and eliminate tough stains, 100% complete stain removal cannot be guaranteed due to stain age and delicate fabric preservation.*\n\nYour clothes are in safe hands! ✨`,
           followUpOptions: [
             { label: "🧺 Clothes in my order", query: "What clothes did I give?", id: "clothes_list" },
             { label: "📞 Call Customer Care", query: "Call customer care support", id: "call_support" },

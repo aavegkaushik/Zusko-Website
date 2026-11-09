@@ -527,7 +527,7 @@ const Services = () => {
             </div>
 
             <p className="text-xs text-gray-700 mt-4 leading-relaxed font-medium bg-white/70 p-3 rounded-xl border border-amber-200/80">
-              <strong>Garment Care Disclaimer:</strong> Customers must review their clothing care tags before selecting a service. Zusko cannot be held liable for damage, color bleed, or shrinkage caused by submitting dry-clean-only, silk, or wool garments for normal water wash.
+              <strong>Garment Care & Stain Disclaimer:</strong> Customers must review their clothing care tags before selecting a service. Zusko cannot be held liable for damage, color bleed, or shrinkage caused by submitting dry-clean-only, silk, or wool garments for normal water wash. Additionally, while our team applies professional spotting treatments and makes every possible effort to eliminate stains, 100% complete stain removal cannot be guaranteed due to stain age, prior exposure, and fabric preservation limits.
             </p>
           </div>
 

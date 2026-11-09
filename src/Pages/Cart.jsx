@@ -303,6 +303,9 @@ export default function Cart() {
                 <p className="text-[11px] text-gray-600 mt-1 leading-relaxed">
                   Zusko assumes no liability or responsibility for fabric damage, shrinkage, or color bleeding resulting from selecting an incompatible service (such as normal wash for dry-clean-only or delicate garments).
                 </p>
+                <p className="text-[11px] text-gray-700 mt-1.5 font-medium leading-relaxed pt-1.5 border-t border-amber-200/70">
+                  <strong>Stain Removal Disclaimer:</strong> While we use professional spotting agents and make every effort to eliminate stains, 100% complete stain removal cannot be guaranteed due to stain age, prior exposure, and delicate fabric preservation.
+                </p>
               </div>
             </div>
 

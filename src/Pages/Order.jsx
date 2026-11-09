@@ -790,13 +790,16 @@ export default function BookLaundry() {
                 </div>
                 <div>
                   <p className="text-[11px] font-black uppercase tracking-wider text-amber-950">
-                    Fabric Care Warning
+                    Fabric Care & Stain Notice
                   </p>
                   <p className="text-[11px] text-gray-800 font-semibold mt-1 leading-snug">
                     Please select services strictly according to your garment's <strong>Fabric Care Label</strong>.
                   </p>
                   <p className="text-[10px] text-gray-600 mt-1 leading-relaxed">
                     Zusko will not be held responsible for fabric damage, shrinkage, color bleeding, or degradation caused by choosing an incorrect service type (e.g., submitting dry-clean-only fabrics for normal wash).
+                  </p>
+                  <p className="text-[10px] text-gray-700 mt-1.5 font-medium leading-relaxed pt-1.5 border-t border-amber-200/60">
+                    <strong>Stain Removal Disclaimer:</strong> While we make every professional effort to treat and eliminate tough stains, 100% complete stain removal cannot be guaranteed due to stain age, prior exposure, and delicate fiber safety.
                   </p>
                 </div>
               </div>
@@ -1092,13 +1095,16 @@ export default function BookLaundry() {
               </div>
               <div className="min-w-0">
                 <p className="text-[11px] font-black text-amber-950 uppercase tracking-wide">
-                  Fabric Care Notice
+                  Fabric Care & Stain Notice
                 </p>
                 <p className="text-[11px] text-gray-800 font-semibold mt-0.5 leading-snug">
                   Select services strictly based on your garment's <strong>Fabric Care Label</strong>.
                 </p>
                 <p className="text-[10px] text-gray-600 mt-0.5 leading-relaxed">
                   Zusko will not be liable for damage, shrinking, or color bleeding resulting from inappropriate service selection.
+                </p>
+                <p className="text-[10px] text-gray-700 mt-1 font-medium leading-relaxed pt-1 border-t border-amber-200/60">
+                  <strong>Stain Disclaimer:</strong> Every effort is made to remove all stains, but 100% stain removal cannot be guaranteed.
                 </p>
               </div>
             </div>
@@ -1163,7 +1169,7 @@ export default function BookLaundry() {
                 <div className="flex items-center gap-2">
                   <span className="text-sm shrink-0">⚠️</span>
                   <span className="font-semibold text-gray-800">
-                    <strong className="text-gray-950 font-black">Fabric Care Policy:</strong> Always select the service as per your garment's care tag. Incorrect service choice (e.g., washing dry-clean only fabric) is solely at customer's risk.
+                    <strong className="text-gray-950 font-black">Fabric Care & Stain Policy:</strong> Select services as per your garment's care tag. While we make every professional effort to remove tough stains, 100% complete stain removal is not guaranteed.
                   </span>
                 </div>
               </div>

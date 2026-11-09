@@ -2523,13 +2523,13 @@ export default function Checkout() {
               </div>
 
               <div className="px-5 pb-5">
-                {/* Fabric Care Agreement Notice */}
-                {/* <div className="mb-3.5 p-3 rounded-xl bg-amber-50/90 border border-amber-200/90 flex items-start gap-2 text-[11px] text-gray-700 leading-snug">
+                {/* Fabric Care & Stain Agreement Notice */}
+                <div className="mb-3.5 p-3 rounded-xl bg-amber-50/90 border border-amber-200/90 flex items-start gap-2 text-[11px] text-gray-700 leading-snug">
                   <span className="text-sm shrink-0 mt-0.5">⚠️</span>
                   <div>
-                    <strong className="text-gray-950 font-bold">Fabric Care Policy:</strong> Please select services strictly in accordance with your garment's care label. Zusko will not be liable for garment damage, shrinkage, or color bleeding caused by incorrect service selection.
+                    <strong className="text-gray-950 font-bold">Fabric Care & Stain Notice:</strong> Please ensure services align with your garment's care tag. While we make every professional effort to treat and eliminate tough stains, 100% complete stain removal cannot be guaranteed.
                   </div>
-                </div> */}
+                </div>
 
                 <motion.button
                   whileHover={{

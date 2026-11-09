@@ -107,6 +107,9 @@ const TermsAndConditions = () => {
           <p className="mb-2">
             <strong>Disclaimer of Damage / Shrinkage:</strong> Zusko shall not be held liable or responsible for any damage, fabric degradation, shrinkage, color bleeding, melting, or texture distortion resulting from a service requested by the customer that contradicts the garment's wash care label (for example, selecting normal water wash or ironing for dry-clean-only, pure silk, zari, or wool garments).
           </p>
+          <p className="mb-2">
+            <strong>Stain Removal Disclaimer & Limitations:</strong> Zusko uses specialized spotting agents and high-grade cleaning processes. We make every reasonable, professional effort to treat and eliminate tough stains. However, 100% complete stain removal is not guaranteed. Deeply set, oxidized, heat-treated, aged, or chemically reactive stains (including rust, permanent dyes, ink, and bleach marks) may not be entirely removable without compromising the fabric fiber or color integrity.
+          </p>
           <p>
             Zusko shall also not be liable for damages caused by pre-existing conditions, manufacturer defects, normal wear and tear, or weak fabrics. Any verified claim under our direct operational control will be limited to a maximum of five times the service cost of the individual affected item.
           </p>
