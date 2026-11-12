@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
@@ -19,18 +19,42 @@ import {
   Copy,
   Check,
   Navigation,
+  PhoneCall,
+  UserCheck,
+  PackageCheck,
+  Box,
+  CheckCircle2,
 } from "lucide-react";
 import API from "../config/api";
 import OrderAssistant from "../components/OrderAssistant";
 
-const STEPS = [
-  { key: "pending", label: "Placed", icon: Package },
-  { key: "picked-up", label: "Picked Up", icon: Package },
-  { key: "in-progress", label: "Processing", icon: Truck },
-  { key: "ready-for-delivery", label: "Ready", icon: CheckCircle },
-  { key: "out-for-delivery", label: "On the Way", icon: Truck },
-  { key: "completed", label: "Delivered", icon: CheckCircle },
+const MILESTONE_STEPS = [
+  { key: "placed", label: "Order Placed", icon: Package },
+  { key: "pickup_assigned", label: "Pickup Assigned", icon: UserCheck },
+  { key: "picked_up", label: "Pickup Done", icon: PackageCheck },
+  { key: "processing", label: "Processing", icon: Sparkles },
+  { key: "ready", label: "Ready", icon: Box },
+  { key: "delivery_assigned", label: "Delivery Assigned", icon: UserCheck },
+  { key: "out_for_delivery", label: "On the Way", icon: Truck },
+  { key: "delivered", label: "Delivered", icon: CheckCircle2 },
 ];
+
+function getMilestoneIndex(order) {
+  if (!order) return 0;
+  const st = (order.status || "").toLowerCase();
+
+  if (st === "completed") return 7;
+  if (st === "out-for-delivery") return 6;
+  if (st === "ready-for-delivery") {
+    if (order.deliveryPartner?.partner?.fullName) return 5;
+    return 4;
+  }
+  if (st === "in-progress") return 3;
+  if (st === "picked-up") return 2;
+  // pending or accepted
+  if (order.pickupPartner?.partner?.fullName) return 1;
+  return 0;
+}
 
 const STATUS = {
   "pending": {
@@ -134,6 +158,241 @@ function InfoRow({ label, children, icon: Icon }) {
   );
 }
 
+function PartnerAvatar({ avatar, name }) {
+  const [imageError, setImageError] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+    setLoaded(false);
+  }, [avatar]);
+
+  const hasValidAvatar = Boolean(avatar && !imageError);
+
+  return (
+    <motion.div
+      initial={{ scale: 0.85, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1, y: [0, -4, 0] }}
+      transition={{
+        y: { duration: 3.2, repeat: Infinity, ease: "easeInOut" },
+        scale: { duration: 0.35 },
+        opacity: { duration: 0.35 },
+      }}
+      className="relative shrink-0"
+    >
+      {/* Outer subtle Zusko Yellow Glow */}
+      <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-[#FFD700] via-amber-300 to-yellow-500 opacity-70 blur-[6px] animate-pulse" />
+
+      {/* Profile Container */}
+      <div className="relative flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center overflow-hidden rounded-full border-2 border-[#FFD700] bg-neutral-900 shadow-md">
+        {hasValidAvatar ? (
+          <>
+            {!loaded && (
+              <div className="absolute inset-0 flex items-center justify-center bg-neutral-800">
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#FFD700] border-t-transparent" />
+              </div>
+            )}
+            <img
+              src={avatar}
+              alt={name || "Delivery Partner"}
+              onLoad={() => setLoaded(true)}
+              onError={() => setImageError(true)}
+              className={`h-full w-full object-cover transition-opacity duration-300 ${
+                loaded ? "opacity-100" : "opacity-0"
+              }`}
+            />
+          </>
+        ) : (
+          /* Premium Branded Zusko Delivery Partner SVG Illustration Fallback */
+          <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-[#1e1e1e] via-[#141414] to-black p-2 text-[#FFD700]">
+            <svg
+              viewBox="0 0 48 48"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-10 w-10 sm:h-12 sm:w-12 text-[#FFD700]"
+            >
+              <path
+                d="M12 21C12 14.3726 17.3726 9 24 9C30.6274 9 36 14.3726 36 21V23H12V21Z"
+                fill="#FFD700"
+              />
+              <path
+                d="M14 23H34C34 25.2091 32.2091 27 30 27H18C15.7909 27 14 25.2091 14 23Z"
+                fill="#111111"
+              />
+              <path
+                d="M17 27C17 30.866 20.134 34 24 34C27.866 34 31 30.866 31 27"
+                stroke="#FFD700"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M9 41C9 36.5817 12.5817 33 17 33H31C35.4183 33 39 36.5817 39 41"
+                stroke="#FFD700"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+              <circle cx="24" cy="16" r="2.5" fill="#111111" />
+            </svg>
+          </div>
+        )}
+      </div>
+
+      <span className="absolute bottom-0.5 right-0.5 h-4 w-4 rounded-full border-2 border-white bg-green-500 shadow-sm" />
+    </motion.div>
+  );
+}
+
+function PartnerSection({ type, partnerData, orderStatus }) {
+  const isPickup = type === "pickup";
+  const title = isPickup ? "YOUR PICKUP PARTNER" : "YOUR DELIVERY PARTNER";
+  const partner = partnerData?.partner;
+  const isAssigned = Boolean(partner && partner.fullName);
+
+  const cleanPhone = partner?.mobileNumber ? String(partner.mobileNumber).replace(/[^\d+]/g, "") : "";
+  const telHref = cleanPhone
+    ? `tel:${cleanPhone.startsWith("+") ? cleanPhone : "+91" + cleanPhone.replace(/^0+/, "")}`
+    : null;
+
+  // Unassigned messages
+  let unassignedNotice = "";
+  if (!isAssigned) {
+    if (isPickup) {
+      unassignedNotice = "Your pickup partner will be assigned shortly.";
+    } else {
+      if (orderStatus === "ready-for-delivery" || orderStatus === "out-for-delivery") {
+        unassignedNotice = "Your delivery partner will be assigned shortly.";
+      } else {
+        unassignedNotice = "Delivery partner will be assigned once laundry processing is complete.";
+      }
+    }
+  }
+
+  // Determine partner status badge
+  let badgeText = "Assigned";
+  let badgeColor = isPickup
+    ? "bg-yellow-100 text-yellow-800 border-yellow-200"
+    : "bg-emerald-100 text-emerald-800 border-emerald-200";
+
+  const isPickupDone =
+    partnerData?.status === "completed" ||
+    (isPickup && ["picked-up", "in-progress", "ready-for-delivery", "out-for-delivery", "completed"].includes(orderStatus));
+
+  const isDeliveryDone =
+    partnerData?.status === "completed" ||
+    (!isPickup && orderStatus === "completed");
+
+  if (isPickup && isPickupDone) {
+    badgeText = "Pickup Completed";
+    badgeColor = "bg-green-100 text-green-700 border-green-200";
+  } else if (!isPickup && isDeliveryDone) {
+    badgeText = "Delivered";
+    badgeColor = "bg-green-100 text-green-700 border-green-200";
+  } else if (partnerData?.status === "on-the-way" || (!isPickup && orderStatus === "out-for-delivery")) {
+    badgeText = "On the Way";
+    badgeColor = "bg-orange-100 text-orange-800 border-orange-200";
+  }
+
+  return (
+    <GlassCard accent={isPickup ? "from-yellow-400 to-amber-500" : "from-emerald-400 to-teal-500"}>
+      <div className="p-5 sm:p-7">
+        {/* Card Header */}
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div
+              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${
+                isPickup ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"
+              }`}
+            >
+              <Truck size={21} />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-gray-400 sm:text-xs">
+                {title}
+              </p>
+              <h3 className="text-base font-black text-gray-900 sm:text-lg">
+                {isPickup ? "Laundry Collection" : "Laundry Delivery"}
+              </h3>
+            </div>
+          </div>
+
+          {isAssigned && (
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-black ${badgeColor}`}
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-current" />
+              {badgeText}
+            </span>
+          )}
+        </div>
+
+        {/* Card Body */}
+        {isAssigned ? (
+          <div className="space-y-4">
+            <div className="flex flex-col gap-4 rounded-2xl border border-gray-100 bg-white/85 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3.5 sm:gap-4">
+                <PartnerAvatar avatar={partner.avatar} name={partner.fullName} />
+                <div className="min-w-0">
+                  <p className="truncate text-base font-black text-gray-950 sm:text-lg">
+                    {partner.fullName}
+                  </p>
+                  <p className="mt-0.5 text-xs font-bold text-gray-500 sm:text-sm">
+                    {partner.mobileNumber}
+                  </p>
+                </div>
+              </div>
+
+              {telHref && (
+                <motion.a
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.96 }}
+                  href={telHref}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#0A0A0A] to-[#222222] px-4 py-3 text-xs font-black text-white shadow-md transition-all hover:shadow-lg sm:text-sm"
+                >
+                  <PhoneCall size={16} className="text-[#FFD700]" />
+                  Call Partner
+                </motion.a>
+              )}
+            </div>
+
+            {/* Delivery Out for Delivery Banner */}
+            {!isPickup && orderStatus === "out-for-delivery" && (
+              <motion.div
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-xs font-bold text-amber-900"
+              >
+                <Sparkles size={15} className="shrink-0 text-amber-600" />
+                <span>Your fresh laundry is on its way!</span>
+              </motion.div>
+            )}
+
+            {/* Pickup Done Banner */}
+            {isPickup && isPickupDone && (
+              <div className="flex items-center gap-2 rounded-xl border border-green-200 bg-green-50/70 px-3.5 py-2 text-xs font-semibold text-green-800">
+                <CheckCircle size={14} className="shrink-0 text-green-600" />
+                <span>Pickup completed. Partner details saved in order history.</span>
+              </div>
+            )}
+
+            {/* Delivery Done Banner */}
+            {!isPickup && isDeliveryDone && (
+              <div className="flex items-center gap-2 rounded-xl border border-green-200 bg-green-50/70 px-3.5 py-2 text-xs font-semibold text-green-800">
+                <CheckCircle size={14} className="shrink-0 text-green-600" />
+                <span>Delivery completed successfully.</span>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 rounded-2xl border border-dashed border-gray-200 bg-gray-50/80 p-5 text-gray-500">
+            <Clock size={20} className="shrink-0 text-gray-400" />
+            <p className="text-xs font-semibold sm:text-sm">{unassignedNotice}</p>
+          </div>
+        )}
+      </div>
+    </GlassCard>
+  );
+}
+
 export default function EnhancedTrackOrder() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -142,23 +401,39 @@ export default function EnhancedTrackOrder() {
   const [loading, setLoading] = useState(true);
   const [showHelp, setShowHelp] = useState(false);
   const [copied, setCopied] = useState(false);
+  const isFetchingRef = useRef(false);
 
-  const fetchOrder = async () => {
+  const fetchOrder = async (isInitial = false) => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
     try {
-      const { data } = await API.get(`/orders/${id}`);
-      setOrder(data.data);
+      let res;
+      try {
+        res = await API.get(`/orders/${id}/tracking`);
+      } catch {
+        res = await API.get(`/orders/${id}`);
+      }
+      if (res?.data?.data) {
+        setOrder(res.data.data);
+      }
     } catch (error) {
-      console.error(error);
+      console.error("Error fetching order tracking:", error);
     } finally {
-      setLoading(false);
+      isFetchingRef.current = false;
+      if (isInitial) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchOrder();
-    const interval = setInterval(fetchOrder, 30000);
+    fetchOrder(true);
+    const interval = setInterval(() => {
+      if (order?.status === "completed" || order?.status === "cancelled") {
+        return;
+      }
+      fetchOrder(false);
+    }, 15000);
     return () => clearInterval(interval);
-  }, [id]);
+  }, [id, order?.status]);
 
   const handlePayPendingOrder = async () => {
     try {
@@ -280,16 +555,13 @@ export default function EnhancedTrackOrder() {
     );
   }
 
-  const normalizedStatus = order.status?.toLowerCase();
-  const currentStep =
-    normalizedStatus === "accepted" || normalizedStatus === "pending"
-      ? 0
-      : STEPS.findIndex((step) => step.key === normalizedStatus);
+  const normalizedStatus = order.status?.toLowerCase() || "pending";
+  const currentMilestoneIndex = getMilestoneIndex(order);
   const status = STATUS[normalizedStatus] || STATUS[order.status] || STATUS.pending;
-  const progress =
-    currentStep >= 0
-      ? Math.max(5, ((currentStep + 1) / STEPS.length) * 100)
-      : 0;
+  const progress = Math.min(
+    100,
+    Math.max(10, ((currentMilestoneIndex + 1) / MILESTONE_STEPS.length) * 100)
+  );
 
   const itemsSubtotal =
     order.items?.reduce((acc, item) => acc + (item.price || 0) * (item.qty || 1), 0) || 0;
@@ -422,35 +694,47 @@ export default function EnhancedTrackOrder() {
             </div>
 
             <div className="relative">
-              <div className="absolute left-[8%] right-[8%] top-5 h-1 rounded-full bg-gray-200" />
+              <div className="absolute left-[5%] right-[5%] top-5 hidden sm:block h-1 rounded-full bg-gray-200" />
               <motion.div
                 initial={{ width: 0 }}
-                animate={{ width: `calc(${progress * 0.84}% )` }}
+                animate={{ width: `calc(${progress * 0.9}% )` }}
                 transition={{ duration: 1, delay: 0.25 }}
-                className={`absolute left-[8%] top-5 h-1 rounded-full bg-gradient-to-r ${status.gradient}`}
+                className={`absolute left-[5%] top-5 hidden sm:block h-1 rounded-full bg-gradient-to-r ${status.gradient}`}
               />
 
-              <div className="relative grid grid-cols-6 gap-1">
-                {STEPS.map((step, index) => {
-                  const completed = index <= currentStep;
-                  const active = index === currentStep;
+              <div className="relative grid grid-cols-4 gap-y-4 sm:grid-cols-8 sm:gap-1">
+                {MILESTONE_STEPS.map((step, index) => {
+                  const completed = index <= currentMilestoneIndex;
+                  const active = index === currentMilestoneIndex;
                   const Icon = step.icon;
 
                   return (
-                    <div key={step.key} className="flex min-w-0 flex-col items-center">
+                    <div key={step.key} className="flex min-w-0 flex-col items-center text-center">
                       <motion.div
                         initial={{ scale: 0.7, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        transition={{ delay: 0.2 + index * 0.08 }}
-                        className={`flex h-10 w-10 items-center justify-center rounded-full border-4 border-white text-white shadow-md transition-all sm:h-12 sm:w-12 ${
+                        transition={{ delay: 0.15 + index * 0.05 }}
+                        className={`flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full border-4 border-white text-white shadow-md transition-all ${
                           completed
                             ? `bg-gradient-to-br ${status.gradient}`
                             : "bg-gray-200 text-gray-400"
-                        } ${active ? "ring-4 ring-yellow-400/20" : ""}`}
+                        } ${active ? "ring-4 ring-yellow-400/30 scale-105" : ""}`}
                       >
-                        {completed ? <CheckCircle size={20} /> : <Icon size={18} />}
+                        {completed && index < currentMilestoneIndex ? (
+                          <CheckCircle size={18} />
+                        ) : (
+                          <Icon size={16} />
+                        )}
                       </motion.div>
-                      <span className="mt-2 max-w-[60px] text-center text-[9px] font-bold leading-3 text-gray-600 sm:max-w-[85px] sm:text-[11px] sm:leading-4">
+                      <span
+                        className={`mt-2 max-w-[70px] sm:max-w-[85px] text-[10px] sm:text-[11px] font-bold leading-3 ${
+                          active
+                            ? "text-gray-950 font-black"
+                            : completed
+                            ? "text-gray-800"
+                            : "text-gray-400"
+                        }`}
+                      >
                         {step.label}
                       </span>
                     </div>
@@ -468,6 +752,21 @@ export default function EnhancedTrackOrder() {
           variants={stagger}
           className="space-y-5 sm:space-y-6"
         >
+          {/* Pickup & Delivery Partner Cards */}
+          {order.status !== "cancelled" && (
+            <div className="grid gap-5 lg:grid-cols-2">
+              <PartnerSection
+                type="pickup"
+                partnerData={order.pickupPartner}
+                orderStatus={normalizedStatus}
+              />
+              <PartnerSection
+                type="delivery"
+                partnerData={order.deliveryPartner}
+                orderStatus={normalizedStatus}
+              />
+            </div>
+          )}
           {/* Pickup + Address */}
           <div className="grid gap-5 lg:grid-cols-2">
             <GlassCard accent="from-yellow-400 to-orange-400">
@@ -731,27 +1030,7 @@ export default function EnhancedTrackOrder() {
             </GlassCard>
           )}
 
-          {/* Additional info */}
-          <GlassCard accent="from-indigo-400 to-blue-400">
-            <div className="p-5 sm:p-7">
-              <div className="mb-5 flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-100">
-                  <Navigation className="text-indigo-600" size={21} />
-                </div>
-                <h3 className="text-lg font-black text-gray-900">Additional Information</h3>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <InfoRow label="Estimated Delivery" icon={Calendar}>
-                  {order.estimatedDelivery
-                    ? new Date(order.estimatedDelivery).toLocaleString()
-                    : "Not Available"}
-                </InfoRow>
-                <InfoRow label="Delivery Agent" icon={Phone}>
-                  {order.deliveryAgent?.name || "Not Assigned"}
-                </InfoRow>
-              </div>
-            </div>
-          </GlassCard>
+         
 
           {/* Timeline */}
           <GlassCard accent="from-orange-400 to-red-400">
